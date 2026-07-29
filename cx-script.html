@@ -1,0 +1,200 @@
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+
+var contentRoot=document.getElementById('voice');
+if(!contentRoot)return;
+var voiceWidget=document.querySelector('[data-id="fb8087a"]');
+if(!voiceWidget)return;
+
+var VOICES=[{name:'Sonia',gender:'Female'},{name:'Jenny',gender:'Female'},{name:'Aria',gender:'Female'},{name:'David',gender:'Male'},{name:'Guy',gender:'Male'}];
+var SPEEDS=[0.75,1,1.25,1.5,1.75,2];
+var selectedVoiceName='Sonia';
+var rate=1;
+
+var voicesReady=false;
+function loadVoices(){var v=speechSynthesis.getVoices();if(v.length>0)voicesReady=true}
+loadVoices();
+if(speechSynthesis.onvoiceschanged!==undefined)speechSynthesis.onvoiceschanged=loadVoices;
+
+var toolbar=document.createElement('div');
+toolbar.className='cx-toolbar';
+toolbar.innerHTML='<div class="cx-toolbar-row"><button class="cx-tb-btn primary" id="cxPlay" aria-label="Play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button><button class="cx-tb-btn" id="cxPause" aria-label="Pause"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg></button><button class="cx-tb-btn" id="cxStop" aria-label="Stop"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12"/></svg></button><div class="cx-tb-divider"></div><div style="position:relative"><button class="cx-tb-voice" id="cxVoiceTrigger"><span id="cxVoiceLabel">Sonia</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="cx-voice-panel" id="cxVoicePanel"></div></div><div class="cx-tb-divider"></div><button class="cx-tb-speed" id="cxSpeedBtn">1x</button></div><div class="cx-progress-track"><div class="cx-progress-fill" id="cxProgressFill"></div></div>';
+document.body.appendChild(toolbar);
+
+var progressFill=toolbar.querySelector('#cxProgressFill');
+var speedBtn=toolbar.querySelector('#cxSpeedBtn');
+speedBtn.addEventListener('click',function(){
+var idx=SPEEDS.indexOf(rate);
+rate=SPEEDS[(idx+1)%SPEEDS.length];
+speedBtn.textContent=rate+'x';
+if(speaking&&!paused){speechSynthesis.cancel();speakNext()}
+});
+
+var voicePanel=toolbar.querySelector('#cxVoicePanel');
+var vpHTML='';
+for(var v=0;v<VOICES.length;v++){
+  vpHTML+='<div class="cx-voice-opt'+(VOICES[v].name===selectedVoiceName?' selected':'')+'" data-voice="'+VOICES[v].name+'">'+VOICES[v].name+' <span style="opacity:.5;font-size:11px">'+VOICES[v].gender+'</span></div>';
+}
+voicePanel.innerHTML=vpHTML;
+
+toolbar.querySelector('#cxVoiceTrigger').addEventListener('click',function(e){
+  e.stopPropagation();voicePanel.classList.toggle('active')
+});
+voicePanel.querySelectorAll('.cx-voice-opt').forEach(function(opt){
+  opt.addEventListener('click',function(){
+    selectedVoiceName=this.dataset.voice;
+    toolbar.querySelector('#cxVoiceLabel').textContent=selectedVoiceName;
+    voicePanel.querySelectorAll('.cx-voice-opt').forEach(function(o){o.classList.remove('selected')});
+    this.classList.add('selected');
+    voicePanel.classList.remove('active');
+  });
+});
+
+voiceWidget.addEventListener('click',function(e){e.stopPropagation();toolbar.classList.toggle('active')});
+document.addEventListener('click',function(e){
+  if(!toolbar.contains(e.target)&&!voiceWidget.contains(e.target)){
+    toolbar.classList.remove('active');voicePanel.classList.remove('active')
+  }
+});
+
+function getVoiceObj(){
+  var all=speechSynthesis.getVoices();
+  if(!all.length)return null;
+  var target=selectedVoiceName.toLowerCase();
+  var found=all.find(function(v){return v.name.toLowerCase()===target});
+  if(found)return found;
+  found=all.find(function(v){return v.name.toLowerCase().indexOf(target)!==-1});
+  if(found)return found;
+  var langMatch=all.find(function(v){return v.lang.indexOf('en')!==-1});
+  return langMatch||all[0];
+}
+
+var queue=[],ci=0,speaking=false,paused=false;
+
+function buildQueue(){
+  queue=[];
+  var seen=[];
+  function hasSeen(el){for(var s=0;s<seen.length;s++){if(seen[s]===el)return true}return false}
+  function walk(node){
+    if(node.nodeType===3){
+      var t=node.textContent.trim();
+      if(t.length>1){
+        var parent=node.parentElement;
+        if(parent&&!hasSeen(parent)&&parent.offsetParent!==null){
+          var tag=parent.tagName;
+          if(tag!=='SCRIPT'&&tag!=='STYLE'&&tag!=='BUTTON'&&tag!=='NAV'&&tag!=='SELECT'&&tag!=='INPUT'){
+            seen.push(parent);
+            queue.push({element:parent,text:t});
+          }
+        }
+      }
+      return;
+    }
+    if(node.nodeType!==1)return;
+    var skip={SCRIPT:1,STYLE:1,BUTTON:1,NAV:1,SELECT:1,INPUT:1};
+    if(skip[node.tagName])return;
+    for(var c=node.firstChild;c;c=c.nextSibling)walk(c);
+  }
+  walk(contentRoot);
+}
+
+function speakNext(){
+  if(!speaking)return;
+  if(ci>=queue.length){stop();return}
+  var item=queue[ci];
+  document.querySelectorAll('.tts-active').forEach(function(e){e.classList.remove('tts-active')});
+  item.element.classList.add('tts-active');
+  item.element.scrollIntoView({behavior:'smooth',block:'center'});
+  progressFill.style.width=queue.length?((ci/queue.length)*100)+'%':'0%';
+  var u=new SpeechSynthesisUtterance(item.text);
+  var voice=getVoiceObj();
+  if(voice)u.voice=voice;
+  u.rate=rate;
+  u.onerror=function(){ci++;speakNext()};
+  u.onend=function(){ci++;speakNext()};
+  speechSynthesis.speak(u);
+}
+
+function play(){
+  speechSynthesis.cancel();buildQueue();
+  if(!queue.length)return;
+  ci=0;paused=false;speaking=true;
+  voiceWidget.classList.add('is-playing');
+  speakNext();
+}
+function pause(){if(speaking){speechSynthesis.pause();paused=true}}
+function stop(){
+  speechSynthesis.cancel();
+  speaking=false;paused=false;ci=0;
+  voiceWidget.classList.remove('is-playing');
+  progressFill.style.width='0%';
+  document.querySelectorAll('.tts-active').forEach(function(e){e.classList.remove('tts-active')});
+}
+
+toolbar.querySelector('#cxPlay').addEventListener('click',function(){
+  if(paused){speechSynthesis.resume();paused=false}else{play()}
+});
+toolbar.querySelector('#cxPause').addEventListener('click',pause);
+toolbar.querySelector('#cxStop').addEventListener('click',stop);
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){stop();toolbar.classList.remove('active')}
+});
+
+function openModal(html){
+  var o=document.createElement('div');
+  o.className='cx-modal-overlay';
+  o.innerHTML='<div class="cx-modal">'+html+'</div>';
+  document.body.appendChild(o);
+  o.addEventListener('click',function(e){if(e.target===o)cl()});
+  o.querySelector('.cx-modal-close').addEventListener('click',cl);
+  function esc(e){if(e.key==='Escape')cl()}
+  document.addEventListener('keydown',esc);
+  function cl(){o.remove();document.removeEventListener('keydown',esc)}
+  return o;
+}
+
+var shareBtn=document.querySelector('.share');
+if(shareBtn){
+  shareBtn.addEventListener('click',function(){
+    var url=window.location.href;
+    var sh='<div class="cx-m-header"><div><h3 class="cx-m-title">Share</h3><p class="cx-m-sub">Spread the word</p></div><button class="cx-modal-close">&times;</button></div><div class="cx-m-body"><div class="cx-share-grid">';
+    sh+='<a class="cx-share-btn linkedin" target="_blank" rel="noopener" href="https://www.linkedin.com/sharing/share-offsite/?url='+encodeURIComponent(url)+'"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.38-1.85 3.61 0 4.28 2.38 4.28 5.47v6.27zM5.34 7.43a2.07 2.07 0 1 1 0-4.13 2.07 2.07 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>LinkedIn</a>';
+    sh+='<a class="cx-share-btn x" target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?url='+encodeURIComponent(url)+'"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 2H22l-7.3 8.3L23.3 22h-6.8l-5.3-6.9L4.9 22H1.8l7.8-8.9L1 2h6.9l4.8 6.3L18.9 2zm-1.2 18h1.9L7.4 4H5.4l12.3 16z"/></svg>X</a>';
+    sh+='<a class="cx-share-btn whatsapp" target="_blank" rel="noopener" href="https://wa.me/?text='+encodeURIComponent(url)+'"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 20z"/></svg>WhatsApp</a>';
+    sh+='<a class="cx-share-btn email" href="mailto:?subject=Check%20this%20out&body='+encodeURIComponent(url)+'"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>Email</a>';
+    sh+='<a class="cx-share-btn telegram" target="_blank" rel="noopener" href="https://t.me/share/url?url='+encodeURIComponent(url)+'"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/></svg>Telegram</a>';
+    sh+='<a class="cx-share-btn copy-link" id="cxShareCopy" href="javascript:void(0)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Copy link</a>';
+    sh+='</div><div class="cx-divider-line"></div><div class="cx-link-box"><input type="text" readonly value="'+url+'" class="cx-link-input" id="cxLinkInput"><button class="cx-link-copy" id="cxLinkCopy">Copy</button></div></div>';
+    var o=openModal(sh);
+    o.querySelector('#cxLinkCopy').addEventListener('click',function(){
+      var inp=o.querySelector('#cxLinkInput');inp.select();var b=this;
+      navigator.clipboard.writeText(inp.value).then(function(){b.textContent='Copied!';setTimeout(function(){b.textContent='Copy'},1400)});
+    });
+    o.querySelector('#cxShareCopy').addEventListener('click',function(){
+      var b=this;
+      navigator.clipboard.writeText(url).then(function(){
+        b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Copied!';
+        setTimeout(function(){b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Copy link'},1400);
+    });
+  });
+}
+
+var summaryBtn=document.querySelector('.summary');
+if(summaryBtn){
+  summaryBtn.addEventListener('click',function(e){
+    e.preventDefault();
+    var provided=document.getElementById('page-summary');
+    var items;
+    if(provided){
+      items=[].slice.call(provided.querySelectorAll('li,p')).map(function(el){return el.textContent.trim()}).filter(Boolean);
+    }else{
+      items=[].slice.call(contentRoot.querySelectorAll('h2')).map(function(h){return h.textContent.trim()});
+    }
+    var listHTML='';
+    for(var x=0;x<items.length;x++){listHTML+='<li>'+items[x]+'</li>'}
+    openModal('<div class="cx-m-header"><div><h3 class="cx-m-title">Quick Summary</h3><p class="cx-m-sub">'+items.length+' key points</p></div><button class="cx-modal-close">&times;</button></div><div class="cx-m-body"><div class="cx-sum-head"><span class="cx-sum-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h10M4 18h14"/></svg>'+items.length+' sections</span></div><ul class="cx-summary-list">'+listHTML+'</ul></div>');
+  });
+}
+
+});
+</script>

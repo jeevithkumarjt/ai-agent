@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tryvium - Widget Preview</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f7f7f8;color:#333;line-height:1.7}
+
+/* Nav */
+.demo-nav{background:#fff;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 4px rgba(0,0,0,.06);position:sticky;top:0;z-index:100}
+.demo-logo{font-size:20px;font-weight:700;background:linear-gradient(135deg,#F26E26,#FBAB18);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.demo-nav-actions{display:flex;gap:10px}
+.demo-nav-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border:none;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;transition:.15s}
+.demo-nav-btn svg{width:15px;height:15px}
+.demo-nav-btn.share{background:#f3f3f3;color:#444}
+.demo-nav-btn.share:hover{background:#e8e8e8}
+.demo-nav-btn.summary{background:#f3f3f3;color:#444}
+.demo-nav-btn.summary:hover{background:#e8e8e8}
+.demo-nav-btn.voice{background:linear-gradient(135deg,#F26E26,#FBAB18);color:#fff}
+.demo-nav-btn.voice:hover{opacity:.9}
+
+/* Content */
+.demo-wrap{max-width:740px;margin:32px auto;padding:0 20px}
+.demo-article{background:#fff;border-radius:16px;padding:44px;box-shadow:0 2px 12px rgba(0,0,0,.04)}
+.demo-article h1{font-size:30px;font-weight:700;color:#111;margin-bottom:6px}
+.demo-meta{font-size:13px;color:#aaa;margin-bottom:28px}
+.demo-article h2{font-size:20px;font-weight:600;color:#111;margin:26px 0 10px}
+.demo-article p{font-size:15px;color:#555;margin-bottom:14px}
+.demo-article ul{margin:0 0 14px 20px}
+.demo-article li{font-size:15px;color:#555;margin-bottom:5px}
+.demo-article blockquote{margin:18px 0;padding:14px 18px;border-left:3px solid #FBAB18;background:#FFF8F0;border-radius:0 10px 10px 0;font-style:italic;color:#666}
+
+/* Widget labels */
+.preview-label{text-align:center;margin:20px auto 0;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:#bbb;font-weight:600}
+
+/* ===== ALL WIDGET STYLES ===== */
+.voice{position:relative!important;overflow:visible!important}
+.voice .elementor-icon{transition:.15s}
+.voice:hover .elementor-icon{border-color:#F26E26!important}
+.voice.is-playing .elementor-icon{background:linear-gradient(135deg,#F26E26,#FBAB18)!important;border-color:transparent!important}
+.voice.is-playing .elementor-icon svg path{stroke:#fff!important}
+.elementor-element:has(> .voice){overflow:visible!important}
+.cx-toolbar{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:none;flex-direction:column;align-items:stretch;background:#1a1a1a;border-radius:22px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:99999;font-family:-apple-system,BlinkMacSystemFont,sans-serif}
+.cx-toolbar.active{display:flex}
+.cx-toolbar-row{display:flex;align-items:center;gap:2px}
+.cx-tb-btn{width:34px;height:34px;border:none;border-radius:50%;background:transparent;color:#ccc;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;flex-shrink:0;padding:0}
+.cx-tb-btn svg{width:14px;height:14px}
+.cx-tb-btn:hover{background:rgba(255,255,255,.1);color:#fff}
+.cx-tb-btn.primary{background:linear-gradient(135deg,#F26E26,#FBAB18);color:#fff;width:36px;height:36px}
+.cx-tb-btn.primary:hover{opacity:.9}
+.cx-tb-divider{width:1px;height:18px;background:rgba(255,255,255,.15);margin:0 4px;flex-shrink:0}
+.cx-tb-voice{display:flex;align-items:center;gap:4px;border:none;background:transparent;color:#ddd;font-size:12px;padding:6px 10px;border-radius:20px;cursor:pointer;white-space:nowrap}
+.cx-tb-voice:hover{background:rgba(255,255,255,.1)}
+.cx-tb-voice svg{width:12px;height:12px}
+.cx-tb-speed{border:none;background:transparent;color:#ddd;font-size:11px;padding:6px 8px;border-radius:20px;cursor:pointer;flex-shrink:0}
+.cx-tb-speed:hover{background:rgba(255,255,255,.1)}
+.cx-progress-track{height:3px;background:rgba(255,255,255,.12);border-radius:2px;margin-top:6px;overflow:hidden}
+.cx-progress-fill{height:100%;background:linear-gradient(135deg,#F26E26,#FBAB18);width:0%;transition:width .25s ease}
+.cx-voice-panel{position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);background:#1a1a1a;border-radius:12px;padding:6px;width:170px;box-shadow:0 8px 24px rgba(0,0,0,.25);display:none}
+.cx-voice-panel.active{display:block}
+.cx-voice-opt{padding:9px 12px;border-radius:8px;font-size:13px;color:#ddd;cursor:pointer;transition:.1s}
+.cx-voice-opt:hover{background:rgba(255,255,255,.08)}
+.cx-voice-opt.selected{background:linear-gradient(135deg,#F26E26,#FBAB18);color:#fff;font-weight:500}
+.cx-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:100000;padding:20px;backdrop-filter:blur(4px)}
+.cx-modal{background:#fff;border-radius:16px;max-width:380px;width:100%;position:relative;max-height:80vh;overflow:hidden;animation:cxFade .2s cubic-bezier(.16,1,.3,1);box-shadow:0 24px 60px rgba(0,0,0,.18)}
+@keyframes cxFade{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.cx-m-header{padding:20px 22px 16px;display:flex;align-items:center;justify-content:space-between}
+.cx-m-title{margin:0;font-size:16px;font-weight:700;color:#1a1a1a}
+.cx-m-sub{margin:0;font-size:12px;color:#999;font-weight:400}
+.cx-modal-close{width:28px;height:28px;border-radius:8px;border:none;background:#f5f5f5;color:#666;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;flex-shrink:0}
+.cx-modal-close:hover{background:#eee;color:#333}
+.cx-m-body{padding:0 22px 22px}
+.cx-share-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.cx-share-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:14px 8px;border-radius:12px;border:1px solid #eee;background:#fafafa;text-decoration:none;color:#555;font-size:11px;font-weight:500;transition:.15s;cursor:pointer}
+.cx-share-btn svg{width:20px;height:20px;flex-shrink:0}
+.cx-share-btn:hover{border-color:transparent;color:#fff;transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.12)}
+.cx-share-btn.linkedin:hover{background:#0A66C2}
+.cx-share-btn.x:hover{background:#000}
+.cx-share-btn.whatsapp:hover{background:#25D366}
+.cx-share-btn.email:hover{background:#EA4335}
+.cx-share-btn.telegram:hover{background:#0088CC}
+.cx-share-btn.copy-link:hover{background:linear-gradient(135deg,#F26E26,#FBAB18)}
+.cx-divider-line{height:1px;background:#f0f0f0;margin:14px 0}
+.cx-link-box{display:flex;gap:8px}
+.cx-link-input{flex:1;height:38px;padding:0 12px;border:1px solid #eee;border-radius:10px;font-size:12px;color:#666;background:#f9f9f9;outline:none}
+.cx-link-input:focus{border-color:#FBAB18}
+.cx-link-copy{height:38px;padding:0 16px;border:none;border-radius:10px;background:linear-gradient(135deg,#F26E26,#FBAB18);color:#fff;font-size:12px;font-weight:600;cursor:pointer;transition:.15s;white-space:nowrap}
+.cx-link-copy:hover{opacity:.9}
+.cx-sum-head{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.cx-sum-badge{display:inline-flex;align-items:center;gap:4px;background:linear-gradient(135deg,#F26E26,#FBAB18);color:#fff;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px}
+.cx-sum-badge svg{width:12px;height:12px}
+.cx-summary-list{margin:0;padding:0;list-style:none}
+.cx-summary-list li{padding:10px 12px;font-size:13px;color:#333;border-radius:10px;transition:.15s;display:flex;align-items:center;gap:10px}
+.cx-summary-list li:hover{background:#f8f8f8}
+.cx-summary-list li::before{content:'';width:6px;height:6px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,#F26E26,#FBAB18)}
+.tts-active{background:#fff4ea!important;border-left:3px solid #F26E26;padding-left:12px!important;transition:.2s}
+</style>
+</head>
+<body>
+
+<nav class="demo-nav">
+  <div class="demo-logo">Tryvium</div>
+  <div class="demo-nav-actions">
+    <button class="demo-nav-btn summary" id="navSummary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h10M4 18h14"/></svg>
+      Summary
+    </button>
+    <button class="demo-nav-btn share" id="navShare">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      Share
+    </button>
+    <button class="demo-nav-btn voice voice-wrapper" id="navVoice">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+    </button>
+  </div>
+</nav>
+
+<p class="preview-label">Click the icons above to test all features</p>
+
+<div class="demo-wrap">
+  <div class="demo-article" id="voice">
+    <h1>How AI-Powered B2B Solutions Drive Digital Transformation</h1>
+    <div class="demo-meta">July 15, 2026 &middot; 8 min read</div>
+    <p>Artificial Intelligence has fundamentally reshaped how B2B companies operate, collaborate, and deliver value to their clients. From automating repetitive workflows to generating actionable insights from complex datasets, AI is no longer a futuristic concept — it is the backbone of modern enterprise strategy.</p>
+    <h2>The Rise of Intelligent Automation</h2>
+    <p>Intelligent automation combines robotic process automation with machine learning to handle tasks that previously required human judgment. B2B organizations are leveraging these tools to streamline procurement, invoice processing, and customer onboarding — reducing operational costs by 30-50% in many cases.</p>
+    <h2>Data-Driven Decision Making</h2>
+    <p>Modern enterprises generate terabytes of data daily. AI-powered analytics platforms transform this raw information into predictive models, trend analyses, and real-time dashboards that empower leaders to make faster, more accurate decisions.</p>
+    <h2>Personalized Customer Experiences</h2>
+    <p>B2B buyers now expect the same level of personalization they experience as consumers. AI enables dynamic content recommendations, tailored email campaigns, and adaptive website experiences that resonate with individual stakeholders.</p>
+    <h2>Scalable SaaS Infrastructure</h2>
+    <p>Cloud-native SaaS platforms provide the foundation for AI deployment at scale. By integrating API-first architectures with containerized microservices, businesses can rapidly iterate and deploy updates without disrupting operations.</p>
+    <h2>The Human-AI Collaboration Model</h2>
+    <p>The most successful implementations of AI in B2B contexts augment human capabilities rather than replace them. Sales teams use AI-generated lead scores to prioritize outreach, while customer success managers rely on predictive churn models.</p>
+    <blockquote>"The companies that thrive in the next decade will be those that view AI not as a cost-cutting tool, but as a strategic partner in innovation."</blockquote>
+    <h2>Looking Ahead</h2>
+    <p>As AI models become more sophisticated and accessible, B2B companies of all sizes will have the opportunity to harness their power. The key lies in thoughtful implementation, continuous learning, and a commitment to ethical AI practices.</p>
+    <ul>
+      <li>Automated workflow orchestration across departments</li>
+      <li>Real-time sentiment analysis for customer feedback</li>
+      <li>Predictive maintenance for industrial IoT</li>
+      <li>Natural language processing for contract review</li>
+      <li>AI-driven quality assurance in software delivery</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ===== WIDGET SCRIPT ===== -->
+<script>
+document.addEventListener('DOMContentLoaded',function(){var c=document.getElementById('voice');if(!c)return;var vw=document.getElementById('navVoice');var V=[{name:'Sonia',g:'Female'},{name:'Jenny',g:'Female'},{name:'Aria',g:'Female'},{name:'David',g:'Male'},{name:'Guy',g:'Male'}];var SP=[0.75,1,1.25,1.5,1.75,2];var sv='Sonia';var rate=1;function lv(){speechSynthesis.getVoices()}lv();if(speechSynthesis.onvoiceschanged!==undefined)speechSynthesis.onvoiceschanged=lv;var tb=document.createElement('div');tb.className='cx-toolbar';tb.innerHTML='<div class="cx-toolbar-row"><button class="cx-tb-btn primary" id="cxPlay" aria-label="Play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button><button class="cx-tb-btn" id="cxPause" aria-label="Pause"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg></button><button class="cx-tb-btn" id="cxStop" aria-label="Stop"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12"/></svg></button><div class="cx-tb-divider"></div><div style="position:relative"><button class="cx-tb-voice" id="cxVoiceTrigger"><span id="cxVoiceLabel">Sonia</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="cx-voice-panel" id="cxVoicePanel"></div></div><div class="cx-tb-divider"></div><button class="cx-tb-speed" id="cxSpeedBtn">1x</button></div><div class="cx-progress-track"><div class="cx-progress-fill" id="cxProgressFill"></div></div>';document.body.appendChild(tb);var pf=tb.querySelector('#cxProgressFill');var sb=tb.querySelector('#cxSpeedBtn');sb.addEventListener('click',function(){var idx=SP.indexOf(rate);rate=SP[(idx+1)%SP.length];sb.textContent=rate+'x';if(spk&&!pau){speechSynthesis.cancel();speakNext()}});var vp=tb.querySelector('#cxVoicePanel');var h='';for(var i=0;i<V.length;i++){h+='<div class="cx-voice-opt'+(V[i].name===sv?' selected':'')+'" data-voice="'+V[i].name+'">'+V[i].name+' <span style="opacity:.5;font-size:11px">'+V[i].g+'</span></div>'}vp.innerHTML=h;tb.querySelector('#cxVoiceTrigger').addEventListener('click',function(e){e.stopPropagation();vp.classList.toggle('active')});vp.querySelectorAll('.cx-voice-opt').forEach(function(o){o.addEventListener('click',function(){sv=this.dataset.voice;tb.querySelector('#cxVoiceLabel').textContent=sv;vp.querySelectorAll('.cx-voice-opt').forEach(function(x){x.classList.remove('selected')});this.classList.add('selected');vp.classList.remove('active')})});vw.addEventListener('click',function(e){e.stopPropagation();tb.classList.toggle('active')});document.addEventListener('click',function(e){if(!tb.contains(e.target)&&!vw.contains(e.target)){tb.classList.remove('active');vp.classList.remove('active')}});function gv(){var a=speechSynthesis.getVoices();if(!a.length)return null;var t=sv.toLowerCase();var f=a.find(function(v){return v.name.toLowerCase()===t});if(f)return f;f=a.find(function(v){return v.name.toLowerCase().indexOf(t)!==-1});if(f)return f;var lm=a.find(function(v){return v.lang.indexOf('en')!==-1});return lm||a[0]}var q=[],ci=0,spk=false,pau=false;function bq(){q=[];var sn=[];function hs(el){for(var s=0;s<sn.length;s++){if(sn[s]===el)return true}return false}function w(n){if(n.nodeType===3){var t=n.textContent.trim();if(t.length>1){var p=n.parentElement;if(p&&!hs(p)&&p.offsetParent!==null){var tg=p.tagName;if(tg!=='SCRIPT'&&tg!=='STYLE'&&tg!=='BUTTON'&&tg!=='NAV'&&tg!=='SELECT'&&tg!=='INPUT'){sn.push(p);q.push({el:p,tx:t})}}}return}if(n.nodeType!==1)return;var sk={SCRIPT:1,STYLE:1,BUTTON:1,NAV:1,SELECT:1,INPUT:1};if(sk[n.tagName])return;for(var ch=n.firstChild;ch;ch=ch.nextSibling)w(ch)}w(c)}function speakNext(){if(!spk)return;if(ci>=q.length){stop();return}var it=q[ci];document.querySelectorAll('.tts-active').forEach(function(e){e.classList.remove('tts-active')});it.el.classList.add('tts-active');it.el.scrollIntoView({behavior:'smooth',block:'center'});pf.style.width=q.length?((ci/q.length)*100)+'%':'0%';var u=new SpeechSynthesisUtterance(it.tx);var v=gv();if(v)u.voice=v;u.rate=rate;u.onerror=function(){ci++;speakNext()};u.onend=function(){ci++;speakNext()};speechSynthesis.speak(u)}function play(){speechSynthesis.cancel();bq();if(!q.length)return;ci=0;pau=false;spk=true;c.classList.add('is-playing');speakNext()}function pause(){if(spk){speechSynthesis.pause();pau=true}}function stop(){speechSynthesis.cancel();spk=false;pau=false;ci=0;c.classList.remove('is-playing');pf.style.width='0%';document.querySelectorAll('.tts-active').forEach(function(e){e.classList.remove('tts-active')})}tb.querySelector('#cxPlay').addEventListener('click',function(){if(pau){speechSynthesis.resume();pau=false}else{play()}});tb.querySelector('#cxPause').addEventListener('click',pause);tb.querySelector('#cxStop').addEventListener('click',stop);document.addEventListener('keydown',function(e){if(e.key==='Escape'){stop();tb.classList.remove('active')}});function openModal(html){var o=document.createElement('div');o.className='cx-modal-overlay';o.innerHTML='<div class="cx-modal">'+html+'</div>';document.body.appendChild(o);o.addEventListener('click',function(e){if(e.target===o)cl()});o.querySelector('.cx-modal-close').addEventListener('click',cl);function esc(e){if(e.key==='Escape')cl()}document.addEventListener('keydown',esc);function cl(){o.remove();document.removeEventListener('keydown',esc)}return o}function openShare(){var url=window.location.href;var s='<div class="cx-m-header"><div><h3 class="cx-m-title">Share</h3><p class="cx-m-sub">Spread the word</p></div><button class="cx-modal-close">&times;</button></div><div class="cx-m-body"><div class="cx-share-grid">';s+='<a class="cx-share-btn linkedin" target="_blank" href="https://www.linkedin.com/sharing/share-offsite/?url='+encodeURIComponent(url)+'"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.38-1.85 3.61 0 4.28 2.38 4.28 5.47v6.27zM5.34 7.43a2.07 2.07 0 1 1 0-4.13 2.07 2.07 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>LinkedIn</a>';s+='<a class="cx-share-btn x" target="_blank" href="https://twitter.com/intent/tweet?url='+encodeURIComponent(url)+'"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 2H22l-7.3 8.3L23.3 22h-6.8l-5.3-6.9L4.9 22H1.8l7.8-8.9L1 2h6.9l4.8 6.3L18.9 2zm-1.2 18h1.9L7.4 4H5.4l12.3 16z"/></svg>X</a>';s+='<a class="cx-share-btn whatsapp" target="_blank" href="https://wa.me/?text='+encodeURIComponent(url)+'"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 20z"/></svg>WhatsApp</a>';s+='<a class="cx-share-btn email" href="mailto:?subject=Check%20this%20out&body='+encodeURIComponent(url)+'"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>Email</a>';s+='<a class="cx-share-btn telegram" target="_blank" href="https://t.me/share/url?url='+encodeURIComponent(url)+'"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/></svg>Telegram</a>';s+='<a class="cx-share-btn copy-link" id="cxShareCopy" href="javascript:void(0)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Copy link</a>';s+='</div><div class="cx-divider-line"></div><div class="cx-link-box"><input type="text" readonly value="'+url+'" class="cx-link-input" id="cxLinkInput"><button class="cx-link-copy" id="cxLinkCopy">Copy</button></div></div>';var o=openModal(s);o.querySelector('#cxLinkCopy').addEventListener('click',function(){var inp=o.querySelector('#cxLinkInput');inp.select();var b=this;navigator.clipboard.writeText(inp.value).then(function(){b.textContent='Copied!';setTimeout(function(){b.textContent='Copy'},1400)})});o.querySelector('#cxShareCopy').addEventListener('click',function(){var b=this;navigator.clipboard.writeText(url).then(function(){b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Copied!';setTimeout(function(){b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Copy link'},1400)})})}function openSummary(){var pv=document.getElementById('page-summary');var its;if(pv){its=[].slice.call(pv.querySelectorAll('li,p')).map(function(el){return el.textContent.trim()}).filter(Boolean)}else{its=[].slice.call(c.querySelectorAll('h2')).map(function(h){return h.textContent.trim()})}var lh='';for(var x=0;x<its.length;x++){lh+='<li>'+its[x]+'</li>'}openModal('<div class="cx-m-header"><div><h3 class="cx-m-title">Quick Summary</h3><p class="cx-m-sub">'+its.length+' key points</p></div><button class="cx-modal-close">&times;</button></div><div class="cx-m-body"><div class="cx-sum-head"><span class="cx-sum-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h10M4 18h14"/></svg>'+its.length+' sections</span></div><ul class="cx-summary-list">'+lh+'</ul></div>')}
+document.getElementById('navShare').addEventListener('click',openShare);
+document.getElementById('navSummary').addEventListener('click',function(e){e.preventDefault();openSummary()});
+});
+</script>
+
+</body>
+</html>

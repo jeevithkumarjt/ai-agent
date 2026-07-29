@@ -1,0 +1,12 @@
+<script>
+(function(){
+var d=document.querySelector(".wp-toc-dot"),f=document.querySelector(".wp-toc-fill"),lis=document.querySelectorAll(".wp-toc li"),c=-1,t=0;
+function pos(i){if(!d||!f||!lis[i])return;var p=lis[i].offsetTop+lis[i].offsetHeight/2-4;d.style.transform="translateY("+p+"px)";f.style.height=(p+4)+"px";}
+function go(i){if(i===c||i<0||i>=lis.length)return;if(c>=0&&lis[c])lis[c].classList.remove("active");c=i;lis[c].classList.add("active");pos(c);}
+function cur(){var b=0;lis.forEach(function(l,i){var a=l.querySelector("a");if(!a)return;var s=document.getElementById(a.getAttribute("href").replace("#",""));if(s&&window.pageYOffset>=s.offsetTop-180)b=i;});return b;}
+document.querySelectorAll(".wp-toc a").forEach(function(a){a.addEventListener("click",function(e){e.preventDefault();var id=this.getAttribute("href").replace("#",""),tg=document.getElementById(id);if(!tg)return;lis.forEach(function(l,i){if(l.querySelector("a").getAttribute("href')==="#"+id)go(i);});window.scrollTo({top:tg.offsetTop-80,behavior:"smooth"});});});
+window.addEventListener("scroll",function(){if(!t){requestAnimationFrame(function(){go(cur());t=0;});t=1;}},{passive:true});
+window.addEventListener("resize",function(){requestAnimationFrame(function(){go(cur());});});
+go(0);
+})();
+</script>

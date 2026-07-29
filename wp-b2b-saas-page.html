@@ -1,0 +1,770 @@
+<!-- ============================================================
+     WORDPRESS B2B SAAS — TOC + IMAGE-HEAVY LAYOUT
+     Paste this entire block into a WordPress "Custom HTML" block
+     ============================================================ -->
+
+<style>
+/* ─── Reset (scoped) ─── */
+.b2b-page *, .b2b-page *::before, .b2b-page *::after { margin: 0; padding: 0; box-sizing: border-box; }
+.b2b-page { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; color: #333; line-height: 1.7; overflow-x: hidden; background: #fafafa; }
+.b2b-page img { max-width: 100%; height: auto; display: block; }
+.b2b-page a { text-decoration: none; }
+
+/* ─── TOC Sidebar ─── */
+.b2b-toc-wrap {
+  position: relative;
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 60px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 60px 40px;
+}
+.b2b-toc {
+  position: sticky;
+  top: 100px;
+  align-self: start;
+  padding-left: 44px;
+}
+.b2b-toc-track {
+  position: absolute;
+  left: 18px;
+  top: 0;
+  width: 2px;
+  height: 100%;
+}
+.b2b-toc-track::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #e4e4e7;
+  border-radius: 2px;
+}
+.b2b-toc-track-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 0;
+  background: linear-gradient(180deg, #ff6b00, #ff9a44);
+  border-radius: 2px;
+  transition: height .5s cubic-bezier(.22, 1, .36, 1);
+}
+.b2b-toc-indicator {
+  position: absolute;
+  left: -3px;
+  top: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff6b00;
+  box-shadow: 0 0 0 5px rgba(255, 107, 0, .12), 0 2px 8px rgba(255, 107, 0, .25);
+  transition: transform .5s cubic-bezier(.22, 1, .36, 1);
+  will-change: transform;
+}
+.b2b-toc ul {
+  list-style: none;
+}
+.b2b-toc li {
+  margin: 20px 0;
+  position: relative;
+}
+.b2b-toc a {
+  color: #a1a1aa;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color .3s ease, padding-left .3s ease;
+  display: inline-block;
+}
+.b2b-toc a:hover {
+  color: #52525b;
+  padding-left: 4px;
+}
+.b2b-toc li.active a {
+  color: #18181b;
+  font-weight: 700;
+  padding-left: 6px;
+}
+
+/* ─── Main Content ─── */
+.b2b-content { min-width: 0; }
+
+/* Hero */
+.b2b-hero {
+  position: relative;
+  border-radius: 24px;
+  overflow: hidden;
+  margin-bottom: 60px;
+  height: 480px;
+}
+.b2b-hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.b2b-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(15,15,20,.7) 0%, rgba(15,15,20,.2) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 48px;
+}
+.b2b-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 100px;
+  background: rgba(255, 107, 0, .15);
+  border: 1px solid rgba(255, 107, 0, .3);
+  font-size: 12px;
+  font-weight: 600;
+  color: #ff6b00;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 16px;
+  width: fit-content;
+}
+.b2b-hero h1 {
+  font-size: clamp(32px, 4vw, 48px);
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.15;
+  letter-spacing: -1px;
+  margin-bottom: 12px;
+}
+.b2b-hero p {
+  font-size: 16px;
+  color: rgba(255,255,255,.7);
+  max-width: 500px;
+}
+
+/* Section Blocks */
+.b2b-section {
+  margin-bottom: 72px;
+  scroll-margin-top: 100px;
+}
+.b2b-section-tag {
+  display: inline-block;
+  padding: 5px 14px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  background: rgba(255, 107, 0, .08);
+  color: #ff6b00;
+  margin-bottom: 14px;
+}
+.b2b-section h2 {
+  font-size: clamp(26px, 3vw, 36px);
+  font-weight: 800;
+  color: #18181b;
+  line-height: 1.2;
+  letter-spacing: -.5px;
+  margin-bottom: 14px;
+}
+.b2b-section > p {
+  font-size: 16px;
+  color: #71717a;
+  max-width: 600px;
+  margin-bottom: 32px;
+}
+
+/* Image Cards */
+.b2b-img-card {
+  border-radius: 20px;
+  overflow: hidden;
+  margin-bottom: 24px;
+  position: relative;
+  box-shadow: 0 4px 24px rgba(0,0,0,.06);
+}
+.b2b-img-card img {
+  width: 100%;
+  height: 340px;
+  object-fit: cover;
+  transition: transform .6s cubic-bezier(.22,1,.36,1);
+}
+.b2b-img-card:hover img {
+  transform: scale(1.03);
+}
+.b2b-img-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 24px 28px;
+  background: linear-gradient(transparent, rgba(0,0,0,.75));
+  color: #fff;
+}
+.b2b-img-caption h4 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.b2b-img-caption span {
+  font-size: 13px;
+  color: rgba(255,255,255,.65);
+}
+
+/* Two Column Image Grid */
+.b2b-img-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+.b2b-img-grid .b2b-img-card { margin-bottom: 0; }
+.b2b-img-grid .b2b-img-card img { height: 220px; }
+
+/* Feature List with Image */
+.b2b-feature-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: center;
+  margin-bottom: 32px;
+}
+.b2b-feature-row.reverse { direction: rtl; }
+.b2b-feature-row.reverse > * { direction: ltr; }
+.b2b-feature-text h3 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #18181b;
+  margin-bottom: 10px;
+}
+.b2b-feature-text p {
+  font-size: 15px;
+  color: #71717a;
+  line-height: 1.75;
+  margin-bottom: 16px;
+}
+.b2b-feature-list {
+  list-style: none;
+}
+.b2b-feature-list li {
+  padding: 8px 0;
+  font-size: 14px;
+  color: #52525b;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.b2b-feature-list li::before {
+  content: "✓";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(34, 197, 94, .1);
+  color: #16a34a;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* Stats Row */
+.b2b-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 32px;
+}
+.b2b-stat {
+  text-align: center;
+  padding: 28px 16px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid #f0f0f0;
+}
+.b2b-stat-num {
+  font-size: 32px;
+  font-weight: 800;
+  color: #ff6b00;
+  letter-spacing: -1px;
+}
+.b2b-stat-label {
+  font-size: 13px;
+  color: #a1a1aa;
+  margin-top: 4px;
+}
+
+/* Testimonial Card */
+.b2b-testimonial {
+  padding: 36px;
+  border-radius: 20px;
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  margin-bottom: 24px;
+  position: relative;
+}
+.b2b-testimonial::before {
+  content: "\201C";
+  position: absolute;
+  top: 16px;
+  left: 28px;
+  font-size: 64px;
+  line-height: 1;
+  color: rgba(255, 107, 0, .12);
+  font-family: Georgia, serif;
+}
+.b2b-testimonial blockquote {
+  font-size: 16px;
+  color: #52525b;
+  line-height: 1.75;
+  font-style: italic;
+  margin-bottom: 20px;
+  padding-left: 8px;
+}
+.b2b-testimonial-author {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.b2b-testimonial-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.b2b-testimonial-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #18181b;
+}
+.b2b-testimonial-role {
+  font-size: 12px;
+  color: #a1a1aa;
+}
+
+/* Logo Strip */
+.b2b-logos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 48px;
+  padding: 40px 0;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+.b2b-logos img {
+  height: 32px;
+  opacity: .35;
+  filter: grayscale(1);
+  transition: opacity .3s, filter .3s;
+}
+.b2b-logos img:hover {
+  opacity: .7;
+  filter: grayscale(0);
+}
+
+/* CTA Banner */
+.b2b-cta {
+  border-radius: 24px;
+  overflow: hidden;
+  position: relative;
+  padding: 60px 48px;
+  text-align: center;
+  background: linear-gradient(135deg, #18181b 0%, #27272a 100%);
+}
+.b2b-cta::before {
+  content: "";
+  position: absolute;
+  top: -120px;
+  right: -120px;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: rgba(255, 107, 0, .1);
+}
+.b2b-cta h3 {
+  font-size: clamp(24px, 3vw, 36px);
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 12px;
+  position: relative;
+}
+.b2b-cta p {
+  font-size: 16px;
+  color: #a1a1aa;
+  margin-bottom: 28px;
+  position: relative;
+}
+.b2b-cta-btn {
+  display: inline-block;
+  padding: 14px 36px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  background: #ff6b00;
+  box-shadow: 0 4px 20px rgba(255, 107, 0, .35);
+  transition: transform .2s, box-shadow .2s;
+  position: relative;
+  cursor: pointer;
+  border: none;
+}
+.b2b-cta-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(255, 107, 0, .5);
+}
+
+/* ─── Animations ─── */
+.b2b-reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity .7s cubic-bezier(.22,1,.36,1), transform .7s cubic-bezier(.22,1,.36,1);
+}
+.b2b-reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 900px) {
+  .b2b-toc-wrap {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    padding: 32px 20px;
+  }
+  .b2b-toc {
+    position: relative;
+    top: 0;
+    padding-left: 36px;
+    display: flex;
+    overflow-x: auto;
+    gap: 8px;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .b2b-toc-track { display: none; }
+  .b2b-toc-indicator { display: none; }
+  .b2b-toc ul { display: flex; gap: 8px; }
+  .b2b-toc li { margin: 0; white-space: nowrap; }
+  .b2b-toc a { font-size: 13px; padding: 6px 14px; border-radius: 100px; background: #f4f4f5; }
+  .b2b-toc li.active a { background: #18181b; color: #fff; }
+  .b2b-feature-row, .b2b-feature-row.reverse { grid-template-columns: 1fr; }
+  .b2b-stats { grid-template-columns: 1fr; }
+  .b2b-img-grid { grid-template-columns: 1fr; }
+  .b2b-hero { height: 320px; }
+  .b2b-hero-overlay { padding: 28px; }
+}
+</style>
+
+<!-- ═══════════════════════════════════════════
+     HTML — paste below into same block
+     ═══════════════════════════════════════════ -->
+
+<div class="b2b-page">
+
+  <!-- TOC + Content Grid -->
+  <div class="b2b-toc-wrap">
+
+    <!-- ── Sticky TOC ── -->
+    <nav class="b2b-toc" aria-label="Page navigation">
+      <div class="b2b-toc-track">
+        <span class="b2b-toc-track-fill"></span>
+        <span class="b2b-toc-indicator"></span>
+      </div>
+      <ul>
+        <li class="active"><a href="#b-intro">Introduction</a></li>
+        <li><a href="#b-benefits">Benefits</a></li>
+        <li><a href="#b-features">Features</a></li>
+        <li><a href="#b-results">Results</a></li>
+        <li><a href="#b-testimonials">Testimonials</a></li>
+        <li><a href="#b-pricing">Pricing</a></li>
+      </ul>
+    </nav>
+
+    <!-- ── Main Content ── -->
+    <div class="b2b-content">
+
+      <!-- Hero Image -->
+      <div class="b2b-hero b2b-reveal" id="b-intro">
+        <img src="https://images.unsplash.com/photo-1551434678-e076c223a692?w=1200&h=600&fit=crop" alt="Team collaborating in modern office">
+        <div class="b2b-hero-overlay">
+          <div class="b2b-hero-badge">B2B SaaS Platform</div>
+          <h1>Scale Your Revenue Operations with Intelligence</h1>
+          <p>Automate workflows, close deals faster, and unify your revenue stack — all in one platform.</p>
+        </div>
+      </div>
+
+      <!-- Logos -->
+      <div class="b2b-logos b2b-reveal">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" alt="Google" style="height:24px">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/b/b2/Slack Technologies_Logo.svg" alt="Slack" style="height:24px">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/9/96/Microsoft_logo_%282012%29.svg" alt="Microsoft" style="height:24px">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a7/Shopify_logo_2018.svg" alt="Shopify" style="height:24px">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/5/59/Salesforce.com_logo.svg" alt="Salesforce" style="height:24px">
+      </div>
+
+      <!-- Benefits Section -->
+      <section class="b2b-section b2b-reveal" id="b-benefits">
+        <div class="b2b-section-tag">Why NexusFlow</div>
+        <h2>Everything Your Revenue Team Needs</h2>
+        <p>From lead capture to closed-won, NexusFlow eliminates the gaps between your tools, teams, and data.</p>
+
+        <div class="b2b-feature-row">
+          <div class="b2b-feature-text">
+            <h3>Unified Revenue Pipeline</h3>
+            <p>See every deal, every touchpoint, every risk — in a single real-time view that updates automatically from 200+ integrations.</p>
+            <ul class="b2b-feature-list">
+              <li>Auto-sync CRM, marketing, and support data</li>
+              <li>AI-scored lead prioritization</li>
+              <li>Custom pipeline stages and workflows</li>
+              <li>Real-time deal health scoring</li>
+            </ul>
+          </div>
+          <div class="b2b-img-card">
+            <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=500&fit=crop" alt="Analytics dashboard showing pipeline metrics">
+            <div class="b2b-img-caption">
+              <h4>Real-Time Pipeline View</h4>
+              <span>Track every deal stage with AI insights</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="b2b-feature-row reverse">
+          <div class="b2b-feature-text">
+            <h3>Intelligent Automation</h3>
+            <p>Build complex workflows visually. No code required. From simple follow-ups to multi-step enterprise processes.</p>
+            <ul class="b2b-feature-list">
+              <li>Visual drag-and-drop flow builder</li>
+              <li>Conditional logic and branching</li>
+              <li>AI-powered task routing</li>
+              <li>Scheduled and triggered actions</li>
+            </ul>
+          </div>
+          <div class="b2b-img-card">
+            <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=500&fit=crop" alt="Workflow automation builder interface">
+            <div class="b2b-img-caption">
+              <h4>No-Code Workflow Builder</h4>
+              <span>Drag, drop, deploy — in minutes</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Features Section -->
+      <section class="b2b-section b2b-reveal" id="b-features">
+        <div class="b2b-section-tag">Features</div>
+        <h2>Built for Scale, Designed for Humans</h2>
+        <p>Enterprise power with startup simplicity. Every feature designed to accelerate your team.</p>
+
+        <div class="b2b-img-grid">
+          <div class="b2b-img-card">
+            <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=400&fit=crop" alt="Analytics dashboard">
+            <div class="b2b-img-caption">
+              <h4>Advanced Analytics</h4>
+              <span>Deep insights with predictive modeling</span>
+            </div>
+          </div>
+          <div class="b2b-img-card">
+            <img src="https://images.unsplash.com/photo-1553877522-43269d4ea984?w=600&h=400&fit=crop" alt="Team collaboration">
+            <div class="b2b-img-caption">
+              <h4>Team Collaboration</h4>
+              <span>Shared workspaces and real-time sync</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="b2b-img-grid">
+          <div class="b2b-img-card">
+            <img src="https://images.unsplash.com/photo-1563986768609-322da13575f2?w=600&h=400&fit=crop" alt="Security infrastructure">
+            <div class="b2b-img-caption">
+              <h4>Enterprise Security</h4>
+              <span>SOC 2, GDPR, end-to-end encryption</span>
+            </div>
+          </div>
+          <div class="b2b-img-card">
+            <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&h=400&fit=crop" alt="Global infrastructure">
+            <div class="b2b-img-caption">
+              <h4>Global Infrastructure</h4>
+              <span>35+ edge locations, 99.99% uptime</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Results Section -->
+      <section class="b2b-section b2b-reveal" id="b-results">
+        <div class="b2b-section-tag">Results</div>
+        <h2>Numbers That Speak for Themselves</h2>
+        <p>Our customers see measurable impact within the first 90 days.</p>
+
+        <div class="b2b-stats">
+          <div class="b2b-stat">
+            <div class="b2b-stat-num">3.2x</div>
+            <div class="b2b-stat-label">Faster Deal Cycles</div>
+          </div>
+          <div class="b2b-stat">
+            <div class="b2b-stat-num">47%</div>
+            <div class="b2b-stat-label">More Pipeline Visibility</div>
+          </div>
+          <div class="b2b-stat">
+            <div class="b2b-stat-num">$2.1M</div>
+            <div class="b2b-stat-label">Avg. Revenue Impact</div>
+          </div>
+        </div>
+
+        <div class="b2b-img-card">
+          <img src="https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?w=1200&h=400&fit=crop" alt="Growth chart showing upward trajectory">
+          <div class="b2b-img-caption">
+            <h4>Customer Growth Trajectory</h4>
+            <span>Average revenue acceleration across 2,400+ companies</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Testimonials -->
+      <section class="b2b-section b2b-reveal" id="b-testimonials">
+        <div class="b2b-section-tag">Testimonials</div>
+        <h2>Trusted by Revenue Leaders</h2>
+        <p>Hear from the teams transforming their operations with NexusFlow.</p>
+
+        <div class="b2b-testimonial">
+          <blockquote>NexusFlow unified our entire revenue stack in under a week. We went from 6 disconnected tools to one platform that actually talks to itself. Our close rate jumped 34% in Q1.</blockquote>
+          <div class="b2b-testimonial-author">
+            <img class="b2b-testimonial-avatar" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face" alt="James Mitchell">
+            <div>
+              <div class="b2b-testimonial-name">James Mitchell</div>
+              <div class="b2b-testimonial-role">VP of Revenue, CloudScale Inc.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="b2b-testimonial">
+          <blockquote>The AI copilot alone saved us 20 hours a week on manual data entry. The ROI was obvious within the first month. This is the future of B2B operations.</blockquote>
+          <div class="b2b-testimonial-author">
+            <img class="b2b-testimonial-avatar" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face" alt="Sarah Chen">
+            <div>
+              <div class="b2b-testimonial-name">Sarah Chen</div>
+              <div class="b2b-testimonial-role">Head of Ops, DataBridge Solutions</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="b2b-testimonial">
+          <blockquote>We evaluated 12 platforms before choosing NexusFlow. The onboarding was seamless, the support is world-class, and our team adopted it faster than any tool we've deployed.</blockquote>
+          <div class="b2b-testimonial-author">
+            <img class="b2b-testimonial-avatar" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face" alt="Marcus Rivera">
+            <div>
+              <div class="b2b-testimonial-name">Marcus Rivera</div>
+              <div class="b2b-testimonial-role">CTO, Vertex Partners</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Pricing -->
+      <section class="b2b-section b2b-reveal" id="b-pricing">
+        <div class="b2b-section-tag">Pricing</div>
+        <h2>Simple, Transparent Pricing</h2>
+        <p>Start free. Scale as you grow. No hidden fees, no surprises.</p>
+
+        <div class="b2b-stats">
+          <div class="b2b-stat" style="border: 2px solid #e4e4e7;">
+            <div class="b2b-stat-num" style="font-size:24px; color:#71717a;">Starter</div>
+            <div style="font-size:36px; font-weight:800; color:#18181b; margin:8px 0;">$0</div>
+            <div class="b2b-stat-label">Free forever · Up to 5 users</div>
+          </div>
+          <div class="b2b-stat" style="border: 2px solid #ff6b00; background: rgba(255,107,0,.02);">
+            <div class="b2b-stat-num" style="font-size:24px; color:#ff6b00;">Pro</div>
+            <div style="font-size:36px; font-weight:800; color:#18181b; margin:8px 0;">$49</div>
+            <div class="b2b-stat-label">Per user/month · Unlimited workflows</div>
+          </div>
+          <div class="b2b-stat" style="border: 2px solid #e4e4e7;">
+            <div class="b2b-stat-num" style="font-size:24px; color:#71717a;">Enterprise</div>
+            <div style="font-size:36px; font-weight:800; color:#18181b; margin:8px 0;">Custom</div>
+            <div class="b2b-stat-label">Dedicated support · SLA guarantee</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA -->
+      <div class="b2b-cta b2b-reveal">
+        <h3>Ready to Transform Your Revenue Operations?</h3>
+        <p>Join 2,400+ companies scaling faster with NexusFlow. Start your free trial today.</p>
+        <button class="b2b-cta-btn">Start Free Trial →</button>
+      </div>
+
+    </div><!-- /b2b-content -->
+  </div><!-- /b2b-toc-wrap -->
+</div><!-- /b2b-page -->
+
+
+<!-- ═══════════════════════════════════════════
+     SCRIPTS — paste below into same block
+     ═══════════════════════════════════════════ -->
+
+<script>
+(function(){
+  /* ── TOC Scroll Sync ── */
+  var indicator = document.querySelector(".b2b-toc-indicator");
+  var fill      = document.querySelector(".b2b-toc-track-fill");
+  var items     = document.querySelectorAll(".b2b-toc li");
+  var sections  = [];
+  items.forEach(function(item){
+    var link = item.querySelector("a");
+    if(link) sections.push(document.querySelector(link.getAttribute("href")));
+  });
+
+  var currentIndex = 0;
+  var ticking = false;
+
+  function updateTOC(){
+    var scrollY = window.pageYOffset || document.documentElement.scrollTop;
+    var current = 0;
+    sections.forEach(function(section, i){
+      if(!section) return;
+      var rect = section.getBoundingClientRect();
+      if(rect.top <= 180) current = i;
+    });
+
+    if(current !== currentIndex){
+      items[currentIndex].classList.remove("active");
+      items[current].classList.add("active");
+      currentIndex = current;
+    }
+
+    if(indicator && fill && items[currentIndex]){
+      var li = items[currentIndex];
+      var dotY = li.offsetTop + li.offsetHeight / 2 - 4;
+      indicator.style.transform = "translateY(" + dotY + "px)";
+      fill.style.height = (dotY + 4) + "px";
+    }
+    ticking = false;
+  }
+
+  function onScroll(){
+    if(!ticking){
+      requestAnimationFrame(updateTOC);
+      ticking = true;
+    }
+  }
+
+  updateTOC();
+  window.addEventListener("scroll", onScroll, {passive: true});
+  window.addEventListener("resize", function(){ requestAnimationFrame(updateTOC); });
+
+  /* ── Reveal on Scroll ── */
+  var reveals = document.querySelectorAll(".b2b-reveal");
+  if("IntersectionObserver" in window){
+    var revealObs = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){
+          e.target.classList.add("visible");
+          revealObs.unobserve(e.target);
+        }
+      });
+    }, {threshold: 0.1, rootMargin: "0px 0px -60px 0px"});
+    reveals.forEach(function(el){ revealObs.observe(el); });
+  } else {
+    reveals.forEach(function(el){ el.classList.add("visible"); });
+  }
+})();
+</script>

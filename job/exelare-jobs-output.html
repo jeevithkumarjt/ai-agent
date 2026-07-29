@@ -1,0 +1,737 @@
+﻿
+
+
+/* ----------------------------------------
+* JOB LISTING SHORTCODE (with Location / Team filters)
+* ---------------------------------------- */
+
+add_shortcode('exelare_jobs', 'render_exelare_jobs_shortcode');
+
+function render_exelare_jobs_shortcode() {
+ob_start();
+?>
+
+<div id="jobListingsWrapper">
+
+    <!-- Filter Bar -->
+    <div id="jobFilterBar" class="job-filter-bar" style="display:none;">
+        <div class="job-filter">
+            <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                <circle cx="12" cy="12" r="9"></circle>
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <path d="M12 3c2.5 2.7 3.8 6 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-6-3.8-9S9.5 5.7 12 3Z"></path>
+            </svg>
+            <select id="locationFilter" class="filter-select">
+                <option value="all">All locations</option>
+            </select>
+            <svg class="filter-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+        </div>
+
+        <div class="job-filter">
+            <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+                <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+                <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+                <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+            </svg>
+            <select id="teamFilter" class="filter-select">
+                <option value="all">All teams</option>
+            </select>
+            <svg class="filter-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+        </div>
+    </div>
+
+    <div id="jobListings">Loading jobs...</div>
+</div>
+
+<!-- Apply Modal -->
+<div id="applyModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+
+        <h4>Apply for <span id="jobDesingation">Designation</span></h4>
+
+        <form id="applyForm" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="JobID" id="modalJobId" />
+            <input type="hidden" name="ReqIntID" id="modalReqIntId" />
+            <input type="hidden" name="JobTitle" id="modalJobTitle" />
+
+            <div class="form-group">
+                <label>First Name*</label>
+                <input type="text" name="FirstName" required />
+            </div>
+
+            <div class="form-group">
+                <label>Last Name*</label>
+                <input type="text" name="LastName" required />
+            </div>
+
+            <div class="form-group">
+                <label>Email*</label>
+                <input type="email" name="Email" required />
+            </div>
+
+            <div class="form-group">
+                <label>Mobile Number*</label>
+                <input type="text" name="MobileNumber" required />
+            </div>
+
+            <div class="form-group">
+                <label>Upload Resume (PDF, DOC, DOCX UP TO 2MB)*</label>
+                <input type="file" name="ResumeFile" id="ResumeFile" accept=".pdf,.doc,.docx" required />
+            </div>
+
+            <button type="submit" id="submitButtonOfModel" class="submit-btn">Submit</button>
+        </form>
+
+    </div>
+</div>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link
+    href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+
+<!-- Styles -->
+<style>
+#jobListingsWrapper,
+#jobListingsWrapper * {
+    font-family: "Manrope", sans-serif;
+}
+
+/* ---------- Filter bar ---------- */
+.job-filter-bar {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 28px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.job-filter {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #111;
+    position: relative;
+}
+
+.job-filter .filter-icon {
+    width: 16px;
+    height: 16px;
+    color: #111;
+    flex-shrink: 0;
+}
+
+.job-filter .filter-chevron {
+    width: 14px;
+    height: 14px;
+    color: #111;
+    pointer-events: none;
+    flex-shrink: 0;
+}
+
+.filter-select {
+    font-family: "Manrope", sans-serif !important;
+    font-size: 15px;
+    font-weight: 500;
+    color: #111;
+    border: none;
+    background: transparent;
+    padding: 0 4px;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+    outline: none;
+    min-width: 110px;
+}
+
+@media (max-width: 640px) {
+    .job-filter-bar {
+        justify-content: flex-start;
+        gap: 18px;
+    }
+    .filter-select {
+        min-width: 90px;
+    }
+}
+
+/* ---------- Category grouping ---------- */
+.job-category-group {
+    max-width: 100%;
+    margin: 0 auto 8px;
+}
+
+.job-category-heading {
+    font-family: "Red Hat Display", sans-serif !important;
+    font-size: 20px;
+    font-weight: 700;
+    color: #111;
+    margin: 32px 0 14px;
+}
+
+.job-category-group:first-of-type .job-category-heading {
+    margin-top: 0;
+}
+
+/* ---------- Job card ---------- */
+.job-card {
+    background: #ffffff;
+    border: 1px solid #E7E7EA;
+    border-radius: 16px;
+    padding: 22px 26px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+
+.job-card-left {
+    flex: 1 1 320px;
+    min-width: 0;
+}
+
+.job-title {
+    font-family: "Red Hat Display", sans-serif !important;
+    font-size: 17px;
+    font-weight: 700;
+    color: #101828;
+    margin: 0 0 10px;
+}
+
+.job-meta {
+    font-family: "Manrope", sans-serif !important;
+    font-size: 14px;
+    color: #6b6b76;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+
+.job-meta .meta-divider {
+    color: #d0d0d5;
+}
+
+.job-description {
+    font-family: "Manrope", sans-serif !important;
+    font-size: 14px;
+    color: #444;
+    display: none;
+    margin-top: 12px;
+    line-height: 1.7;
+}
+
+.job-description.expanded {
+    display: block;
+}
+
+.bottom-toggle {
+    display: block;
+    margin-top: 16px;
+}
+
+.toggle-desc {
+    font-family: "Manrope", sans-serif !important;
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #F26E26;
+    cursor: pointer;
+    display: block;
+}
+
+.toggle-desc:hover {
+    text-decoration: underline;
+    background: transparent;
+    color: #F26E26;
+}
+
+/* ---------- Right side: location + apply ---------- */
+.job-card-right {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex: 0 0 auto;
+}
+
+.job-location {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: "Manrope", sans-serif !important;
+    font-size: 14px;
+    color: #3f3f46;
+    white-space: nowrap;
+}
+
+.job-location span {
+    order: 1;
+}
+
+.job-location svg {
+    order: 2;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    color: #6b6b76;
+}
+
+.card-vertical-divider {
+    order: 3;
+    width: 1px;
+    height: 28px;
+    background: #E7E7EA;
+}
+
+.apply-btn {
+    font-family: "Manrope", sans-serif !important;
+    background-color: #F26E26;
+    color: #ffffff;
+    border: none;
+    border-radius: 24px;
+    padding: 11px 22px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: box-shadow .25s ease, background-color .25s ease;
+}
+
+.apply-btn:hover {
+    background-color: #e0611e;
+    box-shadow: 0 0 0 4px rgba(242, 110, 38, 0.18);
+}
+
+.no-results-msg {
+    font-style: italic;
+    color: #666;
+    padding: 20px 0;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 768px) {
+    .job-card {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 18px;
+    }
+    .job-card-left {
+        flex: 1 1 100%;
+        width: 100%;
+        min-width: 100%;
+    }
+
+    .job-card-right {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .card-vertical-divider {
+        display: none;
+    }
+}
+
+/* ---------- Modal ---------- */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    padding-top: 60px;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    overflow: auto;
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: auto;
+    padding: 30px 25px;
+    border-radius: 10px;
+    max-width: 450px;
+    animation: fadeIn 0.4s ease;
+    font-family: "Manrope", sans-serif;
+}
+
+.modal-content h4 {
+    font-family: "Red Hat Display", sans-serif !important;
+    margin-bottom: 20px;
+    font-size: 20px;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 20px;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    font-family: "Manrope", sans-serif;
+}
+
+.submit-btn {
+    background-color: #0178b6;
+    color: white;
+    padding: 12px 30px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.submit-btn:hover {
+    background-color: #015a8f;
+}
+
+.submit-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+
+<!-- Script -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+
+    const escapeHtml = (text) => {
+        const d = document.createElement('div');
+        d.textContent = text ?? '';
+        return d.innerHTML;
+    };
+
+    const globeIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                <circle cx="12" cy="12" r="9"></circle>
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <path d="M12 3c2.5 2.7 3.8 6 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-6-3.8-9S9.5 5.7 12 3Z"></path>
+            </svg>`;
+
+    // Full job list kept in memory (with normalized _category / _location added)
+    let allJobs = [];
+
+    const container = document.getElementById("jobListings");
+    const filterBar = document.getElementById("jobFilterBar");
+    const locationSelect = document.getElementById("locationFilter");
+    const teamSelect = document.getElementById("teamFilter");
+
+    function normalizeJob(job) {
+        job._category =
+            job.JobCategory || job.Category || job.Department ||
+            job.Practice || job.JobType || "Other";
+        job._location = job.Location || "Other";
+        return job;
+    }
+
+    function populateFilterOptions(jobs) {
+        const locations = [...new Set(jobs.map(j => j._location).filter(Boolean))].sort();
+        const teams = [...new Set(jobs.map(j => j._category).filter(Boolean))].sort();
+
+        locationSelect.innerHTML = '<option value="all">All locations</option>' +
+            locations.map(loc => `<option value="${escapeHtml(loc)}">${escapeHtml(loc)}</option>`).join('');
+
+        teamSelect.innerHTML = '<option value="all">All teams</option>' +
+            teams.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+
+        filterBar.style.display = (locations.length || teams.length) ? "flex" : "none";
+    }
+
+    function renderJobs(jobs) {
+        container.innerHTML = "";
+
+        if (jobs.length === 0) {
+            container.innerHTML = `<p class="no-results-msg">No positions match the selected filters right now. Try a different location or team.</p>`;
+            return;
+        }
+
+        const groups = {};
+        jobs.forEach(job => {
+            if (!groups[job._category]) groups[job._category] = [];
+            groups[job._category].push(job);
+        });
+
+        Object.keys(groups).forEach(category => {
+
+            const groupWrap = document.createElement("div");
+            groupWrap.className = "job-category-group";
+
+            const heading = document.createElement("h3");
+            heading.className = "job-category-heading";
+            heading.textContent = category;
+            groupWrap.appendChild(heading);
+
+            groups[category].forEach(job => {
+
+                const exp = job.TotalExp || job.Experience || "";
+                const shift = job.Shift || job.ShiftTiming || job.WorkShift || "";
+
+                const div = document.createElement("div");
+                div.className = "job-card";
+
+                div.innerHTML = `
+                            <div class="job-card-left">
+
+                                <h4 class="job-title">${escapeHtml(job.JobTitle || '')}</h4>
+
+                                <div class="job-meta">
+${exp ? `<span>Exp: ${escapeHtml(exp)}</span>` : ''}
+${exp && shift ? `<span class="meta-divider">|</span>` : ''}
+${shift ? `<span>Shift: ${escapeHtml(shift)}</span>` : ''}
+</div>
+
+                                <button
+                                    class="toggle-desc"
+                                    data-target="desc-${escapeHtml(job.ReqIntID || '')}">
+                                    Show More
+                                </button>
+
+                                <div
+                                    class="job-description"
+                                    id="desc-${escapeHtml(job.ReqIntID || '')}">
+
+                                    ${job.Description || ''}
+
+                                    <button
+                                        class="toggle-desc bottom-toggle"
+                                        data-target="desc-${escapeHtml(job.ReqIntID || '')}">
+                                        Show Less
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                            <div class="job-card-right">
+
+                                <div class="job-location">
+                                    <span>${escapeHtml(job._location || '')}</span>
+                                    ${globeIcon}
+                                </div>
+
+                                <div class="card-vertical-divider"></div>
+
+                                <button type="button"
+                                    class="apply-btn"
+                                    data-reqintid="${escapeHtml(job.ReqIntID || '')}"
+                                    data-jobtitle="${escapeHtml(job.JobTitle || '')}">
+                                    Apply Now
+                                </button>
+
+                            </div>
+                        `;
+                groupWrap.appendChild(div);
+            });
+
+            container.appendChild(groupWrap);
+        });
+    }
+
+    function applyFilters() {
+        const selectedLocation = locationSelect.value;
+        const selectedTeam = teamSelect.value;
+
+        const filtered = allJobs.filter(job => {
+            const matchesLocation = selectedLocation === "all" || job._location === selectedLocation;
+            const matchesTeam = selectedTeam === "all" || job._category === selectedTeam;
+            return matchesLocation && matchesTeam;
+        });
+
+        renderJobs(filtered);
+    }
+
+    locationSelect.addEventListener("change", applyFilters);
+    teamSelect.addEventListener("change", applyFilters);
+
+    /* Load Jobs */
+    fetch("https://example.com/wp-admin/admin-ajax.php?action=get_jobs_secure")
+        .then(res => res.json())
+        .then(result => {
+
+            if (result.success && result.data.length > 0) {
+
+                // Debug: check console to confirm actual field names
+                // (Category / Exp / Shift / Location) coming back from the API.
+                console.log("Sample job record:", result.data[0]);
+
+                allJobs = result.data.map(normalizeJob);
+
+                populateFilterOptions(allJobs);
+                renderJobs(allJobs);
+
+            } else {
+                filterBar.style.display = "none";
+                container.innerHTML = `
+                            <p style="font-style:italic;color:#666;">
+                                Thank you for reaching out! Currently, there are no job openings.<br>
+                                Please share your resume with
+                                <a href="mailto:hiring@sensiple.com" style="color:#0178b6;">hiring@sensiple.com</a>.
+                            </p>`;
+            }
+        })
+        .catch(err => {
+            console.error('Error loading jobs:', err);
+            filterBar.style.display = "none";
+            container.innerHTML =
+                '<p style="color:red;">Failed to load jobs. Please try again later.</p>';
+        });
+
+    /* Apply Modal */
+    document.addEventListener("click", function(e) {
+        if (e.target.classList.contains("apply-btn") || e.target.closest(".apply-btn")) {
+            const button = e.target.classList.contains("apply-btn") ?
+                e.target :
+                e.target.closest(".apply-btn");
+
+            let jobId = button.dataset.reqintid;
+            let jobTitle = button.dataset.jobtitle;
+            document.getElementById("modalJobId").value = jobId;
+            document.getElementById("modalReqIntId").value = jobId;
+            document.getElementById("modalJobTitle").value = jobTitle;
+            document.getElementById("jobDesingation").textContent = jobTitle;
+            document.getElementById("applyModal").style.display = "block";
+        }
+        if (e.target.classList.contains("close")) {
+            document.getElementById("applyModal").style.display = "none";
+        }
+        if (e.target.classList.contains("toggle-desc")) {
+
+            const target = e.target.dataset.target;
+
+            const desc = document.getElementById(target);
+
+            const card = e.target.closest(".job-card");
+            const topButton = card.querySelector(
+                '.toggle-desc:not(.bottom-toggle)'
+            );
+
+            desc.classList.toggle("expanded");
+
+            if (desc.classList.contains("expanded")) {
+
+                topButton.style.display = "none";
+
+            } else {
+
+                topButton.style.display = "block";
+            }
+
+        }
+    });
+
+    // Close modal when clicking outside
+    window.addEventListener("click", function(e) {
+        const modal = document.getElementById("applyModal");
+        if (e.target === modal) {
+            modal.style.display = "none";
+        }
+    });
+
+    /* Submit Form */
+    document.getElementById("applyForm")?.addEventListener("submit", function(e) {
+        e.preventDefault();
+
+        const btn = document.getElementById("submitButtonOfModel");
+        btn.disabled = true;
+        btn.textContent = "SubmittingΓÇª";
+
+        const fd = new FormData(this);
+
+        fetch('https://example.com/wp-admin/admin-ajax.php?action=submit_and_link', {
+                method: "POST",
+                body: fd
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (typeof Toastify !== 'undefined') {
+                    Toastify({
+                        text: res.data.message,
+                        duration: 4000,
+                        gravity: "top",
+                        position: "right",
+                        backgroundColor: res.success ? "#28a745" : "red"
+                    }).showToast();
+                } else {
+                    alert(res.data.message);
+                }
+
+                if (res.success) {
+                    this.reset();
+                    document.getElementById("applyModal").style.display = "none";
+                }
+            })
+            .catch(() => {
+                if (typeof Toastify !== 'undefined') {
+                    Toastify({
+                        text: "Network error",
+                        duration: 4000,
+                        gravity: "top",
+                        position: "right",
+                        backgroundColor: "red"
+                    }).showToast();
+                } else {
+                    alert("Network error. Please try again.");
+                }
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.textContent = "Submit";
+            });
+    });
+
+});
+</script>
+
+

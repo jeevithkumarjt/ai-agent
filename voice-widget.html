@@ -1,0 +1,369 @@
+<style>
+/* ===== VOICE BUTTON ===== */
+.voice-wrapper{ position:relative; display:inline-flex; }
+.voice{ position:relative !important; display:inline-flex; }
+.voice.is-playing .elementor-icon{ background:#FBAB18 !important; }
+.voice.is-playing svg, .voice.is-playing svg path{ fill:#fff !important; stroke:#fff !important; }
+
+/* ===== HORIZONTAL VOICE TOOLBAR ===== */
+.cx-voice-toolbar{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+    display:none; align-items:center; gap:4px;
+    background:#fff; border-radius:16px; padding:6px 10px;
+    box-shadow:0 4px 24px rgba(0,0,0,.12), 0 0 0 1px rgba(0,0,0,.04);
+    z-index:2147483647;
+    font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+.cx-voice-toolbar.active{ display:flex; }
+
+.cx-vt-btn{
+    width:36px; height:36px; border:none; border-radius:10px;
+    background:transparent; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:.15s; flex-shrink:0; position:relative;
+}
+.cx-vt-btn svg{ width:16px; height:16px; fill:none; stroke:#555; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.cx-vt-btn:hover{ background:#f5f5f5; }
+.cx-vt-btn:hover svg{ stroke:#222; }
+.cx-vt-btn.active-state svg{ stroke:#F26E26; }
+.cx-vt-btn.active-state{ background:#FFF3ED; }
+
+.cx-vt-divider{ width:1px; height:24px; background:#eee; margin:0 4px; flex-shrink:0; }
+
+.cx-vt-select-wrap{ position:relative; flex-shrink:0; }
+.cx-vt-select{
+    appearance:none; -webkit-appearance:none;
+    background:#f7f7f7; border:1px solid #eee;
+    color:#333; font-size:12px; font-weight:500;
+    padding:6px 28px 6px 10px; border-radius:10px;
+    cursor:pointer; outline:none;
+}
+.cx-vt-select:focus{ border-color:#FBAB18; }
+.cx-vt-select-wrap::after{
+    content:''; position:absolute; right:10px; top:50%; transform:translateY(-50%);
+    width:0; height:0; border-left:4px solid transparent; border-right:4px solid transparent;
+    border-top:5px solid #999; pointer-events:none;
+}
+
+/* Prevent clipping */
+.elementor-widget-icon.voice,
+.elementor-widget-icon.voice .elementor-widget-container,
+.elementor-element:has(> .voice){ overflow:visible !important; }
+
+/* ===== MODAL (share / summary) ===== */
+.cx-modal-overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,.35);
+    display:flex; align-items:center; justify-content:center;
+    z-index:2147483647; padding:20px;
+    backdrop-filter:blur(6px);
+}
+.cx-modal{
+    background:#fff; border-radius:16px; padding:0;
+    max-width:420px; width:100%; position:relative;
+    max-height:80vh; overflow:hidden;
+    box-shadow:0 24px 60px rgba(0,0,0,.15);
+    animation:cxModalIn .25s cubic-bezier(.16,1,.3,1);
+}
+@keyframes cxModalIn{ from{opacity:0;transform:translateY(16px) scale(.98)} to{opacity:1;transform:translateY(0) scale(1)} }
+
+.cx-modal-header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 22px; border-bottom:1px solid #f0f0f0;
+}
+.cx-modal-title{ margin:0; font-size:15px; font-weight:600; color:#222; }
+.cx-modal-close{
+    background:none; border:none; cursor:pointer; color:#999;
+    width:28px; height:28px; display:flex; align-items:center; justify-content:center;
+    border-radius:8px; transition:.15s;
+}
+.cx-modal-close:hover{ background:#f5f5f5; color:#333; }
+.cx-modal-close svg{ width:16px; height:16px; stroke:#999; stroke-width:2; fill:none; }
+.cx-modal-close:hover svg{ stroke:#333; }
+.cx-modal-body{ padding:20px 22px; }
+
+/* Share */
+.cx-share-row{ display:flex; gap:10px; margin-bottom:18px; }
+.cx-share-icon{
+    flex:1; height:44px; border-radius:10px; display:flex;
+    align-items:center; justify-content:center; gap:8px;
+    text-decoration:none; font-size:13px; font-weight:500;
+    transition:.15s; border:1px solid #eee;
+}
+.cx-share-icon svg{ width:18px; height:18px; flex-shrink:0; }
+.cx-share-icon.linkedin{ background:#0A66C2; color:#fff; border-color:#0A66C2; }
+.cx-share-icon.linkedin:hover{ background:#004182; }
+.cx-share-icon.twitter{ background:#000; color:#fff; border-color:#000; }
+.cx-share-icon.twitter:hover{ background:#222; }
+.cx-share-icon.facebook{ background:#1877F2; color:#fff; border-color:#1877F2; }
+.cx-share-icon.facebook:hover{ background:#1460CC; }
+
+.cx-copy-row{ display:flex; gap:8px; }
+.cx-copy-input{
+    flex:1; padding:9px 12px; border:1px solid #e5e5e5;
+    border-radius:10px; font-size:13px; color:#555; background:#fafafa;
+}
+.cx-copy-input:focus{ outline:none; border-color:#FBAB18; }
+.cx-copy-btn{
+    padding:9px 16px; border:none; border-radius:10px;
+    background:linear-gradient(135deg,#FBAB18,#F26E26); color:#fff;
+    cursor:pointer; font-size:13px; font-weight:600; transition:.15s;
+    white-space:nowrap;
+}
+.cx-copy-btn:hover{ opacity:.9; transform:translateY(-1px); }
+
+/* Summary */
+.cx-summary-list{ margin:0; padding:0; list-style:none; }
+.cx-summary-list li{
+    padding:10px 14px; font-size:14px; color:#333;
+    border-radius:10px; margin-bottom:4px; transition:.15s;
+}
+.cx-summary-list li:hover{ background:#FFF8F0; }
+.cx-summary-list li::before{
+    content:''; display:inline-block; width:6px; height:6px;
+    background:linear-gradient(135deg,#FBAB18,#F26E26);
+    border-radius:50%; margin-right:10px; vertical-align:middle;
+}
+
+/* TTS highlight */
+.tts-active{
+    background:#FFF8F0 !important;
+    border-left:3px solid #F26E26;
+    padding-left:12px !important; transition:.3s;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const contentRoot = document.getElementById('voice');
+    const voiceBtn = document.querySelector('.voice');
+
+    /* ===================== VOICE TOOLBAR ===================== */
+    if (voiceBtn) {
+        const toolbar = document.createElement('div');
+        toolbar.className = 'cx-voice-toolbar';
+        toolbar.innerHTML = `
+            <button class="cx-vt-btn" id="cxPlay" title="Play">
+                <svg viewBox="0 0 24 24"><polygon points="6,3 20,12 6,21" fill="currentColor" stroke="none"/></svg>
+            </button>
+            <button class="cx-vt-btn" id="cxPause" title="Pause" style="display:none">
+                <svg viewBox="0 0 24 24"><rect x="5" y="3" width="4" height="18" rx="1" fill="currentColor" stroke="none"/><rect x="15" y="3" width="4" height="18" rx="1" fill="currentColor" stroke="none"/></svg>
+            </button>
+            <button class="cx-vt-btn" id="cxResume" title="Resume" style="display:none">
+                <svg viewBox="0 0 24 24"><polygon points="6,3 20,12 6,21" fill="currentColor" stroke="none"/></svg>
+            </button>
+            <button class="cx-vt-btn" id="cxStop" title="Stop" style="display:none">
+                <svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2" fill="currentColor" stroke="none"/></svg>
+            </button>
+            <div class="cx-vt-divider" id="cxDivider" style="display:none"></div>
+            <div class="cx-vt-select-wrap">
+                <select class="cx-vt-select" id="cxVoiceSelect">
+                    <option value="Jenny">Jenny</option>
+                    <option value="Aria">Aria</option>
+                    <option value="Sonia">Sonia</option>
+                    <option value="David">David</option>
+                    <option value="Guy">Guy</option>
+                </select>
+            </div>
+        `;
+        document.body.appendChild(toolbar);
+
+        const playBtn = toolbar.querySelector('#cxPlay');
+        const pauseBtn = toolbar.querySelector('#cxPause');
+        const resumeBtn = toolbar.querySelector('#cxResume');
+        const stopBtn = toolbar.querySelector('#cxStop');
+        const divider = toolbar.querySelector('#cxDivider');
+
+        function showControls() {
+            playBtn.style.display = 'none';
+            pauseBtn.style.display = 'flex';
+            resumeBtn.style.display = 'none';
+            stopBtn.style.display = 'flex';
+            divider.style.display = 'block';
+        }
+        function showPausedControls() {
+            playBtn.style.display = 'none';
+            pauseBtn.style.display = 'none';
+            resumeBtn.style.display = 'flex';
+            stopBtn.style.display = 'flex';
+            divider.style.display = 'block';
+        }
+        function showPlayControls() {
+            playBtn.style.display = 'flex';
+            pauseBtn.style.display = 'none';
+            resumeBtn.style.display = 'none';
+            stopBtn.style.display = 'none';
+            divider.style.display = 'none';
+        }
+
+        voiceBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            toolbar.classList.toggle('active');
+        });
+        document.addEventListener('click', function (e) {
+            if (!toolbar.contains(e.target) && e.target !== voiceBtn && !voiceBtn.contains(e.target)) {
+                toolbar.classList.remove('active');
+            }
+        });
+
+        let selectedVoice = 'Jenny';
+        const voiceSelect = toolbar.querySelector('#cxVoiceSelect');
+        voiceSelect.addEventListener('change', function () {
+            selectedVoice = this.value;
+        });
+
+        /* Load voices reliably */
+        let voicesLoaded = false;
+        function loadVoices() {
+            const voices = speechSynthesis.getVoices();
+            if (voices.length > 0) voicesLoaded = true;
+        }
+        loadVoices();
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = loadVoices;
+        }
+
+        function getVoice() {
+            const voices = speechSynthesis.getVoices();
+            return voices.find(v => v.name.includes(selectedVoice)) || voices[0];
+        }
+
+        let queue = [], currentIndex = 0, speaking = false, paused = false;
+
+        function buildQueue() {
+            queue = [];
+            if (!contentRoot) return;
+            const selectors = 'h1,h2,h3,h4,h5,h6,p,li,span,div,a,td,th,blockquote,pre,code,figcaption,label,strong,b';
+            contentRoot.querySelectorAll(selectors).forEach(function (el) {
+                if (el.children.length > 0 && el.tagName !== 'LI' && el.tagName !== 'P' && el.tagName !== 'BLOCKQUOTE') return;
+                const text = el.innerText.trim();
+                if (text.length > 1 && !queue.some(q => q.element === el)) {
+                    queue.push({ element: el, text: text });
+                }
+            });
+        }
+
+        function speakNext() {
+            if (!speaking) return;
+            if (currentIndex >= queue.length) { stopReading(); return; }
+            const item = queue[currentIndex];
+            document.querySelectorAll('.tts-active').forEach(el => el.classList.remove('tts-active'));
+            item.element.classList.add('tts-active');
+            item.element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            const utter = new SpeechSynthesisUtterance(item.text);
+            utter.voice = getVoice();
+            utter.rate = 1;
+            utter.pitch = 1;
+            utter.onerror = function () { currentIndex++; speakNext(); };
+            utter.onend = function () { currentIndex++; speakNext(); };
+            speechSynthesis.speak(utter);
+        }
+
+        function startReading() {
+            speechSynthesis.cancel();
+            buildQueue();
+            if (queue.length === 0) return;
+            currentIndex = 0;
+            speaking = true;
+            paused = false;
+            voiceBtn.classList.add('is-playing');
+            showControls();
+            speakNext();
+        }
+        function pauseReading() {
+            if (speaking) { speechSynthesis.pause(); paused = true; showPausedControls(); }
+        }
+        function resumeReading() {
+            if (paused) { speechSynthesis.resume(); paused = false; showControls(); }
+        }
+        function stopReading() {
+            speechSynthesis.cancel();
+            speaking = false;
+            paused = false;
+            currentIndex = 0;
+            voiceBtn.classList.remove('is-playing');
+            showPlayControls();
+            document.querySelectorAll('.tts-active').forEach(el => el.classList.remove('tts-active'));
+        }
+
+        playBtn.addEventListener('click', startReading);
+        pauseBtn.addEventListener('click', pauseReading);
+        resumeBtn.addEventListener('click', resumeReading);
+        stopBtn.addEventListener('click', stopReading);
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') { stopReading(); toolbar.classList.remove('active'); }
+            if (e.key === ' ' && speaking && !paused) { e.preventDefault(); pauseReading(); }
+            else if (e.key === ' ' && paused) { e.preventDefault(); resumeReading(); }
+        });
+    }
+
+    /* ===================== SHARED MODAL HELPER ===================== */
+    function openModal(html) {
+        const overlay = document.createElement('div');
+        overlay.className = 'cx-modal-overlay';
+        overlay.innerHTML = '<div class="cx-modal">' +
+            '<div class="cx-modal-header"><span class="cx-modal-title" id="cxModalTitle"></span><button class="cx-modal-close" aria-label="Close"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>' +
+            '<div class="cx-modal-body" id="cxModalBody"></div></div>';
+        document.body.appendChild(overlay);
+
+        overlay.querySelector('#cxModalTitle').textContent = html.title || '';
+        overlay.querySelector('#cxModalBody').innerHTML = html.body || '';
+
+        overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+        overlay.querySelector('.cx-modal-close').addEventListener('click', close);
+        function escHandler(e) { if (e.key === 'Escape') close(); }
+        document.addEventListener('keydown', escHandler);
+        function close() { overlay.remove(); document.removeEventListener('keydown', escHandler); }
+        return overlay;
+    }
+
+    /* ===================== SHARE ===================== */
+    const shareBtn = document.querySelector('.share');
+    if (shareBtn) {
+        shareBtn.addEventListener('click', function () {
+            const url = window.location.href;
+            const overlay = openModal({
+                title: 'Share this page',
+                body: '<div class="cx-share-row">' +
+                    '<a class="cx-share-icon linkedin" target="_blank" href="https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(url) + '">' +
+                    '<svg viewBox="0 0 24 24" fill="#fff"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>LinkedIn</a>' +
+                    '<a class="cx-share-icon twitter" target="_blank" href="https://twitter.com/intent/tweet?url=' + encodeURIComponent(url) + '">' +
+                    '<svg viewBox="0 0 24 24" fill="#fff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>Twitter</a>' +
+                    '<a class="cx-share-icon facebook" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url) + '">' +
+                    '<svg viewBox="0 0 24 24" fill="#fff"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>Facebook</a>' +
+                    '</div>' +
+                    '<div class="cx-copy-row"><input type="text" readonly class="cx-copy-input" id="cxCopyInput">' +
+                    '<button class="cx-copy-btn" id="cxCopyBtn">Copy link</button></div>'
+            });
+            const input = overlay.querySelector('#cxCopyInput');
+            input.value = url;
+            overlay.querySelector('#cxCopyBtn').addEventListener('click', function () {
+                input.select();
+                navigator.clipboard.writeText(input.value).then(() => {
+                    this.textContent = 'Copied!';
+                    setTimeout(() => (this.textContent = 'Copy link'), 1500);
+                });
+            });
+        });
+    }
+
+    /* ===================== QUICK SUMMARY ===================== */
+    const summaryBtn = document.querySelector('.summary');
+    if (summaryBtn) {
+        summaryBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            const providedSummary = document.getElementById('page-summary');
+            let bodyHTML;
+            if (providedSummary) {
+                bodyHTML = providedSummary.innerHTML;
+            } else {
+                const heads = contentRoot ? [...contentRoot.querySelectorAll('h2')] : [];
+                bodyHTML = '<ul class="cx-summary-list">' + heads.map(h => '<li>' + h.textContent.trim() + '</li>').join('') + '</ul>';
+            }
+            openModal({ title: 'Quick Summary', body: bodyHTML });
+        });
+    }
+});
+</script>

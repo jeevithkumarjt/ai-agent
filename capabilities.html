@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Capabilities scroll section</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* ── SCROLL STAGE ── */
+  .scroll-wrapper {
+    position: relative;
+    height: 400vh;
+  }
+  .sticky-stage {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    background: #fff;
+  }
+
+  /* ── GRID LAYOUT ── */
+  .layout {
+    width: 100%;
+    max-width: 1300px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    align-items: center;
+    gap: 0;
+    padding: 0 60px;
+  }
+
+  /* ── LEFT ── */
+  .left {
+    padding-right: 40px;
+  }
+  .left h2 {
+    font-size: 44px;
+    font-weight: 700;
+    line-height: 1.12;
+    margin: 0 0 44px 0;
+    letter-spacing: -0.6px;
+    color: #111;
+  }
+
+  .robot-image {
+    width: 100%;
+    max-width: 460px;
+    aspect-ratio: 4 / 3.1;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #f5f5f5;
+  }
+  .robot-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ── RIGHT ── */
+  .right {
+    position: relative;
+    width: 100%;
+    height: 600px;
+  }
+
+  .curve-svg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 220px;
+    height: 100%;
+    pointer-events: none;
+    overflow: visible;
+  }
+  .curve-svg path {
+    fill: none;
+    stroke: #ddd;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+  }
+
+  /* ── SLOTS ── */
+  .slots {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .slot {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    pointer-events: none;
+    transform: translateY(-50%);
+  }
+
+  .num-circle {
+    flex: none;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #E2672E;
+    color: #fff;
+    font-weight: 700;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    box-shadow: 0 4px 16px rgba(226, 103, 46, 0.3);
+    pointer-events: auto;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  .num-circle.leaving {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  .num-circle.entering {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .slot-content {
+    pointer-events: auto;
+    padding-left: 4px;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  .slot-content.leaving {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  .slot-content.entering {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .slot-content h3 {
+    margin: 0 0 8px 0;
+    font-size: 21px;
+    font-weight: 700;
+    color: #111;
+    white-space: nowrap;
+  }
+  .slot-content p {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.65;
+    color: #666;
+    max-width: 380px;
+  }
+
+  /* ── NEXT SECTION ── */
+  .next-section {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fafafa;
+    border-top: 1px solid #eee;
+  }
+  .next-section h2 { font-size: 28px; color: #333; }
+
+  /* ── RESPONSIVE: 1200px ── */
+  @media (max-width: 1200px) {
+    .layout { padding: 0 40px; }
+    .left h2 { font-size: 38px; }
+    .right { height: 560px; }
+    .curve-svg { width: 160px; }
+    .slot-content p { max-width: 320px; }
+  }
+
+  /* ── RESPONSIVE: 1024px ── */
+  @media (max-width: 1024px) {
+    .layout { padding: 0 30px; }
+    .left h2 { font-size: 34px; margin-bottom: 36px; }
+    .right { height: 520px; }
+    .curve-svg { width: 150px; }
+    .slot-content h3 { font-size: 19px; }
+    .slot-content p { max-width: 300px; font-size: 14.5px; }
+  }
+
+  /* ── RESPONSIVE: 900px ── */
+  @media (max-width: 900px) {
+    .layout {
+      grid-template-columns: 1fr;
+      padding: 40px 24px;
+      gap: 20px;
+    }
+    .left { padding-right: 0; text-align: center; }
+    .left h2 { font-size: 32px; margin-bottom: 30px; }
+    .robot-image { max-width: 320px; margin: 0 auto; }
+    .right { height: 480px; }
+    .curve-svg { width: 120px; }
+    .num-circle { width: 42px; height: 42px; font-size: 16px; }
+    .slot-content h3 { font-size: 18px; white-space: normal; }
+    .slot-content p { font-size: 14px; max-width: 260px; }
+  }
+
+  /* ── RESPONSIVE: 768px ── */
+  @media (max-width: 768px) {
+    .layout { padding: 32px 20px; }
+    .left h2 { font-size: 28px; }
+    .robot-image { max-width: 300px; }
+    .right { height: 440px; }
+    .curve-svg { width: 110px; }
+    .slot { gap: 18px; }
+    .num-circle { width: 40px; height: 40px; font-size: 15px; }
+    .slot-content h3 { font-size: 16px; }
+    .slot-content p { font-size: 13.5px; max-width: 240px; }
+  }
+
+  /* ── RESPONSIVE: 600px ── */
+  @media (max-width: 600px) {
+    .layout { padding: 24px 16px; }
+    .left h2 { font-size: 24px; margin-bottom: 24px; }
+    .robot-image { max-width: 260px; }
+    .right { height: 400px; }
+    .curve-svg { width: 90px; }
+    .slot { gap: 14px; }
+    .num-circle { width: 38px; height: 38px; font-size: 14px; }
+    .slot-content h3 { font-size: 15px; }
+    .slot-content p { font-size: 13px; line-height: 1.55; max-width: 200px; }
+  }
+
+  /* ── RESPONSIVE: 480px ── */
+  @media (max-width: 480px) {
+    .layout { padding: 20px 14px; }
+    .left h2 { font-size: 22px; margin-bottom: 20px; }
+    .robot-image { max-width: 220px; aspect-ratio: 4/3; }
+    .right { height: 360px; }
+    .curve-svg { width: 70px; }
+    .slot { gap: 12px; }
+    .num-circle { width: 34px; height: 34px; font-size: 13px; }
+    .slot-content h3 { font-size: 14px; }
+    .slot-content p { font-size: 12px; line-height: 1.5; max-width: 170px; }
+  }
+
+  /* ── RESPONSIVE: 360px ── */
+  @media (max-width: 360px) {
+    .layout { padding: 16px 12px; }
+    .left h2 { font-size: 20px; }
+    .robot-image { max-width: 180px; }
+    .right { height: 320px; }
+    .curve-svg { width: 56px; }
+    .num-circle { width: 30px; height: 30px; font-size: 12px; }
+    .slot-content h3 { font-size: 13px; }
+    .slot-content p { font-size: 11px; max-width: 140px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="scroll-wrapper" id="scrollWrapper">
+  <div class="sticky-stage">
+    <div class="layout">
+
+      <div class="left">
+        <h2>Capabilities built for<br>enterprise scale</h2>
+        <div class="robot-image">
+          <img
+            src="http://192.168.3.28/tryvium-2/wp-content/uploads/2026/07/enterprise-scale.webp"
+            alt="Enterprise Scale"
+          >
+        </div>
+      </div>
+
+      <div class="right">
+        <svg class="curve-svg" id="curveSvg" viewBox="0 0 220 600" preserveAspectRatio="none">
+          <path id="curvePath" d="M 30 0 C 30 0, 220 300, 30 600" />
+        </svg>
+
+        <div class="slots" id="slots">
+          <div class="slot" data-slot="0">
+            <div class="num-circle" id="num-0">1</div>
+            <div class="slot-content" id="content-0">
+              <h3></h3><p></p>
+            </div>
+          </div>
+          <div class="slot" data-slot="1">
+            <div class="num-circle" id="num-1">2</div>
+            <div class="slot-content" id="content-1">
+              <h3></h3><p></p>
+            </div>
+          </div>
+          <div class="slot" data-slot="2">
+            <div class="num-circle" id="num-2">3</div>
+            <div class="slot-content" id="content-2">
+              <h3></h3><p></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="next-section">
+  <h2>Next section starts here</h2>
+</div>
+
+<script>
+(function () {
+  var items = [
+    { title: "AI agent console", text: "A unified workspace that orchestrates AI-driven service delivery while enabling human oversight, exception handling, and higher-value service operations." },
+    { title: "Sentiment & Intent Analysis", text: "Reads customer tone and intent in real time to determine the right resolution path." },
+    { title: "Enterprise-Grade Security", text: "Enterprise-grade encryption, data protection, and compliance-ready frameworks." },
+    { title: "Real-Time Analytics Dashboard", text: "Live visibility into volume, resolution rates, and agent performance so teams can act before issues escalate." },
+    { title: "Seamless CRM Integration", text: "Connects directly to your existing CRM and helpdesk tools, keeping every conversation and record in sync." },
+    { title: "24/7 Automated Support", text: "Handles routine requests around the clock, freeing your team to focus on complex, high-value conversations." }
+  ];
+
+  var numStages = items.length - 2;
+  var wrapper = document.getElementById('scrollWrapper');
+  var contentEls = [0,1,2].map(function(i){ return document.getElementById('content-'+i); });
+  var numEls = [0,1,2].map(function(i){ return document.getElementById('num-'+i); });
+  var slotEls = [0,1,2].map(function(i){ return document.querySelector('.slot[data-slot="'+i+'"]'); });
+
+  var currentStage = -1;
+
+  function renderStage(stage) {
+    for (var slot = 0; slot < 3; slot++) {
+      var item = items[stage + slot];
+      var h3 = contentEls[slot].querySelector('h3');
+      var p = contentEls[slot].querySelector('p');
+
+      contentEls[slot].classList.add('leaving');
+      numEls[slot].classList.add('leaving');
+
+      (function(el, nel, title, text, num) {
+        setTimeout(function() {
+          el.querySelector('h3').textContent = title;
+          el.querySelector('p').textContent = text;
+          nel.textContent = num;
+          el.classList.remove('leaving');
+          nel.classList.remove('leaving');
+          el.classList.add('entering');
+          nel.classList.add('entering');
+        }, 180);
+      })(contentEls[slot], numEls[slot], item.title, item.text, stage + slot + 1);
+    }
+  }
+
+  function init() {
+    for (var slot = 0; slot < 3; slot++) {
+      var item = items[slot];
+      contentEls[slot].querySelector('h3').textContent = item.title;
+      contentEls[slot].querySelector('p').textContent = item.text;
+      numEls[slot].textContent = slot + 1;
+    }
+    currentStage = 0;
+    positionOnCurve();
+  }
+
+  function onScroll() {
+    var rect = wrapper.getBoundingClientRect();
+    var wrapperHeight = wrapper.offsetHeight;
+    var viewportH = window.innerHeight;
+    var scrolled = -rect.top;
+    var travel = wrapperHeight - viewportH;
+    var progress = travel > 0 ? scrolled / travel : 0;
+    progress = Math.max(0, Math.min(1, progress));
+
+    var stage = Math.min(numStages - 1, Math.round(progress * (numStages - 1)));
+
+    if (stage !== currentStage) {
+      currentStage = stage;
+      renderStage(stage);
+    }
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  function positionOnCurve() {
+    var svg = document.getElementById('curveSvg');
+    var path = document.getElementById('curvePath');
+    if (!svg || !path) return;
+
+    var totalLen = path.getTotalLength();
+    var svgRect = svg.getBoundingClientRect();
+    var parentRect = svg.parentElement.getBoundingClientRect();
+
+    var scaleX = svgRect.width / parseFloat(svg.getAttribute('viewBox').split(' ')[2]);
+    var scaleY = svgRect.height / parseFloat(svg.getAttribute('viewBox').split(' ')[3]);
+
+    var fractions = [0.15, 0.5, 0.85];
+    var circleRadius = numEls[0].getBoundingClientRect().width / 2;
+
+    for (var i = 0; i < fractions.length; i++) {
+      var pt = path.getPointAtLength(fractions[i] * totalLen);
+      var x = pt.x * scaleX + (svgRect.left - parentRect.left) - circleRadius;
+      var y = pt.y * scaleY + (svgRect.top - parentRect.top);
+      slotEls[i].style.left = x + 'px';
+      slotEls[i].style.top = y + 'px';
+    }
+  }
+
+  window.addEventListener('resize', positionOnCurve);
+  window.addEventListener('load', function() {
+    init();
+    onScroll();
+  });
+
+  init();
+  onScroll();
+})();
+</script>
+
+</body>
+</html>
