@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Enterprise AI Agent — Portal</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+           background: linear-gradient(160deg, #0f1530 0%, #1c2440 60%, #0d1020 100%);
+           color: #e6ecff; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .card { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12);
+            border-radius: 16px; padding: 40px 44px; max-width: 560px; width: 100%; text-align: center; }
+    h1 { margin: 0 0 6px; font-size: 1.6rem; }
+    p { color: #9aa7cc; margin: 0 0 24px; font-size: .95rem; }
+    a.btn { display: block; text-decoration: none; color: #fff; background: #294199; border-radius: 10px;
+            padding: 14px 20px; margin: 10px 0; font-weight: 600; transition: background .15s; }
+    a.btn:hover { background: #3b5bdb; }
+    a.btn.warn { background: #7c3aed; } a.btn.warn:hover { background: #8b5cf6; }
+    a.btn.o { background: transparent; border: 1px solid rgba(255,255,255,.25); color: #c3cdf0; }
+    a.btn.o:hover { background: rgba(255,255,255,.07); }
+    .hint { font-size: .78rem; color: #6b7799; margin-top: 18px; }
+    code { background: rgba(255,255,255,.08); padding: 1px 6px; border-radius: 5px; font-size: .8rem; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Enterprise AI Agent</h1>
+    <p>FastAPI backend + RAG + admin portal + chat widget</p>
+    <a class="btn warn" href="agent-ai/enterprise-ai-agent/admin-ai.html">Admin Portal (admin-ai.html)</a>
+    <a class="btn" href="agent-ai/enterprise-ai-agent/index.html">Chat UI (index.html)</a>
+    <a class="btn o" href="agent-ai/enterprise-ai-agent/main.html">Chat UI (main.html)</a>
+    <div class="hint">Source: <code>github.com/jeevithkumarjt/ai-agent</code> &middot;
+      run the FastAPI backend locally (port 8000) for full chat / admin functionality.</div>
+  </div>
+</body>
+</html>
