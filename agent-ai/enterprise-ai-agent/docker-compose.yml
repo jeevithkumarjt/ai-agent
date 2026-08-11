@@ -1,11 +1,9 @@
-# Local dev only (01-architecture-decisions.md §7: deployment path, not built now).
-# Two services: Postgres with pgvector, and the FastAPI backend.
+# Local dev / production stack: Postgres with pgvector + FastAPI backend.
 #
-# The backend image is NOT provided in this repo — this file targets developers
-# who run the source locally (`pip install -e "backend[dev]"`), so the backend
-# service is included as a documented reference for the future container, kept in
-# sync with the locked stack (ADR-001 single Postgres+pgvector, ADR-007 env-only).
-
+#   docker compose up -d --build
+#
+# The backend image is built from backend/Dockerfile and, on first start, applies
+# the schema (alembic) and bootstraps the owner user before serving the API.
 services:
   postgres:
     image: pgvector/pgvector:pg16
@@ -25,27 +23,40 @@ services:
       retries: 10
 
   backend:
-    image: python:3.12-slim
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: agentai-backend
     container_name: agentai-backend
-    command: >
-      sh -c "pip install -e 'backend[dev]' &&
-             alembic -c backend/alembic.ini upgrade head &&
-             python -m backend.cli seed &&
-             uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload"
-    working_dir: /app
-    volumes:
-      - .:/app
     environment:
+      APP_ENV: ${APP_ENV:-development}
       DATABASE_URL: postgresql+asyncpg://agentai:agentai@postgres:5432/agentai
+      LLM_PROVIDER: ${LLM_PROVIDER:-groq}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:?set ANTHROPIC_API_KEY in .env}
+      ANTHROPIC_BASE_URL: ${ANTHROPIC_BASE_URL:-https://api.groq.com/openai/v1}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-llama-3.3-70b-versatile}
+      ANTHROPIC_MAX_TOKENS: ${ANTHROPIC_MAX_TOKENS:-2048}
       EMBEDDINGS_API_KEY: ${EMBEDDINGS_API_KEY:-}
+      EMBEDDINGS_BASE_URL: ${EMBEDDINGS_BASE_URL:-https://api.openai.com/v1}
+      EMBEDDINGS_MODEL: ${EMBEDDINGS_MODEL:-text-embedding-3-small}
+      RETRIEVAL_TOP_K: ${RETRIEVAL_TOP_K:-5}
+      KNOWLEDGE_DOCS_DIR: /app/documents
+      KNOWLEDGE_SITES: ${KNOWLEDGE_SITES:-https://www.tryvium.ai/}
+      AGENT_MAX_TOOL_ITERATIONS: ${AGENT_MAX_TOOL_ITERATIONS:-5}
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
-      APP_ENV: development
+      JWT_ACCESS_TTL_MINUTES: ${JWT_ACCESS_TTL_MINUTES:-30}
+      JWT_REFRESH_TTL_DAYS: ${JWT_REFRESH_TTL_DAYS:-14}
+      BOOTSTRAP_TENANT_NAME: ${BOOTSTRAP_TENANT_NAME:-Default}
+      BOOTSTRAP_OWNER_EMAIL: ${BOOTSTRAP_OWNER_EMAIL:-owner@example.com}
+      BOOTSTRAP_OWNER_PASSWORD: ${BOOTSTRAP_OWNER_PASSWORD:-ChangeMe123!}
     ports:
       - "8000:8000"
     depends_on:
       postgres:
         condition: service_healthy
+    volumes:
+      - docdata:/app/documents
 
 volumes:
   pgdata:
+  docdata:
