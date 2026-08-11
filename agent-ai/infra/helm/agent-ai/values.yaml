@@ -1,0 +1,65 @@
+image:
+  repository: ghcr.io/your-org/agent-ai-api
+  tag: latest
+  pullPolicy: IfNotPresent
+
+replicaCount:
+  api: 2
+  web: 2
+
+service:
+  apiPort: 8000
+  webPort: 3000
+
+ingress:
+  enabled: true
+  host: knowledge.example.com
+  tlsSecret: agent-ai-tls
+
+config:
+  appEnv: production
+  defaultSourceUrl: "https://www.tryvium.ai"
+  embeddingProvider: fastembed
+  rerankerProvider: fastembed
+  llmDefaultProvider: openai
+  llmDefaultModel: gpt-4o-mini
+  storageBackend: local
+  cacheEnabled: "true"
+
+secrets:
+  # Fill via Helm values file or external secret. Never commit real values.
+  secretKey: ""
+  jwtSecret: ""
+  webhookSecret: ""
+  openaiApiKey: ""
+  qdrantApiKey: ""
+
+external:
+  postgres: {}
+  qdrant: {}
+  redis: {}
+
+resources:
+  api:
+    requests: { cpu: "500m", memory: 1Gi }
+    limits: { cpu: "2", memory: 3Gi }
+  web:
+    requests: { cpu: "100m", memory: 256Mi }
+    limits: { cpu: "500m", memory: 1Gi }
+
+worker:
+  concurrency: 4
+  queues:
+    - name: default
+      replicas: 2
+    - name: crawl
+      replicas: 2
+    - name: index
+      replicas: 2
+
+autoscaling:
+  api:
+    enabled: true
+    min: 2
+    max: 10
+    targetCPU: 70

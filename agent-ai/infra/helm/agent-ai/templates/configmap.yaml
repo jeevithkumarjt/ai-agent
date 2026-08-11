@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "agent-ai.name" . }}-config
+  labels:
+    {{- include "agent-ai.labels" . | nindent 4 }}
+data:
+  APP_ENV: {{ .Values.config.appEnv | quote }}
+  APP_NAME: agent-ai
+  DEFAULT_SOURCE_URL: {{ .Values.config.defaultSourceUrl | quote }}
+  EMBEDDING_PROVIDER: {{ .Values.config.embeddingProvider | quote }}
+  RERANKER_PROVIDER: {{ .Values.config.rerankerProvider | quote }}
+  LLM_DEFAULT_PROVIDER: {{ .Values.config.llmDefaultProvider | quote }}
+  LLM_DEFAULT_MODEL: {{ .Values.config.llmDefaultModel | quote }}
+  STORAGE_BACKEND: {{ .Values.config.storageBackend | quote }}
+  CACHE_ENABLED: {{ .Values.config.cacheEnabled | quote }}
+  DATABASE_URL: {{ printf "postgresql+asyncpg://%s:%s@%s/%s" .Values.external.postgres.user .Values.external.postgres.password .Values.external.postgres.host .Values.external.postgres.db | quote }}
+  REDIS_URL: {{ printf "redis://%s:6379/0" .Values.external.redis.host | quote }}
+  QDRANT_URL: {{ printf "http://%s:6333" .Values.external.qdrant.host | quote }}

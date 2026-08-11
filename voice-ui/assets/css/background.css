@@ -1,0 +1,71 @@
+/* ==========================================================================
+   Voice UI — Background System (background.css)
+   --------------------------------------------------------------------------
+   Scoped styles for .vui-bg. Loaded after base.css. The JS (background.js)
+   builds the DOM inside a .vui-bg container; this file only styles it.
+
+   Composition (back → front): aurora blobs → noise → cursor light → canvas.
+   The whole layer is pointer-transparent and sits at z-index 0 behind
+   content (hero, carousel, cards) which uses z-index ≥ 1.
+   ========================================================================== */
+
+.vui-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ---- Aurora mesh ---- */
+.vui-bg-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0; /* JS fades in to avoid a first-frame flash */
+  will-change: transform, opacity;
+  transform: translate3d(0, 0, 0);
+}
+.vui-bg-blob--1 { background: radial-gradient(circle at 50% 50%, var(--aurora-sky), transparent 70%); }
+.vui-bg-blob--2 { background: radial-gradient(circle at 50% 50%, var(--aurora-violet), transparent 70%); }
+.vui-bg-blob--3 { background: radial-gradient(circle at 50% 50%, var(--aurora-coral), transparent 70%); }
+.vui-bg-blob--4 { background: radial-gradient(circle at 50% 50%, var(--aurora-mint), transparent 70%); }
+
+/* ---- Film grain (static SVG turbulence, zero animation) ---- */
+.vui-bg-noise {
+  position: absolute;
+  inset: 0;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+
+/* ---- Cursor light (spring-smoothed accent glow) ---- */
+.vui-bg-cursor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, var(--accent), transparent 68%);
+  opacity: 0;
+  will-change: transform, opacity;
+  transform: translate3d(-50%, -50%, 0);
+}
+
+/* ---- Particles canvas ---- */
+.vui-bg-particles {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* ---- Reduced motion: kill ambient animation, keep the static frame ---- */
+@media (prefers-reduced-motion: reduce) {
+  .vui-bg-blob,
+  .vui-bg-cursor {
+    transition: none;
+    animation: none;
+  }
+  .vui-bg-cursor { opacity: 0 !important; }
+}

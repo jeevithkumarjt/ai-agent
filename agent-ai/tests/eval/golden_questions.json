@@ -1,0 +1,48 @@
+[
+  {
+    "question": "What is Tryvium?",
+    "answer_fragments": ["Tryvium", "voice", "assistant"],
+    "source_url": "https://www.tryvium.ai",
+    "category": "company"
+  },
+  {
+    "question": "Does Tryvium offer multilingual support?",
+    "answer_fragments": ["language", "multilingual"],
+    "category": "product"
+  },
+  {
+    "question": "How much does Tryvium cost?",
+    "answer_fragments": ["price", "pricing"],
+    "category": "pricing"
+  },
+  {
+    "question": "How do I book a demo?",
+    "answer_fragments": ["demo", "book"],
+    "category": "contact"
+  },
+  {
+    "question": "What industries does Tryvium serve?",
+    "answer_fragments": ["industry", "healthcare", "finance"],
+    "category": "industries"
+  },
+  {
+    "question": "Does Tryvium integrate with CRM systems?",
+    "answer_fragments": ["integrat", "CRM", "Salesforce", "HubSpot"],
+    "category": "integrations"
+  },
+  {
+    "question": "Is Tryvium HIPAA compliant?",
+    "answer_fragments": ["HIPAA", "complian", "security"],
+    "category": "security"
+  },
+  {
+    "question": "What is Tryvium's refund policy?",
+    "answer_fragments": ["refund", "policy"],
+    "category": "legal"
+  },
+  {
+    "question": "Can Tryvium agents answer calls 24/7?",
+    "answer_fragments": ["24/7", "always"],
+    "category": "product"
+  }
+]

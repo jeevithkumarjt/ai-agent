@@ -1,0 +1,32 @@
+{
+  "name": "@tryvium/app",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "^14.2.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "@tryvium/ui": "workspace:*",
+    "@tryvium/db": "workspace:*",
+    "next-auth": "5.0.0-beta.19",
+    "bcryptjs": "^2.4.3",
+    "lucide-react": "^0.370.0",
+    "stripe": "^14.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@types/bcryptjs": "^2.4.6",
+    "typescript": "^5.4.0",
+    "@tryvium/tailwind-config": "workspace:*",
+    "@tryvium/typescript-config": "workspace:*",
+    "@tryvium/eslint-config": "workspace:*"
+  }
+}

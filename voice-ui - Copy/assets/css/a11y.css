@@ -1,0 +1,46 @@
+/* ==========================================================================
+   Voice UI — Accessibility (a11y.css) — M12
+   --------------------------------------------------------------------------
+   WCAG AA reinforcement: focus treatment, forced-colors support, and
+   reduced-motion extras beyond the global kill switch.
+   ========================================================================== */
+
+/* Mouse-only users never see focus rings (focus-visible is already the base
+   rule, this just documents the refinement for card surfaces). */
+.vui-card:focus:not(:focus-visible) { outline: none; }
+
+/* Bigger, clearly-visible focus ring on the card grid surfaces. */
+.vui-card:focus-visible,
+.vui-nav:focus-visible,
+.vui-dot:focus-visible,
+.vui-caption-cta:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Reduced motion extras: static decorative layers, no live-dot pulse. */
+@media (prefers-reduced-motion: reduce) {
+  .vui-hero__glow { animation: none; opacity: 0.8; }
+  .vui-hero__dot,
+  .vui-status-chip[data-tone="live"] .vui-status-dot { animation: none; }
+  .vui-orb.is-live .vui-orb__halo { animation: none; opacity: 0; }
+}
+
+/* Forced colors / high contrast: keep hairline borders visible. */
+@media (forced-colors: active) {
+  .vui-btn,
+  .vui-card,
+  .vui-status-chip,
+  .vui-chat-input input,
+  .vui-hero__card {
+    border: 1px solid CanvasText;
+  }
+  .vui-play-badge,
+  .vui-hangup {
+    border: 1px solid CanvasText;
+  }
+  .vui-orb__canvas,
+  .vui-hero__glow {
+    display: none;
+  }
+}

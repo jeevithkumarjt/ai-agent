@@ -1,0 +1,321 @@
+/* ==========================================================================
+   Voice UI — Homepage sections (sections.css) — M15
+   --------------------------------------------------------------------------
+   Enterprise SaaS homepage sections built on the design-system tokens:
+   stats strip · AI capabilities · industries · features · customer stories ·
+   integrations · pricing · FAQ · final CTA · footer.
+
+   All motion stays transform/opacity only and respects the reduced-motion
+   kill switch in animation.css. Scoped under .vui-* so it never clashes with
+   the host theme.
+   ========================================================================== */
+
+/* ---- Shared section head ---- */
+.vui-section-head {
+  max-width: 680px;
+  margin: 0 auto var(--space-10);
+  text-align: center;
+}
+.vui-section-head .vui-overline { color: var(--accent); }
+.vui-section-title {
+  font-family: var(--font-display);
+  font-weight: var(--fw-extrabold);
+  font-size: var(--text-3xl);
+  letter-spacing: var(--ls-tight);
+  line-height: var(--lh-tight);
+  margin-top: var(--space-2);
+}
+.vui-section-head > p {
+  margin: var(--space-3) auto 0;
+  max-width: 46ch;
+  color: var(--slate);
+  font-size: var(--text-md);
+  line-height: var(--lh-snug);
+}
+
+/* ---- Stats strip ---- */
+.vui-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-4);
+}
+.vui-stat {
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  box-shadow: var(--glass-highlight), var(--shadow-1);
+  text-align: center;
+}
+.vui-stat b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  letter-spacing: var(--ls-tight);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.vui-stat span { font-size: var(--text-sm); color: var(--slate); }
+
+/* ---- AI capabilities ---- */
+.vui-cap-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-4);
+}
+.vui-cap {
+  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  box-shadow: var(--glass-highlight), var(--shadow-2);
+  transition: transform var(--dur-micro) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+}
+.vui-cap:hover { transform: translateY(-3px); box-shadow: var(--glass-highlight), var(--shadow-3); }
+.vui-cap .vui-icon { color: var(--accent); margin-bottom: var(--space-3); }
+.vui-cap h3 { font-family: var(--font-display); font-size: var(--text-lg); font-weight: var(--fw-bold); letter-spacing: var(--ls-narrow); }
+.vui-cap p { margin-top: var(--space-2); font-size: var(--text-sm); color: var(--slate); line-height: var(--lh-normal); }
+
+/* ---- Industries ---- */
+.vui-industries {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-3);
+}
+.vui-industry {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: var(--border-1);
+  box-shadow: var(--shadow-1);
+  transition: transform var(--dur-micro) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+}
+.vui-industry:hover { transform: translateY(-2px); border-color: var(--accent); }
+.vui-industry .vui-icon { color: var(--accent); }
+.vui-industry b { font-size: var(--text-sm); font-weight: var(--fw-semibold); }
+
+/* ---- Features split ---- */
+.vui-features {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(32px, 5vw, 72px);
+  align-items: center;
+}
+.vui-features__copy h2 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-extrabold);
+  font-size: var(--text-3xl);
+  letter-spacing: var(--ls-tight);
+  line-height: var(--lh-tight);
+}
+.vui-features__copy > p { margin-top: var(--space-3); color: var(--slate); font-size: var(--text-md); line-height: var(--lh-snug); max-width: 46ch; }
+.vui-features__list { display: grid; gap: var(--space-4); }
+.vui-feature-row {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-start;
+  padding: var(--space-5);
+  border-radius: var(--radius-md);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  box-shadow: var(--glass-highlight), var(--shadow-1);
+}
+.vui-feature-row .vui-icon { color: var(--accent); margin-top: 2px; }
+.vui-feature-row h3 { font-family: var(--font-display); font-size: var(--text-base); font-weight: var(--fw-bold); letter-spacing: var(--ls-narrow); }
+.vui-feature-row p { margin-top: var(--space-1); font-size: var(--text-sm); color: var(--slate); line-height: var(--lh-normal); }
+@media (max-width: 1023px) { .vui-features { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---- Customer stories ---- */
+.vui-stories {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-4);
+}
+.vui-story {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: var(--border-1);
+  box-shadow: var(--shadow-2);
+}
+.vui-story blockquote { margin: 0; font-size: var(--text-md); line-height: var(--lh-snug); color: var(--ink); }
+.vui-story__who { display: flex; align-items: center; gap: var(--space-3); margin-top: auto; }
+.vui-story__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  display: grid;
+  place-items: center;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: var(--fw-bold);
+  font-size: var(--text-sm);
+}
+.vui-story__who b { display: block; font-size: var(--text-sm); }
+.vui-story__who span { font-size: var(--text-2xs); color: var(--slate); }
+
+/* ---- Integrations ---- */
+.vui-integrations {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+}
+.vui-integration {
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  border: var(--border-1);
+  box-shadow: var(--shadow-1);
+  font-weight: var(--fw-bold);
+  font-size: var(--text-sm);
+  color: var(--slate);
+  transition: transform var(--dur-micro) var(--ease-out), color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+}
+.vui-integration:hover { transform: translateY(-2px); color: var(--ink); border-color: var(--accent); }
+
+/* ---- Pricing ---- */
+.vui-pricing {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-4);
+  align-items: stretch;
+}
+.vui-plan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-8);
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  box-shadow: var(--glass-highlight), var(--shadow-2);
+}
+.vui-plan.is-featured { border-color: var(--accent); box-shadow: var(--shadow-4); }
+.vui-plan__badge {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: var(--text-2xs);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.vui-plan h3 { font-family: var(--font-display); font-size: var(--text-lg); }
+.vui-plan__price {
+  margin-top: var(--space-3);
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: var(--fw-extrabold);
+  letter-spacing: var(--ls-tight);
+  font-variant-numeric: tabular-nums;
+}
+.vui-plan__price small { font-size: var(--text-sm); color: var(--slate); font-weight: var(--fw-medium); }
+.vui-plan__desc { margin-top: var(--space-2); font-size: var(--text-sm); color: var(--slate); }
+.vui-plan ul { list-style: none; margin: var(--space-5) 0 0; padding: 0; display: grid; gap: var(--space-2); }
+.vui-plan li { display: flex; gap: var(--space-2); align-items: flex-start; font-size: var(--text-sm); color: var(--ink); }
+.vui-plan li .vui-icon { color: var(--success); margin-top: 2px; }
+.vui-plan .vui-btn { margin-top: var(--space-6); width: 100%; }
+.vui-plan .vui-btn--ghost { background: transparent; border: 1px solid var(--line); color: var(--ink); box-shadow: none; }
+
+/* ---- FAQ ---- */
+.vui-faq {
+  display: grid;
+  gap: var(--space-3);
+  max-width: 760px;
+  margin-inline: auto;
+}
+.vui-faq details {
+  border: var(--border-1);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+  overflow: hidden;
+}
+.vui-faq summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  cursor: pointer;
+  font-weight: var(--fw-semibold);
+  font-size: var(--text-base);
+  list-style: none;
+}
+.vui-faq summary::-webkit-details-marker { display: none; }
+.vui-faq summary::after {
+  content: "";
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid var(--slate);
+  border-bottom: 2px solid var(--slate);
+  transform: rotate(45deg);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.vui-faq details[open] summary::after { transform: rotate(-135deg); }
+.vui-faq details p { margin: 0; padding: 0 var(--space-5) var(--space-5); font-size: var(--text-sm); color: var(--slate); line-height: var(--lh-normal); }
+
+/* ---- Final CTA band ---- */
+.vui-cta-band {
+  position: relative;
+  overflow: hidden;
+  padding: var(--space-12);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  background: linear-gradient(135deg, var(--aurora-violet), var(--aurora-sky));
+  color: #ffffff;
+  box-shadow: var(--shadow-3);
+}
+.vui-cta-band h2 { font-family: var(--font-display); font-size: var(--text-3xl); letter-spacing: var(--ls-tight); }
+.vui-cta-band p { margin: var(--space-3) auto 0; max-width: 46ch; color: rgba(255, 255, 255, 0.88); }
+.vui-cta-band .vui-btn { margin-top: var(--space-6); background: #ffffff; color: #1A1D27; box-shadow: var(--shadow-3); }
+
+/* ---- Footer ---- */
+.vui-footer { padding-block: var(--space-12) var(--space-6); border-top: var(--border-1); }
+.vui-footer__grid {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(3, 1fr);
+  gap: var(--space-8);
+}
+.vui-footer h4 { font-size: var(--text-sm); font-weight: var(--fw-bold); letter-spacing: var(--ls-narrow); margin-bottom: var(--space-3); }
+.vui-footer ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
+.vui-footer a { color: var(--slate); text-decoration: none; font-size: var(--text-sm); transition: color var(--dur-fast) var(--ease-out); }
+.vui-footer a:hover { color: var(--accent); }
+.vui-footer__brand { max-width: 30ch; color: var(--slate); font-size: var(--text-sm); line-height: var(--lh-normal); }
+.vui-footer__brand b { display: block; margin-bottom: var(--space-2); font-family: var(--font-display); color: var(--ink); font-size: var(--text-lg); letter-spacing: var(--ls-narrow); }
+.vui-footer__bottom {
+  margin-top: var(--space-10);
+  padding-top: var(--space-5);
+  border-top: var(--border-1);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  font-size: var(--text-2xs);
+  color: var(--slate);
+}
+@media (max-width: 767px) {
+  .vui-footer__grid { grid-template-columns: 1fr 1fr; }
+}

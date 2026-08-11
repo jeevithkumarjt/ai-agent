@@ -1,0 +1,311 @@
+openapi: 3.0.3
+info:
+  title: Enterprise AI Agent API
+  description: >
+    Single-tenant-today, multi-tenant-ready AI agent platform. One Postgres + pgvector database,
+    one FastAPI process owning orchestration, RAG, and tool execution. JWT auth with a tenant_id
+    claim (ADR-005). Source of truth for the wire format (04-api-contract.md).
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000
+tags:
+  - name: health
+  - name: auth
+  - name: conversations
+security:
+  - bearerAuth: []
+
+paths:
+  /v1/health:
+    get:
+      tags: [health]
+      summary: Liveness probe, no auth required
+      security: []
+      responses:
+        "200":
+          description: Service is alive
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+
+  /v1/auth/login:
+    post:
+      tags: [auth]
+      summary: Exchange email + password for a token pair
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Token pair
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenPair"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /v1/auth/refresh:
+    post:
+      tags: [auth]
+      summary: Renew a token pair with a refresh token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshRequest"
+      responses:
+        "200":
+          description: Fresh token pair
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenPair"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /v1/conversations:
+    post:
+      tags: [conversations]
+      summary: Create a conversation, returns conversation_id
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conversation"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /v1/conversations/{conversation_id}/messages:
+    get:
+      tags: [conversations]
+      summary: Conversation history, paginated
+      parameters:
+        - $ref: "#/components/parameters/ConversationId"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+      responses:
+        "200":
+          description: Paginated history
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessagePage"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      tags: [conversations]
+      summary: Send a message; streams the response as Server-Sent Events
+      parameters:
+        - $ref: "#/components/parameters/ConversationId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MessageRequest"
+      responses:
+        "200":
+          description: SSE stream of agent events
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/conversations/{conversation_id}/ws:
+    get:
+      tags: [conversations]
+      summary: WebSocket streaming conversation (same event set as SSE)
+      parameters:
+        - $ref: "#/components/parameters/ConversationId"
+        - name: token
+          in: query
+          required: true
+          description: JWT bearer token (WebSocket cannot send headers)
+          schema:
+            type: string
+      responses:
+        "101":
+          description: Switching Protocols
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    ConversationId:
+      name: conversation_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        default: 50
+        maximum: 200
+    Offset:
+      name: offset
+      in: query
+      schema:
+        type: integer
+        default: 0
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid bearer token
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotFound:
+      description: Resource not found in the caller's tenant
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+  schemas:
+    Health:
+      type: object
+      properties:
+        status:
+          type: string
+          example: ok
+      required: [status]
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+
+    RefreshRequest:
+      type: object
+      required: [refresh_token]
+      properties:
+        refresh_token:
+          type: string
+
+    TokenPair:
+      type: object
+      required: [access_token, refresh_token, token_type, expires_in]
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        token_type:
+          type: string
+          default: bearer
+        expires_in:
+          type: integer
+          description: Access token TTL in seconds
+
+    Conversation:
+      type: object
+      required: [id, tenant_id, user_id, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenant_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+
+    MessageRequest:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+          minLength: 1
+          maxLength: 8000
+
+    Message:
+      type: object
+      required: [id, conversation_id, tenant_id, role, content, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        conversation_id:
+          type: string
+          format: uuid
+        tenant_id:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [user, assistant, tool]
+        content:
+          type: string
+        tool_calls:
+          description: >
+            Mirrors the Anthropic tool_use/tool_result blocks for assistant/tool
+            messages — an array of {id, name, input} (assistant) or {id} (tool),
+            or an object for tool_result content.
+          oneOf:
+            - type: object
+              additionalProperties: true
+            - type: array
+              items:
+                type: object
+                additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+
+    MessagePage:
+      type: object
+      required: [items, total, limit, offset]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Message"
+        total:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+
+    Error:
+      type: object
+      required: [detail]
+      properties:
+        detail:
+          type: string

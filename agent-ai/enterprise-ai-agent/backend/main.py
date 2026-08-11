@@ -1,0 +1,135 @@
+"""FastAPI application factory — wires routes, middleware, and app services.
+
+App services live on app.state so routes stay dependency-injectable:
+  app.state.orchestrator — Orchestrator (tool loop, ADR-002)
+  app.state.portal      — admin portal service (documents, settings, audit, …)
+"""
+from __future__ import annotations
+
+import asyncio
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager, suppress
+from pathlib import Path
+
+from api import auth, conversations, health, knowledge
+from api.admin import admin_router
+from core.anthropic_client import AnthropicClient, AnthropicError
+from core.embeddings import get_embedder
+from core.logging import get_logger, setup_logging
+from core.rate_limit import RateLimitMiddleware
+from core.settings import settings
+from db.admin_models import AdminBase
+from db.session import engine
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from services.knowledge import KnowledgeStore
+from services.orchestrator import Orchestrator
+from services.portal import PortalService
+from services.rag import RagService
+from services.tools.base import BaseTool, build_tool_map
+from services.tools.search_knowledge_base import SearchKnowledgeBaseTool
+
+logger = get_logger("app")
+
+ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+
+
+def create_app() -> FastAPI:
+    setup_logging(level="DEBUG" if settings.debug else "INFO")
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        await _ensure_admin_tables()
+        _build_services(app)
+        logger.info("app_started", env=settings.app_env, model=settings.anthropic_model)
+        knowledge_task = asyncio.create_task(_knowledge_refresh_loop(app.state.knowledge))
+        sync_task = asyncio.create_task(_auto_sync_loop(app))
+        yield
+        knowledge_task.cancel()
+        sync_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await knowledge_task
+            await sync_task
+
+    app = FastAPI(title="Enterprise AI Agent", version="1.0.0", lifespan=lifespan)
+
+    app.add_middleware(RateLimitMiddleware)  # ADR-008 no-op seam
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=ALLOWED_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    app.include_router(health.router)
+    app.include_router(auth.router)
+    app.include_router(conversations.router)
+    app.include_router(knowledge.router)
+    app.include_router(admin_router)
+    return app
+
+
+async def _ensure_admin_tables() -> None:
+    """Create admin-portal tables (dedicated registry) without touching the
+    alembic-managed core schema."""
+    async with engine.begin() as conn:
+        await conn.run_sync(AdminBase.metadata.create_all)
+
+
+async def _knowledge_refresh_loop(store: KnowledgeStore) -> None:
+    """Refresh documents/ + site crawl at startup, then periodically in background."""
+    await asyncio.to_thread(store.refresh)
+    while True:
+        await asyncio.sleep(settings.knowledge_refresh_minutes * 60)
+        await asyncio.to_thread(store.refresh)
+
+
+async def _auto_sync_loop(app: FastAPI) -> None:
+    """Respect the portal's auto-sync interval (0 = disabled). Refreshes the
+    in-process knowledge store on the shortest enabled interval across tenants."""
+    from db.admin_models import AdminSetting
+    from db.session import async_session_factory
+    from sqlalchemy import select
+
+    while True:
+        try:
+            async with async_session_factory() as session:
+                rows = (await session.scalars(select(AdminSetting).where(AdminSetting.key == "auto_sync_minutes"))).all()
+            enabled = [(int(r.value) if r.value else 0) for r in rows]
+        except Exception:
+            enabled = []
+        shortest = min((value for value in enabled if value > 0), default=0)
+        if shortest > 0:
+            await asyncio.to_thread(app.state.knowledge.refresh)
+            await asyncio.sleep(max(60, shortest * 60))
+        else:
+            await asyncio.sleep(60)
+
+
+def _build_services(app: FastAPI) -> None:
+    try:
+        if settings.llm_provider == "groq":
+            from core.openai_compat_client import OpenAICompatClient
+
+            llm = OpenAICompatClient()
+        else:
+            llm = AnthropicClient()
+    except AnthropicError as exc:
+        raise RuntimeError(f"failed to initialize LLM client: {exc}") from exc
+
+    rag = RagService(get_embedder())
+    tools: dict[str, BaseTool] = build_tool_map([SearchKnowledgeBaseTool(rag)])
+    knowledge = KnowledgeStore(docs_dir=Path(settings.knowledge_docs_dir))
+    portal = PortalService(rag, knowledge)
+    app.state.knowledge = knowledge
+    app.state.portal = portal
+    app.state.orchestrator = Orchestrator(llm, tools, knowledge=knowledge, portal=portal)
+
+
+app = create_app()

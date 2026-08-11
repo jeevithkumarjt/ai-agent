@@ -1,0 +1,31 @@
+{{- range .Values.worker.queues }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "agent-ai.name" $ }}-worker-{{ .name }}
+  labels:
+    {{- include "agent-ai.labels" $ | nindent 4 }}
+spec:
+  replicas: {{ .replicas }}
+  selector:
+    matchLabels:
+      {{- include "agent-ai.selectorLabels" $ | nindent 6 }}
+      app.kubernetes.io/component: worker-{{ .name }}
+  template:
+    metadata:
+      labels:
+        {{- include "agent-ai.selectorLabels" $ | nindent 8 }}
+        app.kubernetes.io/component: worker-{{ .name }}
+    spec:
+      containers:
+        - name: worker
+          image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          command: ["celery", "-A", "workers.celery_app.celery_app", "worker", "-Q", {{ .name | quote }}, "--concurrency", {{ $.Values.worker.concurrency | quote }}, "-l", "info"]
+          envFrom:
+            - configMapRef: { name: {{ include "agent-ai.name" $ }}-config }
+            - secretRef: { name: {{ include "agent-ai.name" $ }}-secret }
+          resources:
+            {{- toYaml $.Values.resources.api | nindent 12 }}
+---
+{{- end }}

@@ -1,0 +1,173 @@
+name: agent-ai
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-agentai}
+      POSTGRES_USER: ${POSTGRES_USER:-agentai}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-agentai}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-agentai}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant:v1.9.7
+    environment:
+      QDRANT__SERVICE__API_KEY: ${QDRANT_API_KEY:-}
+    volumes:
+      - qdrantdata:/qdrant/storage
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:6333/healthz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ../../apps/api
+    env_file: ../../.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-agentai}:${POSTGRES_PASSWORD:-agentai}@postgres:5432/${POSTGRES_DB:-agentai}
+      REDIS_URL: redis://redis:6379/0
+      QDRANT_URL: http://qdrant:6333
+      CELERY_BROKER_URL: redis://redis:6379/2
+      CELERY_RESULT_BACKEND: redis://redis:6379/3
+    ports:
+      - "${API_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+    command: ["sh", "entrypoint.sh"]
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ../../apps/web
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      NODE_ENV: production
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ../../apps/api
+    env_file: ../../.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-agentai}:${POSTGRES_PASSWORD:-agentai}@postgres:5432/${POSTGRES_DB:-agentai}
+      REDIS_URL: redis://redis:6379/0
+      QDRANT_URL: http://qdrant:6333
+      CELERY_BROKER_URL: redis://redis:6379/2
+      CELERY_RESULT_BACKEND: redis://redis:6379/3
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+    command: ["sh", "entrypoint-worker.sh", "default"]
+    restart: unless-stopped
+
+  worker-crawl:
+    build:
+      context: ../../apps/api
+    env_file: ../../.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-agentai}:${POSTGRES_PASSWORD:-agentai}@postgres:5432/${POSTGRES_DB:-agentai}
+      REDIS_URL: redis://redis:6379/0
+      QDRANT_URL: http://qdrant:6333
+      CELERY_BROKER_URL: redis://redis:6379/2
+      CELERY_RESULT_BACKEND: redis://redis:6379/3
+    depends_on:
+      - redis
+      - postgres
+      - qdrant
+    command: ["sh", "entrypoint-worker.sh", "crawl"]
+    restart: unless-stopped
+
+  worker-index:
+    build:
+      context: ../../apps/api
+    env_file: ../../.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-agentai}:${POSTGRES_PASSWORD:-agentai}@postgres:5432/${POSTGRES_DB:-agentai}
+      REDIS_URL: redis://redis:6379/0
+      QDRANT_URL: http://qdrant:6333
+      CELERY_BROKER_URL: redis://redis:6379/2
+      CELERY_RESULT_BACKEND: redis://redis:6379/3
+    depends_on:
+      - redis
+      - postgres
+      - qdrant
+    command: ["sh", "entrypoint-worker.sh", "index"]
+    restart: unless-stopped
+
+  flower:
+    image: mher/flower:2.0
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/2
+      CELERY_RESULT_BACKEND: redis://redis:6379/3
+      FLOWER_BASIC_AUTH: ${FLOWER_USER:-admin}:${FLOWER_PASSWORD:-admin}
+    ports:
+      - "${FLOWER_PORT:-5555}:5555"
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - promdata:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.retention.time=15d"
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./observability/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./observability/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    ports:
+      - "${GRAFANA_PORT:-3001}:3000"
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  redisdata:
+  qdrantdata:
+  promdata:

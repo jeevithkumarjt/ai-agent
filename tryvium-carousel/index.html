@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#F7F8FA">
+<meta name="description" content="Tryvium AI — Solutions Showcase. Light B2B theme, per-feature voice-agent APIs, WordPress shortcode ready.">
+<title>Tryvium AI — Solutions Showcase (preview)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/tryvium-carousel.css">
+<style>
+  body { margin: 0; background: #F7F8FA; color: #0B1220; font-family: 'Inter', sans-serif; }
+  .page-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 28px; border-bottom: 1px solid rgba(15,23,42,.08);
+    background: rgba(255,255,255,.7); position: sticky; top: 0; z-index: 500; backdrop-filter: blur(10px);
+  }
+  .page-nav strong { font-size: 17px; letter-spacing: -0.01em; }
+  .page-nav span { font-size: 12px; font-weight: 600; color: #556071; text-transform: uppercase; letter-spacing: .1em; }
+  .page-note { max-width: 1180px; margin: 22px auto 0; padding: 0 24px; font-size: 13px; color: #8A93A3; line-height: 1.6; }
+  .page-note code { background: rgba(15,23,42,.06); padding: 1px 6px; border-radius: 6px; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<nav class="page-nav" aria-label="Preview chrome">
+  <strong>Tryvium AI</strong>
+  <span>Solutions Showcase · preview</span>
+</nav>
+<p class="page-note">
+  This is the exact WordPress shortcode output (<code>[tryvium_carousel]</code>). No solutions were injected, so the
+  engine is running the built-in demo set. Point <code>window.TryviumCarousel.endpoint</code> at your
+  <code>GET /solutions</code> route — or set <code>baseUrl</code>+<code>key</code> on each card's <code>api</code> block
+  — and every feature (Healthcare, Insurance, Financial…) routes to its own voice-agent API.
+</p>
+
+<!-- ============ shortcode fragment (identical to PHP output) ============ -->
+<section class="tvx-root" data-solutions="" data-api-base="" data-endpoint="" data-delay="4200">
+  <canvas class="tvx-ambient" aria-hidden="true"></canvas>
+  <div class="tvx-vignette" aria-hidden="true"></div>
+  <div class="tvx-shell">
+    <header class="tvx-head">
+      <p class="tvx-eyebrow"><i aria-hidden="true"></i>AI Solutions</p>
+      <h2 class="tvx-title">Talk to your customers <em>in their voice.</em></h2>
+      <p class="tvx-sub">A production voice agent for every line of business — one dedicated API per solution.</p>
+    </header>
+    <div class="tvx-stage-zone" data-zone="stage" aria-label="Tryvium AI solutions"></div>
+    <noscript><p style="padding:1.5rem;text-align:center">Enable JavaScript to explore the AI solutions showcase.</p></noscript>
+  </div>
+</section>
+
+<script src="assets/js/tryvium-carousel.js"></script>
+</body>
+</html>

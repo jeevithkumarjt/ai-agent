@@ -1,0 +1,1222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#F8FAFC">
+<meta name="description" content="TryMe AI — a refined enterprise AI assistant. Ask about products, pricing, or policies.">
+<title>TryMe AI — Enterprise Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   TRYME AI · ENTERPRISE ASSISTANT
+   ------------------------------------------------------------
+   Design intent: trust, intelligence, speed, simplicity. A calm
+   B2B SaaS surface — restrained motion, generous spacing, subtle
+   glass. Motion system lives in CSS variables:
+     --ease  cubic-bezier(.22,1,.36,1)   (no bounce/elastic)
+     --dur   180–300ms micro · 400–500ms reveal/organic
+   ============================================================ */
+
+.aw-root, .aw-root * { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+.aw-root {
+  /* --- design tokens (single source of truth) --- */
+  --primary:   #294199;
+  --primary-2: #1E3378;
+  --primary-3: #3B5BDB;
+  --accent:    #F26E26;
+  --accent-2:  #FF8A4C;
+  --gray-900:  #111827;
+  --gray-700:  #374151;
+  --gray-500:  #6B7280;
+  --gray-400:  #9CA3AF;
+  --bg:        #F8FAFC;
+  --card:      rgba(255,255,255,0.78);
+  --glass:     rgba(255,255,255,0.65);
+  --line:      rgba(41,65,153,0.12);
+  --line-2:    rgba(41,65,153,0.22);
+  --line-3:    rgba(41,65,153,0.34);
+  --ok:        #10B981;
+  --warn:      #F59E0B;
+  --bad:       #EF4444;
+  --font:      'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --ease:      cubic-bezier(.22,1,.36,1);
+  --dur:       250ms;
+  --r-lg:      24px;
+  --r-md:      20px;
+  --r-sm:      14px;
+
+  position: relative;
+  min-height: 100vh;
+  padding: 0;
+  font-family: var(--font);
+  color: var(--gray-900);
+  background: var(--bg);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Soft enterprise backdrop — two very faint tinted glows (no canvas, cheap) */
+.aw-root::before {
+  content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(90% 60% at 12% -8%, rgba(41,65,153,0.06) 0%, rgba(41,65,153,0) 60%),
+    radial-gradient(80% 55% at 96% 108%, rgba(242,110,38,0.05) 0%, rgba(242,110,38,0) 60%);
+}
+
+/* ============================================================
+   HERO (landing) — calm, B2B
+   ============================================================ */
+.aw-hero {
+  position: relative; z-index: 1;
+  max-width: 780px; margin: 0 auto;
+  padding: clamp(56px, 10vh, 120px) 24px 64px;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+}
+.aw-hero-top {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+}
+.aw-hero-status {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 12px; font-weight: 600; color: var(--gray-500);
+  padding: 6px 12px; border-radius: 999px;
+  background: var(--card); border: 1px solid var(--line);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.aw-hero-status i { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); animation: aw-ping 2.4s ease-out infinite; }
+@keyframes aw-ping {
+  0%   { box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
+  70%  { box-shadow: 0 0 0 9px rgba(16,185,129,0); }
+  100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+}
+.aw-hero-title {
+  margin: clamp(48px, 8vh, 84px) 0 18px;
+  font-size: clamp(34px, 5.6vw, 56px);
+  font-weight: 800; letter-spacing: -0.035em; line-height: 1.05; color: var(--gray-900);
+}
+.aw-hero-title span { color: var(--primary); }
+.aw-hero-sub {
+  margin: 0 0 36px; max-width: 46ch;
+  font-size: clamp(15px, 1.8vw, 17px); line-height: 1.6; color: var(--gray-500); font-weight: 400;
+}
+.aw-hero-note { margin: 22px 0 0; font-size: 12.5px; color: var(--gray-400); font-weight: 500; }
+
+/* ============================================================
+   LOGO — TryMe wordmark + abstract AI mark
+   "Try" = neutral gray #6B7280 · "Me" = orange #F26E26.
+   Idle: breathing + soft glow. Hover: nodes draw, letters
+   separate, mark rotates 6°, orange glow expands (300ms).
+   ============================================================ */
+.aw-logo { display: inline-block; overflow: visible; user-select: none; }
+.aw-logo .aw-ai-link { stroke: var(--primary-3); stroke-width: 1.6; stroke-linecap: round; opacity: 0.55; stroke-dasharray: 20; }
+.aw-logo .aw-ai-node { fill: var(--primary); }
+.aw-logo .aw-ai-node.n3 { fill: var(--accent); }
+.aw-logo text { font-family: var(--font); font-weight: 800; font-size: 17px; letter-spacing: -0.02em; }
+.aw-logo .aw-tm-try { fill: var(--gray-500); }
+.aw-logo .aw-tm-me  { fill: var(--accent); }
+.aw-ai-mark, .aw-logo .aw-tm-try, .aw-logo .aw-tm-me { transition: transform .3s var(--ease); transform-box: fill-box; transform-origin: center; }
+
+/* idle breathing — almost unnoticeable (5s loop) */
+.aw-logo-wrap { display: inline-flex; align-items: center; }
+.aw-logo-wrap .aw-logo { animation: aw-logo-breathe 5s ease-in-out infinite; }
+@keyframes aw-logo-breathe {
+  0%,100% { transform: translateY(0); filter: drop-shadow(0 0 0 rgba(41,65,153,0)); }
+  50%     { transform: translateY(-1.5px); filter: drop-shadow(0 4px 10px rgba(41,65,153,0.10)); }
+}
+
+/* hover choreography — transform/opacity/filter only */
+.aw-logo-wrap:hover .aw-logo { animation-play-state: paused; transform: translateY(-2px) scale(1.02); filter: drop-shadow(0 0 8px rgba(242,110,38,0.35)); transition: transform .3s var(--ease), filter .3s var(--ease); }
+.aw-logo-wrap:hover .aw-ai-mark { transform: rotate(6deg); }
+.aw-logo-wrap:hover .aw-ai-link { animation: aw-link-draw 1.1s var(--ease) forwards; opacity: 0.9; }
+.aw-logo-wrap:hover .aw-tm-try { transform: translateX(-1.5px); }
+.aw-logo-wrap:hover .aw-tm-me { transform: translateX(1.5px); }
+@keyframes aw-link-draw { 0% { stroke-dashoffset: 20; } 100% { stroke-dashoffset: 0; } }
+
+/* hero version is a touch larger */
+.aw-hero-logo { margin-bottom: 4px; }
+
+/* ============================================================
+   CALL TO ACTION
+   ============================================================ */
+.aw-cta {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 14px 26px; border-radius: 999px; border: none; cursor: pointer;
+  font-family: var(--font); font-size: 15px; font-weight: 700; color: #fff;
+  background: linear-gradient(120deg, var(--primary-3), var(--primary) 60%, var(--primary-2));
+  box-shadow: 0 14px 34px -14px rgba(41,65,153,0.55), inset 0 1px 0 rgba(255,255,255,0.18);
+  transition: transform .25s var(--ease), box-shadow .3s var(--ease), filter .2s var(--ease);
+}
+.aw-cta:hover { transform: translateY(-2px); box-shadow: 0 20px 44px -16px rgba(41,65,153,0.7), inset 0 1px 0 rgba(255,255,255,0.18); filter: brightness(1.04); }
+.aw-cta:active { transform: translateY(0) scale(0.97); box-shadow: 0 8px 20px -10px rgba(41,65,153,0.5); }
+.aw-cta svg { width: 16px; height: 16px; }
+
+/* ============================================================
+   OVERLAY + MODAL SHELL
+   ============================================================ */
+.aw-overlay {
+  position: fixed; inset: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: center; padding: 22px;
+  background: rgba(17,24,39,0.38);
+  backdrop-filter: blur(10px) saturate(120%); -webkit-backdrop-filter: blur(10px) saturate(120%);
+  opacity: 0; pointer-events: none;
+  transition: opacity .34s var(--ease);
+}
+.aw-overlay.is-open { opacity: 1; pointer-events: auto; }
+.aw-modal {
+  position: relative;
+  width: min(430px, 100%);
+  height: min(680px, 92vh);
+  display: flex; flex-direction: column;
+  border-radius: var(--r-lg);
+  background: #FFFFFF;
+  border: 1px solid var(--line-2);
+  box-shadow: 0 30px 80px -28px rgba(17,24,39,0.35), 0 4px 18px -8px rgba(17,24,39,0.12);
+  overflow: hidden;
+  transform: translateY(16px) scale(0.965);
+  filter: blur(6px);
+  transition: transform .46s var(--ease), filter .4s var(--ease);
+}
+.aw-overlay.is-open .aw-modal { transform: translateY(0) scale(1); filter: blur(0); }
+
+/* header animation on open: logo fades → title appears → status slides (500ms) */
+.aw-overlay.is-open .aw-head-brand { animation: aw-head-in .5s var(--ease) backwards; }
+.aw-overlay.is-open .aw-head-text  { animation: aw-head-in .5s var(--ease) .08s backwards; }
+.aw-overlay.is-open .aw-head-right { animation: aw-head-in-r .5s var(--ease) .12s backwards; }
+.aw-overlay.is-open .aw-mode        { animation: aw-head-in .5s var(--ease) .16s backwards; }
+.aw-overlay.is-open .aw-body        { animation: aw-head-in .5s var(--ease) .24s backwards; }
+@keyframes aw-head-in   { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes aw-head-in-r { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: translateX(0); } }
+
+/* ============================================================
+   HEADER — brand lockup · live status · glass close
+   ============================================================ */
+.aw-head {
+  position: relative; flex: none;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 16px 18px 14px;
+}
+.aw-head::after {
+  content: ""; position: absolute; left: 18px; right: 18px; bottom: 0; height: 1px;
+  background: linear-gradient(90deg, rgba(41,65,153,0) 0%, rgba(41,65,153,0.22) 40%, rgba(242,110,38,0.18) 80%, rgba(41,65,153,0) 100%);
+}
+.aw-head-brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
+.aw-head-text { min-width: 0; }
+.aw-head-text h3 { margin: 0; font-size: 15px; font-weight: 700; letter-spacing: -0.01em; color: var(--gray-900); }
+.aw-head-text p  { margin: 2px 0 0; font-size: 11.5px; font-weight: 500; color: var(--gray-400); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.aw-head-right { display: flex; align-items: center; gap: 10px; flex: none; }
+
+/* live status pill — pulsing dot; hover reveals a small ops popover */
+.aw-status {
+  position: relative;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--card);
+  font-family: var(--font); font-size: 12px; font-weight: 600; color: var(--gray-700);
+  cursor: pointer; white-space: nowrap;
+  transition: border-color .25s var(--ease), box-shadow .3s var(--ease), transform .25s var(--ease);
+}
+.aw-status:hover { border-color: var(--line-3); box-shadow: 0 8px 20px -10px rgba(41,65,153,0.25); transform: translateY(-1px); }
+.aw-status i { width: 7px; height: 7px; border-radius: 50%; background: var(--gray-400); transition: background .25s; flex: none; }
+.aw-status[data-state="connecting"] i { background: var(--warn); animation: aw-ping 1.4s ease-out infinite; }
+.aw-status[data-state="listening"] i   { background: var(--ok); animation: aw-ping 2s ease-out infinite; }
+.aw-status[data-state="speaking"] i    { background: var(--primary-3); animation: aw-ping 1.1s ease-out infinite; }
+.aw-status[data-state="thinking"] i    { background: var(--accent); animation: aw-ping 1.6s ease-out infinite; }
+.aw-status[data-state="error"] i       { background: var(--bad); }
+.aw-status[data-state="ended"] i       { background: var(--gray-400); }
+.aw-status .aw-eq { display: none; align-items: flex-end; gap: 2px; height: 10px; }
+.aw-status[data-state="listening"] .aw-eq, .aw-status[data-state="speaking"] .aw-eq { display: inline-flex; }
+.aw-status[data-state="listening"] i, .aw-status[data-state="speaking"] i { display: none; }
+.aw-status .aw-eq s { display: block; width: 3px; border-radius: 2px; background: currentColor; animation: aw-eq 1s ease-in-out infinite; }
+.aw-status .aw-eq s:nth-child(2) { animation-delay: .18s; }
+.aw-status .aw-eq s:nth-child(3) { animation-delay: .36s; }
+.aw-status[data-state="listening"] .aw-eq { color: var(--ok); }
+.aw-status[data-state="speaking"] .aw-eq { color: var(--primary-3); }
+@keyframes aw-eq { 0%,100% { height: 3px; } 50% { height: 10px; } }
+
+/* ops popover — appears on hover/focus of the status pill */
+.aw-status-wrap { position: relative; }
+.aw-status-pop {
+  position: absolute; top: calc(100% + 8px); right: 0; width: 190px;
+  padding: 10px 12px; border-radius: 14px;
+  background: #fff; border: 1px solid var(--line); box-shadow: 0 18px 40px -18px rgba(17,24,39,0.28);
+  opacity: 0; transform: translateY(-4px); pointer-events: none;
+  transition: opacity .2s var(--ease), transform .25s var(--ease);
+  z-index: 5;
+}
+.aw-status-wrap:hover .aw-status-pop, .aw-status-wrap:focus-within .aw-status-pop { opacity: 1; transform: translateY(0); }
+.aw-status-pop .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 3px 0; font-size: 11.5px; }
+.aw-status-pop .row span { color: var(--gray-500); font-weight: 500; }
+.aw-status-pop .row b { color: var(--gray-900); font-weight: 700; }
+.aw-status-pop .row b.ok { color: var(--ok); }
+
+/* glass close button — hover rotates 15°, active shrinks to 95% */
+.aw-close {
+  position: relative; width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--line); background: var(--glass);
+  color: var(--gray-500); cursor: pointer;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  transition: transform .25s var(--ease), background .25s var(--ease), color .25s var(--ease), border-color .25s var(--ease), box-shadow .3s var(--ease);
+}
+.aw-close:hover { transform: rotate(15deg); background: #fff; color: var(--gray-900); border-color: var(--line-2); box-shadow: 0 8px 18px -8px rgba(17,24,39,0.2); }
+.aw-close:active { transform: rotate(15deg) scale(0.95); box-shadow: none; }
+.aw-close svg { width: 15px; height: 15px; }
+
+/* ============================================================
+   MODE SWITCHER — segmented control, sliding gradient pill
+   ============================================================ */
+.aw-mode {
+  position: relative; flex: none;
+  display: flex; margin: 14px 18px 0; padding: 4px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #EEF1F8 0%, #F7F9FC 100%);
+  border: 1px solid var(--line);
+  box-shadow: inset 0 1px 3px rgba(17,24,39,0.06);
+}
+.aw-mode-pill {
+  position: absolute; top: 4px; left: 4px; height: 36px;
+  width: calc((100% - 8px) / 2);
+  border-radius: 999px;
+  background: linear-gradient(120deg, var(--primary-3), var(--primary) 70%, var(--primary-2));
+  box-shadow: 0 8px 18px -8px rgba(41,65,153,0.7), inset 0 1px 0 rgba(255,255,255,0.3);
+  pointer-events: none;
+  transition: transform .3s var(--ease);
+  transform: translateX(0);
+}
+.aw-mode-btn {
+  position: relative; z-index: 1; flex: 1; height: 36px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border: none; background: transparent; cursor: pointer;
+  font-family: var(--font); font-size: 12.5px; font-weight: 700;
+  color: var(--gray-500); border-radius: 999px;
+  transition: color .3s var(--ease);
+}
+.aw-mode-btn:hover { color: var(--gray-900); }
+.aw-mode-btn svg { width: 14px; height: 14px; }
+.aw-mode-btn[aria-selected="true"] { color: #fff; }
+/* mic "fills" — core rect pops + soft ripple */
+.aw-mode-btn .aw-ico-mic .aw-mic-fill { transform-origin: center; }
+.aw-mode-btn[aria-selected="true"] .aw-ico-mic .aw-mic-fill { animation: aw-ico-fill .4s var(--ease); }
+/* message icon "draws itself" — stroke reveal */
+.aw-mode-btn .aw-ico-msg .aw-msg-path { stroke-dasharray: 60; stroke-dashoffset: 60; transition: stroke-dashoffset .35s var(--ease); }
+.aw-mode-btn[aria-selected="true"] .aw-ico-msg .aw-msg-path { stroke-dashoffset: 0; }
+@keyframes aw-ico-fill { 0% { transform: scale(0.4); opacity: 0; } 60% { transform: scale(1.25); opacity: 1; } 100% { transform: scale(1); } }
+
+/* ============================================================
+   BODY — shared transcript + composer
+   ============================================================ */
+.aw-body { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; }
+
+/* transcript */
+.aw-log {
+  position: relative; z-index: 1;
+  flex: 1 1 auto; min-height: 120px;
+  overflow-y: auto; display: flex; flex-direction: column; gap: 14px;
+  padding: 14px 16px 10px;
+  scroll-behavior: smooth;
+  scrollbar-width: thin; scrollbar-color: rgba(17,24,39,0.16) transparent;
+  background:
+    radial-gradient(110% 70% at 50% 0%, rgba(248,250,252,0.9) 0%, rgba(248,250,252,0) 55%);
+}
+.aw-log::-webkit-scrollbar { width: 6px; }
+.aw-log::-webkit-scrollbar-thumb { background: rgba(17,24,39,0.16); border-radius: 3px; }
+
+/* message bubbles */
+.aw-msg { position: relative; flex: 0 0 auto; max-width: 88%; }
+.aw-msg .aw-avatar {
+  position: absolute; top: 0; left: -34px; width: 26px; height: 26px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--primary-3), var(--primary));
+  box-shadow: 0 4px 10px -4px rgba(41,65,153,0.5);
+}
+.aw-msg .aw-avatar svg { width: 14px; height: 14px; }
+.aw-msg.agent {
+  margin-left: 40px;
+  align-self: flex-start;
+  padding: 13px 16px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--line);
+  border-top-left-radius: 6px;
+  background: linear-gradient(180deg, rgba(248,250,252,0.95), rgba(243,246,251,0.9));
+  box-shadow: 0 10px 26px -14px rgba(41,65,153,0.25), inset 0 1px 0 rgba(255,255,255,0.8);
+  animation: aw-msg-in .4s var(--ease);
+}
+.aw-msg.agent::before { /* blue accent rail */
+  content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 3px;
+  border-radius: 3px; background: linear-gradient(180deg, var(--primary-3), rgba(242,110,38,0.7));
+}
+.aw-msg.user {
+  margin-right: 0;
+  align-self: flex-end;
+  padding: 12px 15px;
+  border-radius: var(--r-md);
+  border-top-right-radius: 6px;
+  border: 1px solid var(--line-2);
+  background: #fff;
+  color: var(--gray-900);
+  box-shadow: 0 10px 24px -14px rgba(41,65,153,0.3);
+  animation: aw-msg-user-in .35s var(--ease);
+}
+@keyframes aw-msg-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes aw-msg-user-in { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: none; } }
+
+/* structured sections — each is independently expandable */
+.aw-sec { animation: aw-sec-in .4s var(--ease) both; }
+@keyframes aw-sec-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.aw-sec + .aw-sec { margin-top: 10px; }
+.aw-sec-head {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  padding: 4px 0; border: none; background: none; cursor: pointer;
+  font-family: var(--font); font-size: 12.5px; font-weight: 700; letter-spacing: 0.01em;
+  color: var(--primary); text-align: left;
+  border-radius: 6px;
+  transition: color .2s var(--ease);
+}
+.aw-sec-head:hover { color: var(--accent); }
+.aw-sec-caret { width: 12px; height: 12px; flex: none; color: var(--gray-400); transition: transform .3s var(--ease); }
+.aw-sec.is-open .aw-sec-caret { transform: rotate(180deg); }
+.aw-sec-body {
+  display: grid; grid-template-rows: 0fr;
+  transition: grid-template-rows .32s var(--ease);
+}
+.aw-sec.is-open .aw-sec-body { grid-template-rows: 1fr; }
+.aw-sec-inner { overflow: hidden; }
+.aw-sec p { margin: 6px 0 0; font-size: 13px; line-height: 1.55; color: var(--gray-700); }
+.aw-sec ul { margin: 6px 0 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; }
+.aw-sec ul li {
+  position: relative; padding-left: 18px;
+  font-size: 13px; line-height: 1.5; color: var(--gray-700);
+}
+.aw-sec ul li::before {
+  content: ""; position: absolute; left: 2px; top: 7px; width: 6px; height: 6px; border-radius: 2px;
+  background: linear-gradient(135deg, var(--primary-3), var(--primary));
+}
+.aw-sec ul li.num::before { content: counter(n); counter-increment: n; background: none; color: var(--accent); font-size: 11px; font-weight: 700; top: 2px; }
+.aw-sec ol { margin: 6px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
+.aw-sec ol li { font-size: 13px; line-height: 1.5; color: var(--gray-700); }
+
+/* sources row */
+.aw-sources { margin-top: 9px; padding-top: 8px; border-top: 1px dashed var(--line); font-size: 11px; color: var(--gray-400); display: flex; flex-wrap: wrap; gap: 4px 10px; }
+.aw-sources b { font-weight: 600; color: var(--gray-500); }
+.aw-sources span { font-weight: 500; }
+
+/* quick-action chips — after every answer */
+.aw-actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 11px; }
+.aw-chip {
+  padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line);
+  background: #fff; color: var(--gray-700);
+  font-family: var(--font); font-size: 12px; font-weight: 600; cursor: pointer;
+  position: relative;
+  transition: transform .22s var(--ease), box-shadow .3s var(--ease), border-color .25s var(--ease), color .2s var(--ease), background .2s var(--ease);
+}
+.aw-chip::after { /* border sweep on hover */
+  content: ""; position: absolute; inset: -1px; border-radius: inherit; padding: 1px;
+  background: linear-gradient(110deg, var(--primary-3), var(--accent));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  opacity: 0; transition: opacity .3s var(--ease);
+}
+.aw-chip:hover { transform: translateY(-1px); color: var(--primary); border-color: var(--line-3); box-shadow: 0 8px 18px -10px rgba(41,65,153,0.35); }
+.aw-chip:hover::after { opacity: 1; }
+.aw-chip:active { transform: translateY(0) scale(0.96); }
+
+/* thinking indicator — 3 glowing connected nodes + cycling status */
+.aw-thinking { display: inline-flex; align-items: center; gap: 11px; }
+.aw-think-nodes { width: 104px; height: 30px; flex: none; }
+.aw-think-nodes line { stroke: var(--line-3); stroke-width: 1.6; }
+.aw-think-nodes .pulse { stroke: var(--primary-3); stroke-width: 2; stroke-dasharray: 26; stroke-linecap: round; animation: aw-node-travel 1.5s linear infinite; }
+.aw-think-nodes circle { stroke: #fff; stroke-width: 2; }
+.aw-think-nodes .n1 { fill: var(--primary-3); animation: aw-node-glow 1.5s ease-in-out infinite; }
+.aw-think-nodes .n2 { fill: var(--primary); animation: aw-node-glow 1.5s ease-in-out .25s infinite; }
+.aw-think-nodes .n3 { fill: var(--accent); animation: aw-node-glow 1.5s ease-in-out .5s infinite; }
+@keyframes aw-node-travel { 0% { stroke-dashoffset: 52; } 100% { stroke-dashoffset: 0; } }
+@keyframes aw-node-glow { 0%,100% { opacity: .45; } 50% { opacity: 1; } }
+.aw-think-txt { font-size: 12.5px; font-weight: 600; color: var(--gray-500); }
+
+/* ============================================================
+   COMPOSER FOOTER — [mic] [input+attach] [send]
+   ============================================================ */
+.aw-composer {
+  position: relative; z-index: 2; flex: none;
+  display: flex; align-items: flex-end; gap: 9px;
+  padding: 10px 14px 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,0) 0%, #fff 32%);
+}
+
+/* mic — floating circular button with per-state treatment */
+.aw-mic {
+  position: relative; flex: none; width: 46px; height: 46px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--line-2); background: #fff; color: var(--primary);
+  cursor: pointer;
+  box-shadow: 0 10px 24px -10px rgba(41,65,153,0.45);
+  transition: transform .22s var(--ease), box-shadow .3s var(--ease), border-color .25s var(--ease), color .25s var(--ease);
+}
+.aw-mic svg { width: 19px; height: 19px; position: relative; z-index: 2; }
+.aw-mic::before { /* soft breathing halo */
+  content: ""; position: absolute; inset: -9px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(41,65,153,0.18) 0%, rgba(41,65,153,0) 68%);
+  animation: aw-mic-breathe 3s ease-in-out infinite;
+}
+@keyframes aw-mic-breathe { 0%,100% { opacity: .5; transform: scale(.92); } 50% { opacity: 1; transform: scale(1.05); } }
+.aw-mic:hover { transform: translateY(-1px); border-color: var(--line-3); box-shadow: 0 12px 26px -10px rgba(41,65,153,0.6); }
+.aw-mic:hover svg { color: var(--primary-3); }
+.aw-mic:active { transform: scale(0.94); }
+.aw-mic.is-recording { color: #fff; background: linear-gradient(135deg, var(--primary-3), var(--primary)); border-color: transparent; }
+.aw-mic.is-recording::before { animation: aw-mic-breathe 1.2s ease-in-out infinite; }
+/* pressed → orange ripple */
+.aw-mic.is-recording::after {
+  content: ""; position: absolute; inset: -1px; border-radius: 50%;
+  border: 2px solid var(--accent); animation: aw-ring 1.2s var(--ease) infinite;
+}
+@keyframes aw-ring { 0% { transform: scale(1); opacity: .8; } 100% { transform: scale(1.45); opacity: 0; } }
+/* recording → gradient ring */
+.aw-mic .aw-mic-grad {
+  position: absolute; inset: -3px; border-radius: 50%; z-index: 0; pointer-events: none;
+  background: conic-gradient(from 0deg, var(--accent), var(--primary-3), var(--primary), var(--accent));
+  opacity: 0; transition: opacity .3s var(--ease);
+}
+.aw-mic.is-recording .aw-mic-grad { opacity: 1; animation: aw-spin 2.4s linear infinite; }
+@keyframes aw-spin { to { transform: rotate(360deg); } }
+/* waveform bars while recording */
+.aw-mic .aw-mic-wave { position: absolute; inset: 0; z-index: 3; display: none; align-items: center; justify-content: center; gap: 2px; }
+.aw-mic.is-recording .aw-mic-wave { display: flex; }
+.aw-mic .aw-mic-wave i { width: 2.5px; border-radius: 2px; background: #fff; animation: aw-wave .7s ease-in-out infinite; }
+.aw-mic .aw-mic-wave i:nth-child(2) { animation-delay: .12s; }
+.aw-mic .aw-mic-wave i:nth-child(3) { animation-delay: .24s; }
+.aw-mic .aw-mic-wave i:nth-child(4) { animation-delay: .36s; }
+.aw-mic .aw-mic-wave i:nth-child(5) { animation-delay: .48s; }
+@keyframes aw-wave { 0%,100% { height: 5px; } 50% { height: 20px; } }
+/* completed → check animation */
+.aw-mic.is-done { color: var(--ok); border-color: rgba(16,185,129,0.4); }
+.aw-mic.is-done .aw-mic-check { position: absolute; z-index: 2; width: 19px; height: 19px; }
+.aw-mic.is-done svg { opacity: 0; }
+.aw-mic.is-done .aw-mic-check path { stroke-dasharray: 24; stroke-dashoffset: 24; animation: aw-check .45s var(--ease) forwards; }
+@keyframes aw-check { to { stroke-dashoffset: 0; } }
+
+/* input pill — attach icon sits inside, right aligned */
+.aw-input-wrap { position: relative; flex: 1 1 auto; min-width: 0; }
+.aw-input-wrap textarea {
+  width: 100%; min-height: 46px; max-height: 120px; resize: none;
+  padding: 13px 44px 13px 15px;
+  border-radius: 16px;
+  border: 1px solid var(--line-2); background: var(--card);
+  color: var(--gray-900); font: 500 13.5px/1.45 var(--font);
+  outline: none;
+  transition: border-color .22s var(--ease), box-shadow .25s var(--ease), background .22s var(--ease);
+}
+.aw-input-wrap textarea::placeholder { color: var(--gray-400); }
+.aw-input-wrap textarea:focus { border-color: var(--line-3); box-shadow: 0 0 0 3px rgba(41,65,153,0.12); background: #fff; }
+.aw-attach {
+  position: absolute; right: 8px; bottom: 8px; width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  border: none; background: none; color: var(--gray-400); cursor: pointer;
+  border-radius: 8px;
+  transition: color .2s var(--ease), background .2s var(--ease), transform .22s var(--ease);
+}
+.aw-attach:hover { color: var(--primary); background: rgba(41,65,153,0.06); transform: translateY(-1px); }
+.aw-attach:active { transform: scale(0.92); }
+.aw-attach svg { width: 16px; height: 16px; }
+
+/* send — gradient blue → orange, glow on hover, shrink on press */
+.aw-send {
+  position: relative; flex: none; width: 46px; height: 46px; border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  border: none; cursor: pointer; color: #fff;
+  background: linear-gradient(120deg, var(--primary-3) 0%, var(--primary) 58%, var(--accent) 130%);
+  box-shadow: 0 12px 26px -12px rgba(41,65,153,0.6), inset 0 1px 0 rgba(255,255,255,0.22);
+  transition: transform .22s var(--ease), box-shadow .3s var(--ease), filter .2s var(--ease), opacity .2s var(--ease);
+}
+.aw-send:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 16px 32px -12px rgba(242,110,38,0.55), 0 10px 22px -12px rgba(41,65,153,0.6); filter: brightness(1.04); }
+.aw-send:active:not(:disabled) { transform: translateY(0) scale(0.95); box-shadow: 0 6px 14px -8px rgba(41,65,153,0.5); }
+.aw-send:disabled { opacity: 0.45; cursor: not-allowed; }
+.aw-send svg { width: 18px; height: 18px; }
+
+/* hold-to-speak hint */
+.aw-hint { flex: none; text-align: center; font-size: 11.5px; font-weight: 500; color: var(--gray-400); padding: 0 14px 2px; transition: opacity .25s var(--ease); }
+.aw-hint.is-off { opacity: 0; }
+
+/* ============================================================
+   ACCESSIBILITY + RESPONSIVE + MOTION PREFERENCES
+   ============================================================ */
+.aw-root :focus-visible { outline: 2px solid var(--primary-3); outline-offset: 3px; border-radius: 8px; }
+
+@media (prefers-contrast: more) {
+  .aw-root { --line: rgba(17,24,39,0.24); --line-2: rgba(17,24,39,0.42); --gray-500: #3E434B; --gray-400: #565C66; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aw-root * { animation-duration: 0.001s !important; animation-iteration-count: 1 !important; transition-duration: 0.001s !important; }
+  .aw-overlay.is-open .aw-head-brand, .aw-overlay.is-open .aw-head-text,
+  .aw-overlay.is-open .aw-head-right, .aw-overlay.is-open .aw-mode, .aw-overlay.is-open .aw-body { animation: none !important; }
+  .aw-msg, .aw-sec, .aw-status-pop { animation: none !important; }
+}
+
+@media (max-width: 480px) {
+  .aw-overlay { padding: 10px; }
+  .aw-modal { height: min(720px, 94vh); border-radius: 20px; }
+  .aw-msg { max-width: 92%; }
+  .aw-log { padding: 12px 12px 8px; }
+  .aw-composer { padding: 8px 10px 10px; }
+  .aw-hero-top { flex-direction: column; align-items: center; gap: 10px; }
+}
+</style>
+</head>
+<body style="margin:0; background:#F8FAFC;">
+<div class="aw-root">
+
+  <!-- ================= HERO (landing) ================= -->
+  <main class="aw-hero">
+    <div class="aw-hero-top">
+      <span class="aw-hero-status"><i></i>Online · All systems nominal</span>
+    </div>
+
+    <div class="aw-hero-logo aw-logo-wrap">
+      <svg class="aw-logo" viewBox="0 0 92 30" width="96" height="32" role="img" aria-label="TryMe AI">
+        <g class="aw-ai-mark">
+          <line class="aw-ai-link" x1="8" y1="9" x2="20" y2="5"/>
+          <line class="aw-ai-link" x1="8" y1="9" x2="18" y2="15"/>
+          <line class="aw-ai-link" x1="20" y1="5" x2="18" y2="15"/>
+          <circle class="aw-ai-node n1" cx="8" cy="9" r="4"/>
+          <circle class="aw-ai-node n2" cx="20" cy="5" r="4"/>
+          <circle class="aw-ai-node n3" cx="18" cy="15" r="4"/>
+        </g>
+        <text class="aw-tm-try" x="32" y="20">Try</text>
+        <text class="aw-tm-me" x="63" y="20">Me</text>
+      </svg>
+    </div>
+
+    <h1 class="aw-hero-title">Your enterprise answers, <span>in seconds.</span></h1>
+    <p class="aw-hero-sub">TryMe AI answers from your organization&#8217;s knowledge base &#8212; products, pricing, policies &#8212; with cited sources, voice replies, and structured next steps.</p>
+
+    <button class="aw-cta" id="awOpenCta" type="button">
+      <span>Launch assistant</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </button>
+
+    <p class="aw-hero-note">Enterprise-grade · Powered by Groq · GDPR-ready</p>
+  </main>
+
+  <!-- ================= OVERLAY + MODAL ================= -->
+  <div class="aw-overlay" id="awOverlay" hidden aria-hidden="true">
+    <div class="aw-modal" id="awModal" role="dialog" aria-modal="true" aria-labelledby="awHeadTitle">
+
+      <header class="aw-head">
+        <div class="aw-head-brand">
+          <span class="aw-logo-wrap">
+            <svg class="aw-logo" viewBox="0 0 92 30" width="84" height="28" role="img" aria-label="TryMe AI">
+              <g class="aw-ai-mark">
+                <line class="aw-ai-link" x1="8" y1="9" x2="20" y2="5"/>
+                <line class="aw-ai-link" x1="8" y1="9" x2="18" y2="15"/>
+                <line class="aw-ai-link" x1="20" y1="5" x2="18" y2="15"/>
+                <circle class="aw-ai-node n1" cx="8" cy="9" r="4"/>
+                <circle class="aw-ai-node n2" cx="20" cy="5" r="4"/>
+                <circle class="aw-ai-node n3" cx="18" cy="15" r="4"/>
+              </g>
+              <text class="aw-tm-try" x="32" y="20">Try</text>
+              <text class="aw-tm-me" x="63" y="20">Me</text>
+            </svg>
+          </span>
+          <div class="aw-head-text">
+            <h3 id="awHeadTitle">TryMe AI</h3>
+            <p>Enterprise Assistant</p>
+          </div>
+        </div>
+
+        <div class="aw-head-right">
+          <span class="aw-status-wrap">
+            <button class="aw-status" id="awStatus" type="button" data-state="ended" aria-label="Live status">
+              <i></i>
+              <span id="awStatusText">Ready</span>
+              <span class="aw-eq" aria-hidden="true"><s></s><s></s><s></s></span>
+            </button>
+            <div class="aw-status-pop" role="tooltip" aria-hidden="true">
+              <div class="row"><span>Response time</span><b>220 ms</b></div>
+              <div class="row"><span>Knowledge</span><b class="ok">Synced</b></div>
+              <div class="row"><span>Voice</span><b class="ok">Available</b></div>
+              <div class="row"><span>Uptime</span><b>99.98%</b></div>
+            </div>
+          </span>
+          <button class="aw-close" id="awClose" type="button" aria-label="Close assistant">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="aw-mode" id="awMode" role="tablist" aria-label="Interaction mode">
+        <span class="aw-mode-pill" id="awModePill"></span>
+        <button class="aw-mode-btn" id="awVoiceBtn" type="button" role="tab" aria-selected="false" aria-controls="awBody">
+          <svg class="aw-ico-mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect class="aw-mic-fill" x="9" y="3" width="6" height="11" rx="3" fill="currentColor" stroke="none"/>
+            <path d="M5 11a7 7 0 0 0 14 0"/>
+            <path d="M12 18v3"/>
+          </svg>
+          <span>Voice</span>
+        </button>
+        <button class="aw-mode-btn" id="awTextBtn" type="button" role="tab" aria-selected="true" aria-controls="awBody">
+          <svg class="aw-ico-msg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path class="aw-msg-path" d="M4 6h16v11H9l-5 4z"/>
+          </svg>
+          <span>Text</span>
+        </button>
+      </div>
+
+      <div class="aw-body" id="awBody">
+        <div class="aw-log" id="awLog" role="log" aria-live="polite" aria-label="Conversation"></div>
+
+        <div class="aw-composer" id="awComposer">
+          <button class="aw-mic" id="awMic" type="button" aria-label="Hold to speak" title="Hold to speak">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="9" y="3" width="6" height="11" rx="3"/>
+              <path d="M5 11a7 7 0 0 0 14 0"/>
+              <path d="M12 18v3"/>
+            </svg>
+            <span class="aw-mic-grad" aria-hidden="true"></span>
+            <span class="aw-mic-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+            <svg class="aw-mic-check" style="opacity:1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13l4 4L19 7"/></svg>
+          </button>
+
+          <div class="aw-input-wrap">
+            <textarea id="awInput" rows="1" placeholder="Ask about products, pricing, policies…" aria-label="Message"></textarea>
+            <button class="aw-attach" id="awAttach" type="button" aria-label="Attach file" title="Attach file">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+            </button>
+          </div>
+
+          <button class="aw-send" id="awSend" type="button" aria-label="Send message" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+          </button>
+        </div>
+
+        <div class="aw-hint is-off" id="awHint">Shift + Enter for a new line</div>
+      </div>
+
+      <input type="file" id="awFileInput" hidden>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var API = 'http://localhost:8000';
+  var CRED = { email: 'admin@example.com', password: '' };
+
+  var THINK_STEPS = ['Retrieving context\u2026', 'Reasoning\u2026', 'Composing answer\u2026'];
+  var QUICK_CHIPS = ['Summarize pricing', 'Compare plans', 'Explain integrations', 'What are next steps?'];
+
+  var overlay = document.getElementById('awOverlay');
+  var modal   = document.getElementById('awModal');
+  var log     = document.getElementById('awLog');
+  var input   = document.getElementById('awInput');
+  var sendBtn = document.getElementById('awSend');
+  var micBtn  = document.getElementById('awMic');
+  var attach  = document.getElementById('awAttach');
+  var fileInp = document.getElementById('awFileInput');
+  var hintEl  = document.getElementById('awHint');
+  var statusEl = document.getElementById('awStatus');
+  var statusText = document.getElementById('awStatusText');
+  var pill    = document.getElementById('awModePill');
+  var voiceBtn = document.getElementById('awVoiceBtn');
+  var textBtn  = document.getElementById('awTextBtn');
+
+  var token = null;
+  var conversationId = null;
+  var busy = false;
+  var mode = 'text';
+  var answer = null;
+  var thinkTimer = null;
+  var thinkIndex = 0;
+  var thinkBubble = null;
+  var rec = null;
+  var recActive = false;
+  var attachedName = '';
+  var ttsEnabled = false;
+  var ttsPending = '';
+  var ttsSpeaking = false;
+
+  function $(id) { return document.getElementById(id); }
+  function el(tag, cls) { var n = document.createElement(tag); if (cls) n.className = cls; return n; }
+  function scrollLog() { log.scrollTop = log.scrollHeight; }
+  function hint(t) { hintEl.textContent = t; hintEl.classList.remove('is-off'); }
+  function hintOff() { hintEl.classList.add('is-off'); }
+  function stripMd(s) { return String(s).replace(/[*_`#]/g, '').trim(); }
+
+  function statusLabel(s) {
+    var m = { connecting: 'Connecting', thinking: 'Thinking', listening: 'Listening', speaking: 'Speaking', error: 'Error', ended: 'Ready' };
+    return m[s] || 'Ready';
+  }
+  function setStatus(s) { statusEl.setAttribute('data-state', s); statusText.textContent = statusLabel(s); }
+
+  function grow() {
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+  }
+
+  /* ---------- mode switch ---------- */
+  function setMode(m) {
+    mode = m;
+    if (m === 'text') {
+      ttsStop();
+      pill.style.transform = 'translateX(calc(100%))';
+      voiceBtn.setAttribute('aria-selected', 'false');
+      textBtn.setAttribute('aria-selected', 'true');
+      hint('Shift + Enter for a new line');
+    } else {
+      pill.style.transform = 'translateX(0)';
+      voiceBtn.setAttribute('aria-selected', 'true');
+      textBtn.setAttribute('aria-selected', 'false');
+      hint('Hold mic to speak \u00b7 release to send');
+    }
+  }
+
+  /* ---------- bubbles ---------- */
+  function avatarNode() {
+    var a = el('div', 'aw-avatar');
+    a.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 4.6L18.5 9l-4.6 1.9L12 15.5l-1.9-4.6L5.5 9l4.6-1.4z"/><path d="M18.5 15l.9 2.1L21.5 18l-2.1.9L18.5 21l-.9-2.1L15.5 18l2.1-.9z"/></svg>';
+    return a;
+  }
+  function userBubble(text) {
+    var b = el('div', 'aw-msg user');
+    b.textContent = text;
+    return b;
+  }
+  function thinkingBubble() {
+    var b = el('div', 'aw-msg agent');
+    b.appendChild(avatarNode());
+    var t = el('div', 'aw-thinking');
+    t.innerHTML = '<svg class="aw-think-nodes" viewBox="0 0 104 30" aria-hidden="true"><line x1="20" y1="15" x2="52" y2="7"/><line x1="52" y1="7" x2="84" y2="15"/><line x1="20" y1="15" x2="84" y2="15"/><line class="pulse" x1="20" y1="15" x2="52" y2="7"/><circle class="n1" cx="20" cy="15" r="7"/><circle class="n2" cx="52" cy="7" r="7"/><circle class="n3" cx="84" cy="15" r="7"/></svg><span class="aw-think-txt">Retrieving context\u2026</span>';
+    b.appendChild(t);
+    return b;
+  }
+  function createAgentBubble() {
+    var b = el('div', 'aw-msg agent');
+    b.appendChild(avatarNode());
+    var ans = el('div', 'aw-ans');
+    ans.setAttribute('style', 'min-width:0;');
+    b.appendChild(ans);
+    return b;
+  }
+  function streamInto(ans, text) {
+    ans.innerHTML = '';
+    var p = el('p');
+    p.setAttribute('style', 'margin:0;font-size:13px;line-height:1.55;color:#374151;white-space:pre-wrap;');
+    p.textContent = text;
+    ans.appendChild(p);
+  }
+  function errorBubble(msg) {
+    var b = el('div', 'aw-msg agent');
+    b.appendChild(avatarNode());
+    var p = el('p');
+    p.setAttribute('style', 'margin:0;font-size:13px;line-height:1.55;color:#EF4444;');
+    p.textContent = msg;
+    b.appendChild(p);
+    return b;
+  }
+
+  function showThinking() {
+    thinkBubble = thinkingBubble();
+    log.appendChild(thinkBubble);
+    thinkIndex = 0;
+    thinkTimer = setInterval(function () {
+      thinkIndex = (thinkIndex + 1) % THINK_STEPS.length;
+      var txt = thinkBubble.querySelector('.aw-think-txt');
+      if (txt) txt.textContent = THINK_STEPS[thinkIndex];
+    }, 1400);
+    scrollLog();
+  }
+  function hideThinking() {
+    if (thinkTimer) { clearInterval(thinkTimer); thinkTimer = null; }
+    if (thinkBubble && thinkBubble.parentNode) { thinkBubble.parentNode.removeChild(thinkBubble); thinkBubble = null; }
+  }
+
+  /* ---------- structured sections ---------- */
+  function parseSections(text) {
+    var lines = String(text).replace(/\r\n?/g, '\n').split('\n');
+    var sections = [];
+    var cur = null;
+    function flush() { if (cur && (cur.title || cur.content || cur.items.length)) sections.push(cur); cur = null; }
+    for (var i = 0; i < lines.length; i++) {
+      var t = lines[i].trim();
+      if (!t) continue;
+      var m;
+      if ((m = t.match(/^#{1,6}\s+(.*)$/))) { flush(); cur = { title: stripMd(m[1]), kind: 'block', content: '', items: [] }; continue; }
+      if ((m = t.match(/^\*\*(.+?)\*\*:?\s*$/))) { flush(); cur = { title: stripMd(m[1]), kind: 'block', content: '', items: [] }; continue; }
+      if (/^\d{1,2}[.)]\s+/.test(t)) {
+        if (!cur || cur.kind !== 'ol') { flush(); cur = { title: '', kind: 'ol', content: '', items: [] }; }
+        cur.items.push(stripMd(t.replace(/^\d{1,2}[.)]\s+/, ''))); continue;
+      }
+      if (/^[-*+•]\s+/.test(t)) {
+        if (!cur || cur.kind === 'ol') { flush(); cur = { title: '', kind: 'ul', content: '', items: [] }; }
+        cur.items.push(stripMd(t.replace(/^[-*+•]\s+/, ''))); continue;
+      }
+      if (/^[A-Z][A-Za-z0-9 ,&/()'-]{2,50}:$/.test(t)) { flush(); cur = { title: t.replace(/:\s*$/, ''), kind: 'block', content: '', items: [] }; continue; }
+      if (!cur) cur = { title: '', kind: 'block', content: '', items: [] };
+      cur.content += (cur.content ? '\n' : '') + t;
+    }
+    flush();
+    if (!sections.length) sections.push({ title: '', kind: 'block', content: text, items: [] });
+    if (sections[0] && !sections[0].title) sections[0].title = 'Overview';
+    return sections;
+  }
+
+  function buildSection(s, i) {
+    var sec = el('div', 'aw-sec' + (i === 0 ? ' is-open' : ''));
+    sec.style.animationDelay = (i * 200) + 'ms';
+    var head = el('button', 'aw-sec-head');
+    head.type = 'button';
+    head.setAttribute('aria-expanded', i === 0 ? 'true' : 'false');
+    head.innerHTML = '<svg class="aw-sec-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+    head.appendChild(document.createTextNode(s.title || 'Overview'));
+    var body = el('div', 'aw-sec-body');
+    var inner = el('div', 'aw-sec-inner');
+    if (s.kind === 'ul' || s.kind === 'ol') {
+      var list = el(s.kind === 'ul' ? 'ul' : 'ol');
+      for (var j = 0; j < s.items.length; j++) { var li = el('li'); li.textContent = s.items[j]; list.appendChild(li); }
+      inner.appendChild(list);
+    } else {
+      var paras = s.content.split('\n');
+      for (var k = 0; k < paras.length; k++) {
+        if (!paras[k].trim()) continue;
+        var p = el('p'); p.textContent = paras[k].trim(); inner.appendChild(p);
+      }
+    }
+    body.appendChild(inner);
+    head.addEventListener('click', function () {
+      var open = sec.classList.toggle('is-open');
+      head.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    sec.appendChild(head);
+    sec.appendChild(body);
+    return sec;
+  }
+
+  function sourcesRow(citations) {
+    var wrap = el('div', 'aw-sources');
+    var b = el('b'); b.textContent = 'Sources:';
+    wrap.appendChild(b);
+    var seen = {}; var count = 0;
+    for (var i = 0; i < citations.length && count < 3; i++) {
+      var c = String(citations[i]);
+      if (seen[c]) continue;
+      seen[c] = 1; count++;
+      var s = el('span'); s.textContent = c; wrap.appendChild(s);
+    }
+    return wrap;
+  }
+
+  function chipsRow() {
+    var wrap = el('div', 'aw-actions');
+    for (var i = 0; i < QUICK_CHIPS.length; i++) {
+      (function (q) {
+        var c = el('button', 'aw-chip');
+        c.type = 'button'; c.textContent = q;
+        c.addEventListener('click', function () { send(q); });
+        wrap.appendChild(c);
+      })(QUICK_CHIPS[i]);
+    }
+    return wrap;
+  }
+
+  function renderAnswer() {
+    if (!answer) return;
+    var ans = answer.bubble.querySelector('.aw-ans');
+    ans.innerHTML = '';
+    var secs = parseSections(answer.text);
+    for (var i = 0; i < secs.length; i++) ans.appendChild(buildSection(secs[i], i));
+    if (answer.citations && answer.citations.length) ans.appendChild(sourcesRow(answer.citations));
+    ans.appendChild(chipsRow());
+    scrollLog();
+  }
+
+  /* ---------- TTS ---------- */
+  function ttsSetup() { if ('speechSynthesis' in window) ttsEnabled = true; }
+  function ttsPush(chunk) {
+    if (!ttsEnabled || mode !== 'voice' || !chunk) return;
+    ttsPending += chunk;
+    ttsFlush();
+  }
+  function ttsFlush() {
+    if (ttsSpeaking) return;
+    var m = ttsPending.match(/^.*?[.!?]+(\s+|$)/);
+    if (!m) return;
+    var sentence = m[0].trim();
+    ttsPending = ttsPending.slice(m[0].length);
+    if (!sentence) { ttsFlush(); return; }
+    var u = new SpeechSynthesisUtterance(sentence);
+    u.rate = 1.04; u.pitch = 1;
+    ttsSpeaking = true;
+    setStatus('speaking');
+    u.onend = function () { ttsSpeaking = false; if (ttsPending) { ttsFlush(); } else if (mode !== 'voice') { setStatus('ended'); } };
+    speechSynthesis.speak(u);
+  }
+  function ttsStop() {
+    if (!ttsEnabled) return;
+    speechSynthesis.cancel();
+    ttsSpeaking = false; ttsPending = '';
+  }
+  function ttsFinish() {
+    if (!ttsEnabled || mode !== 'voice') { setStatus('ended'); return; }
+    ttsFlush();
+    if (!ttsSpeaking && ttsPending) {
+      var u = new SpeechSynthesisUtterance(ttsPending);
+      ttsPending = ''; ttsSpeaking = true; setStatus('speaking');
+      u.onend = function () { ttsSpeaking = false; setStatus('ended'); };
+      speechSynthesis.speak(u);
+    } else if (!ttsSpeaking) { setStatus('ended'); }
+  }
+
+  /* ---------- session ---------- */
+  function ensureSession(ok, fail) {
+    if (token && conversationId) { ok(); return; }
+    setStatus('connecting');
+    fetch(API + '/v1/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(CRED)
+    }).then(function (r) {
+      if (!r.ok) throw new Error('auth ' + r.status);
+      return r.json();
+    }).then(function (d) {
+      token = d.access_token || d.accessToken;
+      if (!token) throw new Error('no token');
+      return fetch(API + '/v1/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
+      });
+    }).then(function (r) {
+      if (!r.ok) throw new Error('conv ' + r.status);
+      return r.json();
+    }).then(function (d) {
+      conversationId = d.id || d.conversation_id;
+      setStatus('ended');
+      ok();
+    }).catch(function (e) { fail(e); });
+  }
+
+  /* ---------- streaming ---------- */
+  function handleEvent(ev) {
+    if (ev.type === 'text_delta' && ev.text) {
+      hideThinking();
+      answer.text += ev.text;
+      streamInto(answer.bubble.querySelector('.aw-ans'), answer.text);
+      ttsPush(ev.text);
+      scrollLog();
+    } else if (ev.type === 'message_done') {
+      answer.citations = ev.citations || [];
+      answer.messageId = ev.message_id;
+    } else if (ev.type === 'error') {
+      answer.text += (answer.text ? '\n' : '') + '[error] ' + (ev.message || 'request failed');
+    }
+  }
+
+  function doStream(content) {
+    answer = { text: '', citations: [] };
+    var b = createAgentBubble();
+    answer.bubble = b;
+    log.appendChild(b);
+    scrollLog();
+
+    fetch(API + '/v1/conversations/' + conversationId + '/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ content: content })
+    }).then(function (res) {
+      if (!res.ok || !res.body) throw new Error('stream http ' + res.status);
+      var reader = res.body.getReader();
+      var decoder = new TextDecoder();
+      var buffer = '';
+      function pump() {
+        return reader.read().then(function (r) {
+          if (r.done) return;
+          buffer += decoder.decode(r.value, { stream: true });
+          var idx;
+          while ((idx = buffer.indexOf('\n\n')) !== -1) {
+            var frame = buffer.slice(0, idx);
+            buffer = buffer.slice(idx + 2);
+            var dataLine = null;
+            var lines = frame.split('\n');
+            for (var j = 0; j < lines.length; j++) { if (lines[j].indexOf('data:') === 0) dataLine = lines[j].slice(5).trim(); }
+            if (!dataLine || dataLine === '[DONE]') continue;
+            var ev;
+            try { ev = JSON.parse(dataLine); } catch (e) { continue; }
+            handleEvent(ev);
+          }
+          return pump();
+        });
+      }
+      return pump();
+    }).then(function () {
+      finishOk();
+    }).catch(function (err) {
+      finishError(err && err.message ? err.message : 'Network error');
+    });
+  }
+
+  function finishOk() {
+    hideThinking();
+    if (!answer) { finishError('No answer received'); return; }
+    renderAnswer();
+    busy = false;
+    updateSendState();
+    ttsFinish();
+    scrollLog();
+  }
+
+  function finishError(msg) {
+    hideThinking();
+    if (answer && answer.bubble) {
+      var ans = answer.bubble.querySelector('.aw-ans');
+      ans.innerHTML = '';
+      var p = el('p');
+      p.setAttribute('style', 'margin:0;font-size:13px;line-height:1.55;color:#EF4444;');
+      p.textContent = msg;
+      ans.appendChild(p);
+    } else {
+      log.appendChild(errorBubble(msg));
+    }
+    answer = null;
+    busy = false;
+    updateSendState();
+    setStatus('error');
+    hint('Tap send to retry');
+    scrollLog();
+    setTimeout(function () { if (!busy) setStatus('ended'); }, 4000);
+  }
+
+  function send(text) {
+    var content = String(text || '').trim();
+    if (!content || busy) return;
+    busy = true;
+    updateSendState();
+    if (attachedName) content = '(attachment: ' + attachedName + ')\n' + content;
+    log.appendChild(userBubble(content));
+    attachedName = ''; fileInp.value = ''; updateAttachUI();
+    showThinking();
+    setStatus('thinking');
+    ensureSession(function () { doStream(content); }, function () { finishError('Could not reach the assistant service.'); });
+  }
+
+  function updateSendState() { sendBtn.disabled = !input.value.trim() || busy; }
+
+  /* ---------- voice (hold-to-talk) ---------- */
+  function srSupported() { return !!(window.SpeechRecognition || window.webkitSpeechRecognition); }
+  function srStart() {
+    if (mode !== 'voice') setMode('voice');
+    if (busy) { hint('Waiting for the current answer\u2026'); return; }
+    if (!srSupported()) { hint('Voice isn\u2019t supported in this browser'); return; }
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    try { rec = new SR(); } catch (e) { hint('Voice isn\u2019t supported here'); return; }
+    rec.lang = 'en-US';
+    rec.interimResults = true;
+    rec.continuous = false;
+    rec.onresult = function (e) {
+      var t = '';
+      for (var i = e.resultIndex; i < e.results.length; i++) t += e.results[i][0].transcript;
+      input.value = t; grow(); updateSendState();
+    };
+    rec.onend = function () {
+      micDoneState(); recActive = false;
+      if (input.value.trim()) { send(input.value); input.value = ''; grow(); updateSendState(); }
+    };
+    rec.onerror = function (e) {
+      micDoneState(); recActive = false;
+      if (e.error === 'not-allowed') hint('Microphone permission denied');
+    };
+    rec.start();
+    recActive = true;
+    micBtn.classList.add('is-recording');
+    setStatus('listening');
+    hint('Listening\u2026 release to send');
+  }
+  function srStop() { if (recActive && rec) { try { rec.stop(); } catch (e) {} } }
+  function micDoneState() {
+    micBtn.classList.remove('is-recording');
+    micBtn.classList.add('is-done');
+    setTimeout(function () { micBtn.classList.remove('is-done'); }, 1400);
+  }
+
+  /* ---------- composer events ---------- */
+  input.addEventListener('input', function () { grow(); updateSendState(); });
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      send(input.value);
+      input.value = ''; grow(); updateSendState();
+    }
+  });
+  sendBtn.addEventListener('click', function () {
+    send(input.value);
+    input.value = ''; grow(); updateSendState();
+  });
+  micBtn.addEventListener('pointerdown', function (ev) { ev.preventDefault(); srStart(); });
+  micBtn.addEventListener('pointerup', function () { srStop(); });
+  micBtn.addEventListener('pointerleave', function () { srStop(); });
+
+  attach.addEventListener('click', function () { fileInp.click(); });
+  fileInp.addEventListener('change', function () {
+    var f = fileInp.files && fileInp.files[0];
+    attachedName = f ? f.name : '';
+    updateAttachUI();
+  });
+  function updateAttachUI() {
+    var chip = $('awAttachChip');
+    if (attachedName) {
+      if (!chip) {
+        chip = el('button', 'aw-attach-chip');
+        chip.id = 'awAttachChip'; chip.type = 'button';
+        chip.setAttribute('style', 'display:inline-flex;align-items:center;gap:7px;max-width:100%;padding:5px 12px;margin:0 14px 2px;border-radius:999px;border:1px solid rgba(41,65,153,.22);background:#fff;font:600 11.5px Inter,sans-serif;color:#294199;cursor:pointer;');
+        chip.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg><span></span>';
+        chip.addEventListener('click', function () { attachedName = ''; fileInp.value = ''; updateAttachUI(); });
+        modal.insertBefore(chip, modal.querySelector('.aw-composer'));
+      }
+      chip.querySelector('span').textContent = attachedName;
+    } else if (chip && chip.parentNode) {
+      chip.parentNode.removeChild(chip);
+    }
+  }
+
+  /* ---------- mode buttons ---------- */
+  voiceBtn.addEventListener('click', function () { setMode('voice'); });
+  textBtn.addEventListener('click', function () { setMode('text'); });
+
+  /* ---------- open / close ---------- */
+  document.getElementById('awOpenCta').addEventListener('click', openOverlay);
+  document.getElementById('awClose').addEventListener('click', closeOverlay);
+  overlay.addEventListener('click', function (e) { if (e.target === overlay) closeOverlay(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeOverlay(); });
+
+  function openOverlay() {
+    overlay.hidden = false;
+    overlay.setAttribute('aria-hidden', 'false');
+    requestAnimationFrame(function () { overlay.classList.add('is-open'); });
+    document.body.style.overflow = 'hidden';
+    setTimeout(function () { input.focus(); }, 460);
+    setStatus('connecting');
+    ensureSession(function () {}, function () { setStatus('error'); hint('Assistant unreachable'); });
+  }
+  function closeOverlay() {
+    overlay.classList.remove('is-open');
+    overlay.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    ttsStop(); srStop();
+    setTimeout(function () { overlay.hidden = true; }, 520);
+  }
+
+  /* ---------- init ---------- */
+  ttsSetup();
+  setMode('text');
+  setStatus('ended');
+})();
+</script>
+
+</body>
+</html>

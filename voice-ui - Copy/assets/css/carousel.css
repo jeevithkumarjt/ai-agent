@@ -1,0 +1,90 @@
+/* ==========================================================================
+   Voice UI — Carousel (carousel.css) — M6
+   --------------------------------------------------------------------------
+   Stage (perspective), cover-flow nav buttons at stage edges, dots and the
+   caption CTA. All card geometry is applied by carousel.js.
+   ========================================================================== */
+
+.vui-carousel { position: relative; }
+
+.vui-stage {
+  position: relative;
+  height: var(--stage-h);
+  perspective: 1400px;
+  touch-action: pan-y;
+  cursor: grab;
+}
+.vui-stage.is-dragging { cursor: grabbing; }
+
+/* ---- Nav buttons ---- */
+.vui-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: var(--z-nav);
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  display: grid;
+  place-items: center;
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  box-shadow: var(--glass-highlight), var(--shadow-2);
+  color: var(--ink);
+  transition: transform var(--dur-micro) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+.vui-nav:hover { transform: translateY(-50%) scale(1.06); background: var(--surface-3); }
+.vui-nav:active { transform: translateY(-50%) scale(0.96); }
+.vui-nav--prev { left: max(12px, calc(50% - 500px)); }
+.vui-nav--next { right: max(12px, calc(50% - 500px)); }
+
+/* ---- Dots (44px hit area via ::before so taps are never missed) ---- */
+.vui-dots {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-1);
+  margin-top: var(--space-4);
+}
+.vui-dot {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  display: grid;
+  place-items: center;
+  transition: transform var(--dur-micro) var(--ease-out);
+}
+.vui-dot::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-full);
+  background: var(--line);
+  transition: width var(--dur-smooth) var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+.vui-dot:hover::before { background: var(--slate); }
+.vui-dot:active { transform: scale(0.85); }
+.vui-dot.is-active::before { width: 28px; background: var(--accent); }
+
+/* ---- Caption CTA ---- */
+.vui-caption-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin: var(--space-8) auto 0;
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-full);
+  color: var(--ink);
+  font-weight: var(--fw-semibold);
+  font-size: var(--text-base);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  box-shadow: var(--glass-highlight), var(--shadow-1);
+  transition: transform var(--dur-micro) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.vui-caption-cta:hover { transform: translateY(-1px); color: var(--accent); box-shadow: var(--glass-highlight), var(--shadow-2); }
+.vui-caption-cta .vui-icon { color: var(--accent); }

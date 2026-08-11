@@ -1,0 +1,30 @@
+/* ==========================================================================
+   Voice UI — Micro-interactions (micro.css) — M9
+   --------------------------------------------------------------------------
+   Press/hover/focus/entrance polish that lives on top of the component
+   sheets. Everything stays transform/opacity only and respects the
+   reduced-motion kill switch in animation.css.
+   ========================================================================== */
+
+/* Card press feedback (transform stays JS-owned, so this is shadow only). */
+.vui-card:active { box-shadow: 0 0 0 1px var(--accent-soft), var(--shadow-1); }
+
+/* Subtle media shift on hover of the front card. */
+.vui-card:hover .vui-card__media {
+  background: linear-gradient(160deg, var(--surface-2), var(--accent-soft));
+}
+
+/* Chat message entrance — soft rise. */
+@keyframes vui-msg-in {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: none; }
+}
+.vui-msg { animation: vui-msg-in var(--dur-fast) var(--ease-out); }
+
+/* Chat log scrollbar (WebKit) — quiet, themed. */
+.vui-chat__log::-webkit-scrollbar { width: 6px; }
+.vui-chat__log::-webkit-scrollbar-thumb { background: var(--line); border-radius: var(--radius-full); }
+.vui-chat__log::-webkit-scrollbar-thumb:hover { background: var(--slate); }
+
+/* Focus refinement for card-shaped controls. */
+.vui-card:focus-visible { outline-offset: 4px; }

@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voice UI — Background System</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/variables.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/animation.css">
+<link rel="stylesheet" href="../assets/css/background.css">
+<link rel="stylesheet" href="preview.css">
+</head>
+<body>
+
+<div class="vui-root vui-root--bg-demo">
+
+  <!-- The background module builds its layers inside this container. -->
+  <div id="bg-root" class="vui-bg" role="presentation" aria-hidden="true"></div>
+
+  <header class="tp-header">
+    <div>
+      <h1>Background System</h1>
+      <p>Module 2 · aurora mesh · noise · cursor light · particles — move your mouse, scroll, toggle the theme</p>
+    </div>
+    <button type="button" class="tp-btn" id="theme-toggle">Toggle theme</button>
+  </header>
+
+  <main class="tp-main">
+    <div class="tp-bg-content">
+      <h2>An ambient stage for the Tryvium voice experience.</h2>
+      <p>The aurora drifts on incommensurate sine cycles so no two moments look the same. Grain sits on top, unanimated. A soft accent light follows the pointer and fades when you stop.</p>
+      <p class="tp-note">This page is the preview harness only — the background lives behind the hero (M3) and the whole widget in production.</p>
+
+      <div class="tp-bg-card">
+        <strong>Glass panel over aurora</strong>
+        <span>Content sits at z-index 1, above the fixed ambient layer. Scroll to see the layer stay put while content moves.</span>
+      </div>
+
+      <p class="tp-bg-hint">Performance notes for review: 4 blurred layers animate via transform only (no per-frame paint), particles share one pre-rendered soft-dot sprite on a single canvas, noise is a static SVG data-URI, and the whole module pauses when out of view or the tab is hidden. Reduced-motion renders one static frame.</p>
+    </div>
+  </main>
+
+</div>
+
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/motion-engine.js"></script>
+<script src="../assets/js/background.js"></script>
+<script src="preview.js"></script>
+<script src="background-demo.js"></script>
+</body>
+</html>

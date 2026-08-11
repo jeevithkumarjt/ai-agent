@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="Tryvium AI blue orb">
+  <title>Tryvium AI blue orb</title>
+  <defs>
+    <radialGradient id="g" cx="35%" cy="30%">
+      <stop offset="0%" stop-color="#BFE0FF"/>
+      <stop offset="55%" stop-color="#2684E8"/>
+      <stop offset="100%" stop-color="#0A3D77"/>
+    </radialGradient>
+    <style>
+      .l{fill:none;stroke:#BFE0FF;stroke-width:4;stroke-linecap:round;opacity:.55}
+      .loader{fill:none;stroke:#fff;stroke-width:5;stroke-linecap:round;stroke-dasharray:36 500}
+    </style>
+  </defs>
+  <g>
+    <animateTransform attributeName="transform" type="translate" values="0 0;0 -4;0 0" dur="4s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/>
+    <circle cx="200" cy="200" r="150" fill="url(#g)"/>
+    <ellipse cx="150" cy="120" rx="70" ry="35" fill="#fff" opacity=".15"/>
+    <path class="l" d="M110 170c40-35 120-35 180 0"/>
+    <path class="l" d="M130 230c35-20 95-20 140 0"/>
+    <circle cx="165" cy="155" r="3" fill="#fff"><animate attributeName="cy" values="155;145;155" dur="3s" repeatCount="indefinite"/></circle>
+    <circle cx="230" cy="215" r="2.5" fill="#fff"><animate attributeName="cx" values="230;238;230" dur="2.5s" repeatCount="indefinite"/></circle>
+    <circle cx="185" cy="250" r="2" fill="#fff"><animate attributeName="opacity" values=".2;1;.2" dur="2s" repeatCount="indefinite"/></circle>
+    <path class="loader" d="M200 62 A138 138 0 1 1 199.9 62">
+      <animate attributeName="stroke-dashoffset" values="0;-536" dur="1.8s" calcMode="linear" repeatCount="indefinite"/>
+    </path>
+  </g>
+</svg>

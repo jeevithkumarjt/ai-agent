@@ -1,0 +1,208 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="Tryvium AI glass orb">
+  <title>Tryvium AI glass orb</title>
+  <defs>
+    <radialGradient id="baseGrad" gradientUnits="userSpaceOnUse" cx="200" cy="200" fx="248" fy="168" r="158">
+      <stop offset="0%" stop-color="#EEE7FF"/>
+      <stop offset="18%" stop-color="#CBB5FF"/>
+      <stop offset="38%" stop-color="#A078FF"/>
+      <stop offset="58%" stop-color="#743FDB"/>
+      <stop offset="78%" stop-color="#4C1D95"/>
+      <stop offset="92%" stop-color="#3B0D6B"/>
+      <stop offset="100%" stop-color="#28084E"/>
+    </radialGradient>
+    <radialGradient id="bloomGrad" gradientUnits="userSpaceOnUse" cx="200" cy="200" r="185">
+      <stop offset="0%" stop-color="rgba(167,139,250,0.55)"/>
+      <stop offset="40%" stop-color="rgba(124,58,237,0.2)"/>
+      <stop offset="100%" stop-color="rgba(124,58,237,0)"/>
+    </radialGradient>
+    <radialGradient id="internalGlow" gradientUnits="userSpaceOnUse" cx="258" cy="148" r="135">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.9)"/>
+      <stop offset="28%" stop-color="rgba(232,216,255,0.5)"/>
+      <stop offset="100%" stop-color="rgba(232,216,255,0)"/>
+    </radialGradient>
+    <radialGradient id="auraGrad" gradientUnits="userSpaceOnUse" cx="200" cy="200" r="150">
+      <stop offset="0%" stop-color="rgba(196,181,253,0.35)"/>
+      <stop offset="55%" stop-color="rgba(167,139,250,0.12)"/>
+      <stop offset="100%" stop-color="rgba(167,139,250,0)"/>
+    </radialGradient>
+    <radialGradient id="reflA" gradientUnits="userSpaceOnUse" cx="244" cy="176" r="74">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.55)"/>
+      <stop offset="60%" stop-color="rgba(255,255,255,0.12)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </radialGradient>
+    <radialGradient id="reflB" gradientUnits="userSpaceOnUse" cx="272" cy="232" r="58">
+      <stop offset="0%" stop-color="rgba(233,222,255,0.35)"/>
+      <stop offset="100%" stop-color="rgba(233,222,255,0)"/>
+    </radialGradient>
+    <radialGradient id="reflC" gradientUnits="userSpaceOnUse" cx="226" cy="118" r="44">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.7)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </radialGradient>
+    <radialGradient id="bottomShade" gradientUnits="userSpaceOnUse" cx="200" cy="288" r="150">
+      <stop offset="0%" stop-color="rgba(34,6,74,0.5)"/>
+      <stop offset="60%" stop-color="rgba(34,6,74,0.18)"/>
+      <stop offset="100%" stop-color="rgba(34,6,74,0)"/>
+    </radialGradient>
+    <radialGradient id="refractInner" gradientUnits="userSpaceOnUse" cx="158" cy="252" r="120">
+      <stop offset="0%" stop-color="rgba(59,13,107,0.45)"/>
+      <stop offset="100%" stop-color="rgba(59,13,107,0)"/>
+    </radialGradient>
+    <radialGradient id="caustic" gradientUnits="userSpaceOnUse" cx="205" cy="306" r="62">
+      <stop offset="0%" stop-color="rgba(244,236,255,0.55)"/>
+      <stop offset="100%" stop-color="rgba(244,236,255,0)"/>
+    </radialGradient>
+    <linearGradient id="beam" x1="0.62" y1="0.08" x2="0.32" y2="0.94" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.5)"/>
+      <stop offset="55%" stop-color="rgba(255,255,255,0.06)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </linearGradient>
+    <linearGradient id="sheenGrad" x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="rgba(255,255,255,0)"/>
+      <stop offset="50%" stop-color="rgba(255,255,255,0.4)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </linearGradient>
+    <linearGradient id="rimGrad" x1="0.62" y1="0.06" x2="0.38" y2="0.94" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.9)"/>
+      <stop offset="45%" stop-color="rgba(255,255,255,0)"/>
+      <stop offset="100%" stop-color="rgba(196,181,253,0.28)"/>
+    </linearGradient>
+    <clipPath id="orbClip">
+      <circle cx="200" cy="200" r="150"/>
+    </clipPath>
+    <radialGradient id="shadowGrad" gradientUnits="userSpaceOnUse" cx="200" cy="372" r="150">
+      <stop offset="0%" stop-color="rgba(30,16,70,0.16)"/>
+      <stop offset="70%" stop-color="rgba(30,16,70,0.05)"/>
+      <stop offset="100%" stop-color="rgba(30,16,70,0)"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="400" height="400" fill="#FFFFFF"/>
+
+  <ellipse cx="200" cy="372" rx="150" ry="18" fill="url(#shadowGrad)" opacity="0.16"/>
+
+  <g>
+    <animateTransform attributeName="transform" type="translate" values="0 0; 0 -4; 0 0" dur="6.5s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/>
+
+    <g>
+      <animateTransform attributeName="transform" type="rotate" values="0 200 200; 2.5 200 200; 0 200 200" dur="7s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/>
+
+      <circle cx="200" cy="200" r="180" fill="url(#bloomGrad)" style="mix-blend-mode: screen" opacity="0.65">
+        <animate attributeName="opacity" values="0.55;0.75;0.55" dur="7s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/>
+      </circle>
+
+      <circle cx="200" cy="200" r="150" fill="url(#baseGrad)" opacity="0.97"/>
+
+      <g clip-path="url(#orbClip)">
+        <circle cx="200" cy="200" r="150" fill="url(#beam)" style="mix-blend-mode: screen" opacity="0.56">
+          <animate attributeName="opacity" values="0.45;0.68;0.45" dur="8s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/>
+        </circle>
+
+        <circle cx="200" cy="200" r="150" fill="url(#internalGlow)" style="mix-blend-mode: screen" opacity="0.85">
+          <animate attributeName="opacity" values="0.6;1;0.6" dur="4.5s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/>
+        </circle>
+
+        <circle cx="200" cy="200" r="150" fill="url(#auraGrad)" style="mix-blend-mode: screen" opacity="0.15">
+          <animate attributeName="opacity" values="0.1;0.25;0.1" dur="7s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/>
+        </circle>
+
+        <circle cx="244" cy="176" r="74" fill="url(#reflA)" style="mix-blend-mode: screen" opacity="0.67">
+          <animate attributeName="opacity" values="0.55;0.8;0.55" dur="6s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="272" cy="232" r="58" fill="url(#reflB)" style="mix-blend-mode: screen" opacity="0.6">
+          <animate attributeName="opacity" values="0.5;0.7;0.5" dur="7s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="226" cy="118" r="44" fill="url(#reflC)" style="mix-blend-mode: screen" opacity="0.75">
+          <animate attributeName="opacity" values="0.6;0.9;0.6" dur="4.5s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/>
+        </circle>
+
+        <g style="mix-blend-mode: screen">
+          <animateTransform attributeName="transform" type="rotate" from="0 200 200" to="360 200 200" dur="40s" repeatCount="indefinite"/>
+          <rect x="160" y="-250" width="80" height="500" fill="url(#sheenGrad)" opacity="0.7">
+            <animate attributeName="opacity" values="0.45;0.8;0.45" dur="8s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/>
+          </rect>
+        </g>
+
+        <circle cx="200" cy="200" r="150" fill="url(#bottomShade)"/>
+
+        <circle cx="158" cy="252" r="120" fill="url(#refractInner)" opacity="0.9">
+          <animate attributeName="opacity" values="0.8;1;0.8" dur="6.5s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/>
+        </circle>
+
+        <circle cx="205" cy="306" r="62" fill="url(#caustic)" style="mix-blend-mode: screen" opacity="0.85">
+          <animate attributeName="opacity" values="0.7;1;0.7" dur="5.5s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/>
+        </circle>
+
+        <g fill="none" stroke="#FFFFFF" stroke-linecap="round" style="mix-blend-mode: screen" opacity="0.62">
+          <animate attributeName="opacity" values="0.45;0.8;0.45" dur="5.5s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/>
+          <path d="M 89.1 159.6 A 118 118 0 0 1 189.7 82.5" stroke-width="1.6" opacity="0.5"/>
+          <path d="M 101.3 164.1 A 105 105 0 0 1 190.8 95.4" stroke-width="1.4" opacity="0.4"/>
+          <path d="M 113.5 168.5 A 92 92 0 0 1 192 108.4" stroke-width="1.2" opacity="0.32"/>
+        </g>
+
+        <g fill="none" stroke="#FFFFFF" stroke-width="1.5" style="mix-blend-mode: screen">
+          <circle cx="200" cy="200" r="24" opacity="0.4">
+            <animate attributeName="r" values="24;150" dur="6s" calcMode="spline" keyTimes="0;1" keySplines="0.22 0.1 0.25 1" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0.4;0" dur="6s" calcMode="spline" keyTimes="0;1" keySplines="0.22 0.1 0.25 1" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="200" cy="200" r="24" opacity="0.4">
+            <animate attributeName="r" values="24;150" dur="6s" begin="3s" calcMode="spline" keyTimes="0;1" keySplines="0.22 0.1 0.25 1" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0.4;0" dur="6s" begin="3s" calcMode="spline" keyTimes="0;1" keySplines="0.22 0.1 0.25 1" repeatCount="indefinite"/>
+          </circle>
+        </g>
+
+        <g>
+          <animateTransform attributeName="transform" type="rotate" from="0 200 200" to="360 200 200" dur="120s" repeatCount="indefinite"/>
+          <circle cx="236" cy="148" r="2.2" fill="#FFFFFF" opacity="0.72">
+            <animate attributeName="opacity" values="0.9;0.55;0.9" dur="3.5s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="262" cy="192" r="1.6" fill="#E9E4FF" opacity="0.75"/>
+          <circle cx="222" cy="232" r="1.8" fill="#C4B5FD" opacity="0.47">
+            <animate attributeName="opacity" values="0.6;0.35;0.6" dur="4.5s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="250" cy="252" r="2.6" fill="#FFFFFF" opacity="0.72">
+            <animate attributeName="opacity" values="0.55;0.9;0.55" dur="4s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="180" cy="120" r="1.4" fill="#FFFFFF" opacity="0.85"/>
+          <circle cx="150" cy="168" r="2" fill="#D8CCFF" opacity="0.72">
+            <animate attributeName="opacity" values="0.6;0.85;0.6" dur="5s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="122" cy="210" r="1.5" fill="#B79CFD" opacity="0.65"/>
+          <circle cx="168" cy="250" r="1.9" fill="#FFFFFF" opacity="0.5"/>
+          <circle cx="206" cy="90" r="2.4" fill="#FFFFFF" opacity="0.78">
+            <animate attributeName="opacity" values="0.95;0.6;0.95" dur="3.5s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="280" cy="120" r="1.7" fill="#E4D9FF" opacity="0.8"/>
+          <circle cx="120" cy="120" r="1.3" fill="#FFFFFF" opacity="0.55"/>
+          <circle cx="100" cy="250" r="1.6" fill="#9B7CEF" opacity="0.67">
+            <animate attributeName="opacity" values="0.55;0.8;0.55" dur="6s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="250" cy="300" r="2.1" fill="#FFFFFF" opacity="0.57">
+            <animate attributeName="opacity" values="0.4;0.75;0.4" dur="5s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="300" cy="240" r="1.5" fill="#D8CCFF" opacity="0.65"/>
+          <circle cx="140" cy="300" r="1.4" fill="#FFFFFF" opacity="0.45"/>
+          <circle cx="252" cy="96" r="1.3" fill="#FFFFFF" opacity="0.47">
+            <animate attributeName="opacity" values="0.6;0.35;0.6" dur="4s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="182" cy="92" r="1.1" fill="#FFFFFF" opacity="0.5"/>
+          <circle cx="104" cy="160" r="1.2" fill="#FFFFFF" opacity="0.5"/>
+        </g>
+
+        <ellipse cx="252" cy="146" rx="32" ry="15" fill="#FFFFFF" transform="rotate(-30 252 146)" opacity="0.87">
+          <animate attributeName="opacity" values="0.75;1;0.75" dur="4s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/>
+        </ellipse>
+        <ellipse cx="258" cy="158" rx="18" ry="9" fill="#FFFFFF" transform="rotate(-32 258 158)" opacity="0.78">
+          <animate attributeName="opacity" values="0.9;0.65;0.9" dur="4.5s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/>
+        </ellipse>
+
+        <circle cx="200" cy="200" r="150" fill="none" stroke="url(#rimGrad)" stroke-width="2" style="mix-blend-mode: screen" opacity="0.85">
+          <animate attributeName="opacity" values="0.75;0.95;0.75" dur="5.5s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/>
+        </circle>
+      </g>
+
+      <circle cx="200" cy="200" r="149.4" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1" opacity="0.42">
+        <animate attributeName="opacity" values="0.35;0.5;0.35" dur="6.5s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1" repeatCount="indefinite"/>
+      </circle>
+    </g>
+  </g>
+</svg>

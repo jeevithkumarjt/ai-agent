@@ -1,0 +1,75 @@
+/* ==========================================================================
+   Voice UI — Responsive (responsive.css) — M11
+   --------------------------------------------------------------------------
+   Full breakpoint pass. Desktop → tablet (1023px) → mobile (767px). The
+   mobile call card becomes a near-fullscreen sheet (docs §3.3) and the
+   stage tightens to 3 visible cards via smaller geometry.
+   ========================================================================== */
+
+/* ---- Tablet ---- */
+@media (max-width: 1023px) {
+  .vui-hero__visual { min-height: 360px; }
+  .vui-hero__float--a { right: 6%; }
+  .vui-hero__float--b { left: 6%; }
+  :root { --stage-h: 486px; }
+  .vui-nav--prev { left: 8px; }
+  .vui-nav--next { right: 8px; }
+}
+
+/* ---- Mobile ---- */
+@media (max-width: 767px) {
+  .vui-hero__visual { min-height: 320px; }
+  .vui-hero__title { max-width: 12ch; }
+  .vui-hero__cta .vui-btn { flex: 1 1 auto; min-width: 0; padding: 0 var(--space-4); }
+  .vui-hero__card { width: min(300px, 100%); }
+  .vui-hero__float--a { top: 2%; right: 0; }
+  .vui-hero__float--b { bottom: 4%; left: 0; }
+  .vui-hero__float { padding: var(--space-2) var(--space-3); font-size: var(--text-xs); }
+
+  :root {
+    --card-w: 300px;
+    --card-h: 440px;
+    --stage-h: 452px;
+  }
+  .vui-stage { perspective: 1000px; }
+  .vui-nav { width: 44px; height: 44px; }
+  .vui-nav--prev { left: 2px; }
+  .vui-nav--next { right: 2px; }
+
+  .vui-card__media { height: 176px; }
+  .vui-orb--card { width: 96px; height: 96px; }
+
+  .vui-caption-cta { width: 100%; }
+
+  /* Call card becomes a near-fullscreen sheet (morph, not popup). */
+  .vui-modal { padding: 0; }
+  .vui-modal__card {
+    position: fixed;
+    inset: var(--space-3);
+    width: auto;
+    height: auto;
+    max-height: none;
+    border-radius: 22px;
+  }
+  .vui-orb--modal { width: 96px; height: 96px; margin-bottom: var(--space-4); }
+  .vui-hangup { width: 56px; height: 56px; }
+  .vui-modal__footer { flex-wrap: wrap; justify-content: center; gap: var(--space-2); }
+  .vui-modal__head { padding: var(--space-4); }
+  .vui-modal__head-right { gap: var(--space-2); }
+}
+
+/* ---- Short landscape viewports ---- */
+@media (max-height: 560px) and (orientation: landscape) {
+  .vui-hero { padding-block: var(--space-12); }
+  .vui-hero__visual { min-height: 260px; }
+  :root {
+    --card-w: 280px;
+    --card-h: 400px;
+    --stage-h: 420px;
+  }
+  .vui-card__media { height: 150px; }
+  .vui-card__body { padding-top: var(--space-3); }
+  .vui-orb--card { width: 84px; height: 84px; }
+  .vui-orb--modal { width: 72px; height: 72px; margin-bottom: var(--space-3); }
+  .vui-modal__card { height: 100%; max-height: none; }
+}

@@ -1,0 +1,339 @@
+/* ==========================================================================
+   Voice UI — Design Tokens (variables.css)
+   --------------------------------------------------------------------------
+   Single source of truth for the whole design system. Loaded FIRST, before
+   base.css and every component stylesheet, and before the WordPress theme
+   CSS the widget is embedded in.
+
+   Conventions
+   -----------
+   * Every token is a CSS custom property. Components consume tokens only;
+     raw hex values never appear in component stylesheets.
+   * Primitive values live at the top of each theme block. Semantic tokens
+     (--paper, --surface, --accent, ...) reference them so intent is named.
+   * Theme switching: light is the default in :root; dark activates either
+     from the OS (prefers-color-scheme) or an explicit data-theme attribute
+     on <html> (used by the Elementor shortcode / preview harness).
+   * Token groups: color, aurora, orb palettes, gradients, shadows, borders,
+     glass, typography, spacing, radius, motion, elevation/z-index, layout.
+   ========================================================================== */
+
+:root {
+  /* ---------------------------------------------------------------
+     1. COLOR PRIMITIVES — light
+     --------------------------------------------------------------- */
+  --vui-blue-50:    #BFEBFF;
+  --vui-blue-500:   #4FB4EE;
+  --vui-blue-700:   #2E7FD1;
+
+  --vui-mint-100:   #E4FFB8;
+  --vui-mint-500:   #8FD94A;
+  --vui-mint-700:   #4E9C1E;
+
+  --vui-coral-100:  #FFD8CE;
+  --vui-coral-500:  #F0716B;
+  --vui-coral-700:  #D33E52;
+
+  --vui-gold-100:   #FFEBB8;
+  --vui-gold-500:   #F5B94A;
+  --vui-gold-700:   #D68A1E;
+
+  --vui-violet-100: #D6C7FF;
+
+  --vui-accent-500: #4A5CFF;
+  --vui-accent-600: #3B4BE0;
+
+  --vui-success-500: #2FA36B;
+  --vui-warning-500: #E8902C;
+  --vui-error-500:   #E5482F;
+
+  --vui-neutral-0:   #FFFFFF;
+  --vui-neutral-50:  #FAF9F4;   /* warm ivory — paper        */
+  --vui-neutral-100: #F7F5EE;   /* surface                   */
+  --vui-neutral-200: #FCFBF7;   /* surface-3 (elevated)      */
+  --vui-neutral-300: #EFEDE4;   /* surface-2 (wells, bubbles) */
+  --vui-neutral-400: #E8E5DA;   /* hairline borders          */
+  --vui-neutral-500: #8A8B85;   /* muted                     */
+  --vui-neutral-600: #6B6C66;   /* slate (secondary text)    */
+  --vui-neutral-900: #17181A;   /* ink (primary text)        */
+
+  /* ---------------------------------------------------------------
+     2. SEMANTIC TOKENS — light
+     --------------------------------------------------------------- */
+  --paper:         var(--vui-neutral-50);
+  --surface:       var(--vui-neutral-100);
+  --surface-2:     var(--vui-neutral-300);
+  --surface-3:     var(--vui-neutral-200);
+  --line:          var(--vui-neutral-400);
+  --ink:           var(--vui-neutral-900);
+  --slate:         var(--vui-neutral-600);
+  --muted:         var(--vui-neutral-500);
+
+  --accent:        var(--vui-accent-500);
+  --accent-strong: var(--vui-accent-600);
+  --accent-soft:   rgba(74, 92, 255, 0.12);
+  --on-accent:     #FFFFFF;
+
+  --success:       var(--vui-success-500);
+  --success-soft:  rgba(47, 163, 107, 0.14);
+  --warning:       var(--vui-warning-500);
+  --warning-soft:  rgba(232, 144, 44, 0.14);
+  --error:         var(--vui-error-500);
+  --error-soft:    rgba(229, 72, 47, 0.14);
+
+  /* ---- Aurora (background + gradient system) ---- */
+  --aurora-sky:    var(--vui-blue-50);
+  --aurora-violet: var(--vui-violet-100);
+  --aurora-mint:   var(--vui-mint-100);
+  --aurora-coral:  var(--vui-coral-100);
+  --aurora-gold:   var(--vui-gold-100);
+
+  /* ---- Scenario orb palettes { light mid dark } (see docs §14) ---- */
+  --vui-orb-sky:   var(--vui-blue-50)  var(--vui-blue-500)  var(--vui-blue-700);
+  --vui-orb-mint:  var(--vui-mint-100) var(--vui-mint-500)  var(--vui-mint-700);
+  --vui-orb-coral: var(--vui-coral-100) var(--vui-coral-500) var(--vui-coral-700);
+  --vui-orb-gold:  var(--vui-gold-100) var(--vui-gold-500)  var(--vui-gold-700);
+
+  /* ---- Gradients ---- */
+  --grad-aurora:   linear-gradient(120deg, var(--aurora-sky), var(--aurora-violet), var(--aurora-coral));
+  --grad-indigo:   linear-gradient(135deg, var(--accent), #7C5CFF);
+  --grad-surface:  linear-gradient(180deg, var(--surface-3) 0%, var(--surface) 100%);
+
+  /* ---------------------------------------------------------------
+     3. SHADOWS — light (see docs §15)
+     --------------------------------------------------------------- */
+  --shadow-1:      0 1px 2px rgba(23, 24, 26, 0.04), 0 4px 12px -6px rgba(23, 24, 26, 0.08);
+  --shadow-2:      0 2px 4px rgba(23, 24, 26, 0.04), 0 12px 24px -8px rgba(23, 24, 26, 0.12);
+  --shadow-3:      0 4px 8px rgba(23, 24, 26, 0.05), 0 20px 40px -12px rgba(23, 24, 26, 0.18);
+  --shadow-4:      0 8px 16px rgba(23, 24, 26, 0.06), 0 32px 64px -16px rgba(23, 24, 26, 0.24);
+  --shadow-5:      0 12px 24px rgba(23, 24, 26, 0.08), 0 48px 100px -20px rgba(23, 24, 26, 0.30);
+  --shadow-ring:   0 0 0 3px rgba(74, 92, 255, 0.25);
+
+  /* ---------------------------------------------------------------
+     4. BORDERS + GLASS (see docs §16)
+     --------------------------------------------------------------- */
+  --border-1:          1px solid var(--line);
+  --glass-bg:          rgba(247, 245, 238, 0.55);
+  --glass-border:      1px solid rgba(255, 255, 255, 0.6);
+  --glass-highlight:   inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  --glass-blur:        blur(18px) saturate(140%);
+
+  /* ---------------------------------------------------------------
+     5. TYPOGRAPHY (see docs §13)
+     --------------------------------------------------------------- */
+  --font-display:  'Manrope', sans-serif;
+  --font-body:     'Inter', sans-serif;
+
+  --fw-regular:    400;
+  --fw-medium:     500;
+  --fw-semibold:   600;
+  --fw-bold:       700;
+  --fw-extrabold:  800;
+
+  --lh-tight:      1.05;
+  --lh-snug:       1.25;
+  --lh-normal:     1.55;
+
+  --ls-tight:      -0.03em;
+  --ls-narrow:     -0.01em;
+  --ls-overline:   0.08em;
+
+  --text-2xs:  11px;
+  --text-xs:   12px;
+  --text-sm:   13px;
+  --text-base: 15px;
+  --text-md:   16px;
+  --text-lg:   18px;
+  --text-xl:   clamp(20px, 1.6vw, 24px);
+  --text-2xl:  clamp(24px, 2.4vw, 34px);
+  --text-3xl:  clamp(30px, 3.6vw, 48px);
+  --text-4xl:  clamp(40px, 5.2vw, 68px);
+  --text-hero: clamp(32px, 4vw, 56px);
+
+  /* ---------------------------------------------------------------
+     6. SPACING — 4px grid + section rhythm (see docs §12)
+     --------------------------------------------------------------- */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+
+  --rhythm-sm: 48px;
+  --rhythm-md: 80px;
+  --rhythm-lg: 128px;
+
+  /* ---------------------------------------------------------------
+     7. RADIUS (see docs §15.3)
+     --------------------------------------------------------------- */
+  --radius-sm:   10px;
+  --radius-md:   16px;
+  --radius-lg:   22px;
+  --radius-xl:   28px;
+  --radius-full: 999px;
+
+  /* ---------------------------------------------------------------
+     8. MOTION (see docs §11)
+     --------------------------------------------------------------- */
+  --dur-micro:      120ms;
+  --dur-fast:       200ms;
+  --dur-base:       300ms;
+  --dur-smooth:     450ms;
+  --dur-expressive: 700ms;
+  --dur-hero:       900ms;
+
+  --ease-out:       cubic-bezier(.16, 1, .3, 1);
+  --ease-inout:     cubic-bezier(.65, 0, .35, 1);
+  --ease-linear:    linear;
+
+  /* ---------------------------------------------------------------
+     9. ELEVATION / Z-INDEX
+     --------------------------------------------------------------- */
+  --z-stage:    1;
+  --z-nav:      10;
+  --z-overlay:  9998;
+  --z-modal:    9999;
+  --z-tooltip:  10000;
+
+  /* ---------------------------------------------------------------
+     10. LAYOUT (see docs §3)
+     --------------------------------------------------------------- */
+  --container:        1180px;
+  --container-narrow: 900px;
+  --gutter:           clamp(16px, 4vw, 24px);
+  --stage-h:          508px;
+  --card-w:           328px;
+  --card-h:           484px;
+  --call-w:           420px;
+  --call-h:           min(680px, 90vh);
+
+  color-scheme: light;
+}
+
+/* ==========================================================================
+   DARK THEME
+   Two activation paths carry the same token values:
+     1. [data-theme="dark"] on <html> — explicit override (Elementor/harness)
+     2. prefers-color-scheme: dark    — OS preference, unless light is forced
+   ========================================================================== */
+
+[data-theme="dark"] {
+  --vui-blue-50:    #0E2A3D;
+  --vui-blue-500:   #4FB4EE;
+  --vui-blue-700:   #8FD0F2;
+
+  --vui-mint-100:   #1B2E22;
+  --vui-mint-500:   #8FD94A;
+  --vui-mint-700:   #BFE98C;
+
+  --vui-coral-100:  #33191A;
+  --vui-coral-500:  #F0716B;
+  --vui-coral-700:  #FF9B93;
+
+  --vui-gold-100:   #33290F;
+  --vui-gold-500:   #F5B94A;
+  --vui-gold-700:   #FFD287;
+
+  --vui-violet-100: #2A2350;
+
+  --vui-accent-500: #6C7BFF;
+  --vui-accent-600: #7E8CFF;
+
+  --vui-success-500: #3ECF8E;
+  --vui-warning-500: #F0A63E;
+  --vui-error-500:   #F2555A;
+
+  --vui-neutral-0:   #FFFFFF;
+  --vui-neutral-50:  #0A0B10;
+  --vui-neutral-100: #12141C;
+  --vui-neutral-200: #1F2330;
+  --vui-neutral-300: #1A1D27;
+  --vui-neutral-400: #262A36;
+  --vui-neutral-500: #6E7480;
+  --vui-neutral-600: #9AA0AE;
+  --vui-neutral-900: #F5F4F0;
+
+  --accent-soft:    rgba(108, 123, 255, 0.16);
+  --success-soft:   rgba(62, 207, 142, 0.16);
+  --warning-soft:   rgba(240, 166, 62, 0.16);
+  --error-soft:     rgba(242, 85, 90, 0.16);
+
+  --shadow-1:    0 1px 2px rgba(0, 0, 0, 0.45), 0 4px 12px -6px rgba(0, 0, 0, 0.5);
+  --shadow-2:    0 2px 4px rgba(0, 0, 0, 0.5), 0 12px 24px -8px rgba(0, 0, 0, 0.55);
+  --shadow-3:    0 4px 8px rgba(0, 0, 0, 0.5), 0 20px 40px -12px rgba(0, 0, 0, 0.6);
+  --shadow-4:    0 8px 16px rgba(0, 0, 0, 0.55), 0 32px 64px -16px rgba(0, 0, 0, 0.65);
+  --shadow-5:    0 12px 24px rgba(0, 0, 0, 0.6), 0 48px 100px -20px rgba(0, 0, 0, 0.7);
+  --shadow-ring: 0 0 0 3px rgba(108, 123, 255, 0.35);
+
+  --glass-bg:        rgba(18, 20, 28, 0.6);
+  --glass-border:    1px solid rgba(255, 255, 255, 0.08);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --glass-blur:      blur(18px) saturate(120%);
+
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --vui-blue-50:    #0E2A3D;
+    --vui-blue-500:   #4FB4EE;
+    --vui-blue-700:   #8FD0F2;
+
+    --vui-mint-100:   #1B2E22;
+    --vui-mint-500:   #8FD94A;
+    --vui-mint-700:   #BFE98C;
+
+    --vui-coral-100:  #33191A;
+    --vui-coral-500:  #F0716B;
+    --vui-coral-700:  #FF9B93;
+
+    --vui-gold-100:   #33290F;
+    --vui-gold-500:   #F5B94A;
+    --vui-gold-700:   #FFD287;
+
+    --vui-violet-100: #2A2350;
+
+    --vui-accent-500: #6C7BFF;
+    --vui-accent-600: #7E8CFF;
+
+    --vui-success-500: #3ECF8E;
+    --vui-warning-500: #F0A63E;
+    --vui-error-500:   #F2555A;
+
+    --vui-neutral-0:   #FFFFFF;
+    --vui-neutral-50:  #0A0B10;
+    --vui-neutral-100: #12141C;
+    --vui-neutral-200: #1F2330;
+    --vui-neutral-300: #1A1D27;
+    --vui-neutral-400: #262A36;
+    --vui-neutral-500: #6E7480;
+    --vui-neutral-600: #9AA0AE;
+    --vui-neutral-900: #F5F4F0;
+
+    --accent-soft:    rgba(108, 123, 255, 0.16);
+    --success-soft:   rgba(62, 207, 142, 0.16);
+    --warning-soft:   rgba(240, 166, 62, 0.16);
+    --error-soft:     rgba(242, 85, 90, 0.16);
+
+    --shadow-1:    0 1px 2px rgba(0, 0, 0, 0.45), 0 4px 12px -6px rgba(0, 0, 0, 0.5);
+    --shadow-2:    0 2px 4px rgba(0, 0, 0, 0.5), 0 12px 24px -8px rgba(0, 0, 0, 0.55);
+    --shadow-3:    0 4px 8px rgba(0, 0, 0, 0.5), 0 20px 40px -12px rgba(0, 0, 0, 0.6);
+    --shadow-4:    0 8px 16px rgba(0, 0, 0, 0.55), 0 32px 64px -16px rgba(0, 0, 0, 0.65);
+    --shadow-5:    0 12px 24px rgba(0, 0, 0, 0.6), 0 48px 100px -20px rgba(0, 0, 0, 0.7);
+    --shadow-ring: 0 0 0 3px rgba(108, 123, 255, 0.35);
+
+    --glass-bg:        rgba(18, 20, 28, 0.6);
+    --glass-border:    1px solid rgba(255, 255, 255, 0.08);
+    --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    --glass-blur:      blur(18px) saturate(120%);
+
+    color-scheme: dark;
+  }
+}

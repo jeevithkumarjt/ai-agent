@@ -1,0 +1,50 @@
+/* ==========================================================================
+   Voice UI — Layout primitives (layout.css) — M3
+   --------------------------------------------------------------------------
+   Containers, section rhythm and the hero two-column grid. Loaded after
+   base.css, before component stylesheets.
+
+   Scoping: everything lives under `.vui-root` so the widget can never clash
+   with the host theme. The full responsive pass is M11; the single structural
+   breakpoint here (hero stacking) is needed for M3 to render correctly.
+   ========================================================================== */
+
+.vui-container {
+  max-width: var(--container);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+.vui-container--narrow { max-width: var(--container-narrow); }
+
+/* The widget root anchors the fixed background layer and hosts the modal. */
+.vui-root { position: relative; }
+.vui-app-main { position: relative; z-index: 1; }
+
+.vui-section { padding-block: var(--rhythm-sm); }
+.vui-section--md   { padding-block: var(--rhythm-md); }
+.vui-section--lg   { padding-block: var(--rhythm-lg); }
+
+/* ---- Hero section + two-column grid ---- */
+.vui-hero {
+  position: relative;
+  padding-block: clamp(56px, 9vh, 128px) var(--rhythm-md);
+}
+
+.vui-hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  align-items: center;
+  gap: clamp(32px, 5vw, 72px);
+}
+
+@media (max-width: 1023px) {
+  .vui-hero__grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ---- Scenario carousel stage (M6) ---- */
+.vui-stage {
+  position: relative;
+  height: var(--stage-h);
+  max-width: var(--container);
+  margin-inline: auto;
+}

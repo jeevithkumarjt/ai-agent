@@ -1,0 +1,30 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "agent-ai.name" . }}-ingress
+  labels:
+    {{- include "agent-ai.labels" . | nindent 4 }}
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host }}
+      secretName: {{ .Values.ingress.tlsSecret }}
+  rules:
+    - host: {{ .Values.ingress.host }}
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "agent-ai.name" . }}-api
+                port: { number: {{ .Values.service.apiPort }} }
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "agent-ai.name" . }}-web
+                port: { number: {{ .Values.service.webPort }} }
+{{- end }}

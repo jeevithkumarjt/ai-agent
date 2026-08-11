@@ -1,0 +1,37 @@
+/* ==========================================================================
+   Voice UI — Orb (orb.css) — M5
+   --------------------------------------------------------------------------
+   Container + canvas + halo for the procedural living orb. The orb is drawn
+   on a canvas by orb-engine.js; this file only sizes it. The halo (pulse
+   ring) is shown while listening/speaking via .is-live on the container.
+   ========================================================================== */
+
+.vui-orb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--radius-full);
+}
+
+.vui-orb__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-full);
+}
+
+/* Live halo — pulse ring behind the orb while listening/speaking. */
+.vui-orb__halo {
+  position: absolute;
+  inset: -14%;
+  border-radius: var(--radius-full);
+  background: radial-gradient(closest-side, var(--accent-soft), transparent 72%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-smooth) var(--ease-out);
+}
+.vui-orb.is-live .vui-orb__halo {
+  opacity: 1;
+  animation: vui-pulse-ring 2.6s var(--ease-out) infinite;
+}

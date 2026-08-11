@@ -1,0 +1,21 @@
+{
+  "name": "@tryvium/ui",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "dependencies": {
+    "next": "^14.2.0",
+    "react": "^18.3.0",
+    "lucide-react": "^0.370.0",
+    "clsx": "^2.1.0",
+    "tailwind-merge": "^2.2.0",
+    "class-variance-authority": "^0.7.0"
+  },
+  "devDependencies": {
+    "react": "^18.3.0",
+    "@types/react": "^18.3.0",
+    "@tryvium/tailwind-config": "workspace:*",
+    "@tryvium/typescript-config": "workspace:*"
+  }
+}

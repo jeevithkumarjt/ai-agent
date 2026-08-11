@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  font-feature-settings: "cv11", "ss01";
+}
+
+.prose-answer p {
+  margin-bottom: 0.75rem;
+}
+
+.prose-answer a {
+  color: #1d4ed8;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

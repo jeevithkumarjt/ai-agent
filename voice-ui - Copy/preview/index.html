@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voice UI — Composited experience</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/variables.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/layout.css">
+<link rel="stylesheet" href="../assets/css/animation.css">
+<link rel="stylesheet" href="../assets/css/background.css">
+<link rel="stylesheet" href="../assets/css/hero.css">
+<link rel="stylesheet" href="../assets/css/orb.css">
+<link rel="stylesheet" href="../assets/css/cards.css">
+<link rel="stylesheet" href="../assets/css/carousel.css">
+<link rel="stylesheet" href="../assets/css/modal.css">
+<link rel="stylesheet" href="../assets/css/micro.css">
+<link rel="stylesheet" href="../assets/css/responsive.css">
+<link rel="stylesheet" href="../assets/css/a11y.css">
+<link rel="stylesheet" href="preview.css">
+</head>
+<body>
+
+<div class="vui-root vui-root--app" id="app-root">
+
+  <div id="bg-root" class="vui-bg" role="presentation" aria-hidden="true"></div>
+
+  <header class="tp-header">
+    <div>
+      <h1>Voice UI — Composited</h1>
+      <p>All modules (M0–M14) · aurora background · hero · carousel · voice modal — start a call, pick a scenario, drag, keyboard, toggle theme</p>
+    </div>
+    <button type="button" class="tp-btn" id="theme-toggle">Toggle theme</button>
+  </header>
+
+  <main class="tp-main vui-app-main">
+
+    <section class="vui-hero">
+      <div class="vui-container">
+        <div class="vui-hero__grid">
+
+          <div class="vui-hero__copy">
+            <span class="vui-enter vui-overline vui-hero__overline">Tryvium AI · Voice</span>
+            <h1 class="vui-enter vui-hero__title">Conversations that<br>feel <span class="vui-hero__accent">human.</span></h1>
+            <p class="vui-enter vui-lead vui-hero__lead">Tryvium Voice answers every call in your brand&rsquo;s voice &mdash; understands intent, follows your workflows, and hands off to a person the moment it matters.</p>
+            <div class="vui-enter vui-hero__cta">
+              <button type="button" class="vui-btn vui-btn--primary">
+                <svg class="vui-icon vui-icon--sm" aria-hidden="true"><use href="#icon-phone"></use></svg>
+                Start a call
+              </button>
+              <button type="button" class="vui-btn vui-btn--ghost">
+                Browse scenarios
+                <svg class="vui-icon vui-icon--sm" aria-hidden="true"><use href="#icon-chevron-right"></use></svg>
+              </button>
+            </div>
+            <ul class="vui-enter vui-hero__trust">
+              <li class="vui-trust-pill"><svg class="vui-icon vui-icon--sm" aria-hidden="true"><use href="#icon-check"></use></svg>SOC 2 Type II</li>
+              <li class="vui-trust-pill"><svg class="vui-icon vui-icon--sm" aria-hidden="true"><use href="#icon-check"></use></svg>99.99% uptime</li>
+              <li class="vui-trust-pill"><svg class="vui-icon vui-icon--sm" aria-hidden="true"><use href="#icon-check"></use></svg>&lt; 350 ms response</li>
+            </ul>
+          </div>
+
+          <div class="vui-enter vui-hero__visual">
+            <div class="vui-hero__glow"></div>
+
+            <div class="vui-hero__card" data-depth="14">
+              <div class="vui-hero__card-head">
+                <span class="vui-hero__status"><span class="vui-hero__dot"></span>Live session</span>
+                <span class="vui-hero__tag">Support · Travel</span>
+              </div>
+              <div class="vui-hero__meter" aria-hidden="true">
+                <span class="vui-hero__bar"></span>
+                <span class="vui-hero__bar"></span>
+                <span class="vui-hero__bar"></span>
+                <span class="vui-hero__bar"></span>
+                <span class="vui-hero__bar"></span>
+                <span class="vui-hero__bar"></span>
+                <span class="vui-hero__bar"></span>
+              </div>
+              <div class="vui-hero__rows">
+                <div class="vui-hero__row"><span>Agent</span><strong>Tryvium Voice</strong></div>
+                <div class="vui-hero__row"><span>Intent</span><strong>Flight change · 0.97</strong></div>
+              </div>
+            </div>
+
+            <div class="vui-hero__float vui-hero__float--a" data-depth="22">
+              <svg class="vui-icon vui-icon--sm" aria-hidden="true"><use href="#icon-check"></use></svg>
+              Resolved in 42s
+            </div>
+            <div class="vui-hero__float vui-hero__float--b" data-depth="28">
+              <svg class="vui-icon vui-icon--sm" aria-hidden="true"><use href="#icon-mic"></use></svg>
+              Avg. latency &lt; 350 ms
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <section class="vui-section vui-section--md" aria-labelledby="vui-scenarios-title">
+      <div class="vui-container">
+        <div class="tp-section-head vui-enter" data-reveal>
+          <span class="vui-overline">Try a scenario</span>
+          <h2 id="vui-scenarios-title">Pick a scenario, talk to it.</h2>
+          <p>Each scenario carries its own palette, greeting and scripted flow. Drag or use the arrows; press a card to open the call.</p>
+        </div>
+        <div class="vui-carousel vui-enter" data-reveal role="region" aria-label="Voice scenarios"></div>
+      </div>
+    </section>
+
+    <section class="tp-hero-copy" id="features">
+      <div class="vui-container">
+        <div class="tp-section-head vui-enter" data-reveal>
+          <span class="vui-overline">Why voice</span>
+          <h2>Built for real contact centers.</h2>
+          <p>Three things separate a voice experience from a voice menu.</p>
+        </div>
+        <div class="tp-features">
+          <div class="tp-feature vui-enter" data-reveal>
+            <svg class="vui-icon" aria-hidden="true"><use href="#icon-sparkle"></use></svg>
+            <h3>Understands intent</h3>
+            <p>Captures meaning beyond keywords &mdash; tone, follow-ups and context across the whole call.</p>
+          </div>
+          <div class="tp-feature vui-enter" data-reveal>
+            <svg class="vui-icon" aria-hidden="true"><use href="#icon-phone"></use></svg>
+            <h3>Your brand voice</h3>
+            <p>Tone, guardrails and answers trained on your own operations, not a generic script.</p>
+          </div>
+          <div class="tp-feature vui-enter" data-reveal>
+            <svg class="vui-icon" aria-hidden="true"><use href="#icon-check"></use></svg>
+            <h3>Seamless handoff</h3>
+            <p>Escalates to a human with full context &mdash; mid-conversation, with no repeats.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+</div>
+
+<!-- The sprite ships in assets/svg/icons/icons.svg; app.js injects it at boot,
+     so the fragment itself stays inline-free. -->
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/motion-engine.js"></script>
+<script src="../assets/js/background.js"></script>
+<script src="../assets/js/hero.js"></script>
+<script src="../assets/js/orb-engine.js"></script>
+<script src="../assets/js/carousel.js"></script>
+<script src="../assets/js/modal.js"></script>
+<script src="../assets/js/audio.js"></script>
+<script src="../assets/js/voice-ui.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="preview.js"></script>
+</body>
+</html>

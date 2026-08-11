@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+@layer base {
+  body {
+    @apply bg-white text-brand-900 antialiased;
+  }
+}
+
+.prose h2 { @apply mt-8 text-2xl font-bold text-brand-900; }
+.prose h3 { @apply mt-6 text-xl font-semibold text-brand-900; }
+.prose p { @apply mt-4 text-base leading-relaxed text-brand-700; }
+.prose ul { @apply mt-4 list-disc pl-6 space-y-2; }
+.prose li { @apply text-brand-700; }
+.prose strong { @apply font-semibold text-brand-900; }

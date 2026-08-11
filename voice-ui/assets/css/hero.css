@@ -1,0 +1,249 @@
+/* ==========================================================================
+   Voice UI — Hero (hero.css) — M3
+   --------------------------------------------------------------------------
+   Copy column, CTA row, trust pills, the glass voice-console visual and the
+   staggered entrance choreography (~900ms total, driven by hero.js).
+   Parallax depth is applied to [data-depth] children only, so it never
+   collides with the entrance animation on the .vui-enter wrapper.
+   ========================================================================== */
+
+/* ---- Copy column ---- */
+.vui-hero__copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-5);
+}
+
+.vui-hero__overline {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.vui-hero__overline::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-full);
+  background: currentColor;
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+.vui-hero__title { max-width: 100%; }
+
+.vui-hero__accent {
+  background: var(--grad-indigo);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.vui-hero__lead { max-width: 46ch; }
+
+/* ---- CTA row ---- */
+.vui-hero__cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+/* ---- Button system (first consumer: hero; reused by nav/modal/chat) ---- */
+.vui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 48px;
+  padding: 0 var(--space-6);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-weight: var(--fw-semibold);
+  font-size: var(--text-base);
+  color: var(--ink);
+  background: var(--surface);
+  border: var(--border-1);
+  cursor: pointer;
+  transition:
+    transform var(--dur-micro) var(--ease-out),
+    background var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+.vui-btn:hover { transform: translateY(-1px); }
+.vui-btn:active { transform: scale(0.97); }
+
+.vui-btn--primary {
+  background: var(--accent);
+  border-color: transparent;
+  color: var(--on-accent);
+  box-shadow: var(--shadow-2);
+}
+.vui-btn--primary:hover { background: var(--accent-strong); box-shadow: var(--shadow-3); }
+
+.vui-btn--ghost { background: transparent; color: var(--slate); }
+.vui-btn--ghost:hover { background: var(--surface-2); color: var(--ink); }
+
+/* ---- Trust row ---- */
+.vui-hero__trust {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.vui-trust-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  border: var(--border-1);
+  background: var(--surface);
+  color: var(--slate);
+  font-size: var(--text-xs);
+  font-weight: var(--fw-medium);
+}
+.vui-trust-pill .vui-icon { color: var(--success); }
+
+/* ---- Visual column ---- */
+.vui-hero__visual {
+  position: relative;
+  min-height: 400px;
+  display: grid;
+  place-items: center;
+}
+
+.vui-hero__glow {
+  position: absolute;
+  width: 460px;
+  height: 460px;
+  background: radial-gradient(closest-side, var(--accent-soft), transparent 70%);
+  filter: blur(30px);
+  animation: vui-hero-glow 9s var(--ease-inout) infinite alternate;
+}
+@keyframes vui-hero-glow {
+  from { transform: scale(0.9) translateY(8px); opacity: 0.7; }
+  to   { transform: scale(1.12) translateY(-10px); opacity: 1; }
+}
+
+.vui-hero__card {
+  position: relative;
+  z-index: 1;
+  width: min(360px, 100%);
+  border-radius: var(--radius-xl);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  box-shadow: var(--glass-highlight), var(--shadow-5);
+  padding: var(--space-6);
+}
+
+.vui-hero__card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+.vui-hero__status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--ink);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-overline);
+}
+.vui-hero__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--success);
+  animation: vui-live-dot 2.2s ease-out infinite;
+}
+@keyframes vui-live-dot {
+  0% { box-shadow: 0 0 0 0 rgba(47, 163, 107, 0.35); }
+  70%, 100% { box-shadow: 0 0 0 7px transparent; }
+}
+.vui-hero__tag { font-size: var(--text-xs); color: var(--slate); }
+
+/* Voice level meter — bars are driven by hero.js via utils.organic so they
+   never form a mechanical loop. The static scaleY is the reduced-motion and
+   no-JS fallback. */
+.vui-hero__meter {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 40px;
+  margin-bottom: var(--space-5);
+}
+.vui-hero__bar {
+  display: block;
+  flex: 1;
+  max-width: 10px;
+  height: 100%;
+  border-radius: 5px;
+  background: linear-gradient(to top, var(--accent), #7C5CFF);
+  transform: scaleY(0.4);
+  transform-origin: bottom;
+  will-change: transform;
+}
+
+.vui-hero__rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-top: var(--space-5);
+  border-top: var(--glass-border);
+}
+.vui-hero__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.vui-hero__row span { font-size: var(--text-sm); color: var(--slate); }
+.vui-hero__row strong {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--fw-bold);
+  color: var(--ink);
+}
+
+/* Floating chips */
+.vui-hero__float {
+  position: absolute;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-full);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  box-shadow: var(--glass-highlight), var(--shadow-3);
+  font-size: var(--text-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--ink);
+  white-space: nowrap;
+}
+.vui-hero__float .vui-icon { color: var(--accent); }
+.vui-hero__float--a { top: 4%; right: 2%; }
+.vui-hero__float--b { bottom: 6%; left: 0; }
+
+/* ---- Entrance choreography (hero.js assigns --vui-enter-delay) ---- */
+.vui-hero.is-in .vui-enter {
+  animation: vui-fade-up 600ms var(--ease-out) both;
+  animation-delay: var(--vui-enter-delay, 0ms);
+}

@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "agent-ai.name" . }}-api
+  labels:
+    {{- include "agent-ai.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount.api }}
+  selector:
+    matchLabels:
+      {{- include "agent-ai.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: api
+  template:
+    metadata:
+      labels:
+        {{- include "agent-ai.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: api
+    spec:
+      initContainers:
+        - name: migrate
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          command: ["alembic", "upgrade", "head"]
+          envFrom:
+            - configMapRef: { name: {{ include "agent-ai.name" . }}-config }
+            - secretRef: { name: {{ include "agent-ai.name" . }}-secret }
+      containers:
+        - name: api
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.apiPort }}
+          envFrom:
+            - configMapRef: { name: {{ include "agent-ai.name" . }}-config }
+            - secretRef: { name: {{ include "agent-ai.name" . }}-secret }
+          resources:
+            {{- toYaml .Values.resources.api | nindent 12 }}
+          readinessProbe:
+            httpGet: { path: /health/ready, port: {{ .Values.service.apiPort }} }
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /health/live, port: {{ .Values.service.apiPort }} }
+            initialDelaySeconds: 20
+            periodSeconds: 20

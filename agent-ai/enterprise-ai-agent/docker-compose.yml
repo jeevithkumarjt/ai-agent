@@ -1,0 +1,51 @@
+# Local dev only (01-architecture-decisions.md §7: deployment path, not built now).
+# Two services: Postgres with pgvector, and the FastAPI backend.
+#
+# The backend image is NOT provided in this repo — this file targets developers
+# who run the source locally (`pip install -e "backend[dev]"`), so the backend
+# service is included as a documented reference for the future container, kept in
+# sync with the locked stack (ADR-001 single Postgres+pgvector, ADR-007 env-only).
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: agentai-postgres
+    environment:
+      POSTGRES_USER: agentai
+      POSTGRES_PASSWORD: agentai
+      POSTGRES_DB: agentai
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agentai -d agentai"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    image: python:3.12-slim
+    container_name: agentai-backend
+    command: >
+      sh -c "pip install -e 'backend[dev]' &&
+             alembic -c backend/alembic.ini upgrade head &&
+             python -m backend.cli seed &&
+             uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload"
+    working_dir: /app
+    volumes:
+      - .:/app
+    environment:
+      DATABASE_URL: postgresql+asyncpg://agentai:agentai@postgres:5432/agentai
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:?set ANTHROPIC_API_KEY in .env}
+      EMBEDDINGS_API_KEY: ${EMBEDDINGS_API_KEY:-}
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+      APP_ENV: development
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:

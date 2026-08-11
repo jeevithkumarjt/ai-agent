@@ -1,0 +1,232 @@
+/* ==========================================================================
+   Voice UI — Modal (modal.css) — M7
+   --------------------------------------------------------------------------
+   Card → call morph modal: backdrop, glass-less solid elevated card (content
+   needs contrast, §16), call head, orb, transcript/chat, footer controls.
+   The morph transform is applied by modal.js via the Web Animations API.
+   ========================================================================== */
+
+.vui-modal {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: grid;
+  place-items: center;
+  padding: var(--space-6);
+}
+.vui-modal[hidden] { display: none; }
+
+.vui-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 11, 16, 0.45);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.vui-modal__card {
+  position: relative;
+  width: var(--call-w);
+  max-width: 100%;
+  height: var(--call-h);
+  max-height: calc(100vh - var(--space-12));
+  border-radius: var(--radius-lg);
+  background: var(--surface-3);
+  border: var(--border-1);
+  box-shadow: var(--shadow-4);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  will-change: transform, opacity;
+}
+
+/* ---- Head ---- */
+.vui-modal__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  border-bottom: var(--border-1);
+  background: var(--surface);
+}
+.vui-modal__title {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--fw-extrabold);
+  letter-spacing: var(--ls-narrow);
+  margin-top: var(--space-1);
+}
+.vui-modal__tag { color: var(--accent); }
+.vui-modal__head-right { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; justify-content: flex-end; }
+
+/* ---- Icon button (44px) ---- */
+.vui-icon-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  display: grid;
+  place-items: center;
+  color: var(--slate);
+  background: var(--surface-2);
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out), transform var(--dur-micro) var(--ease-out);
+}
+.vui-icon-btn:hover { background: var(--line); color: var(--ink); }
+.vui-icon-btn:active { transform: scale(0.94); }
+
+/* ---- Status chip ---- */
+.vui-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  background: var(--surface-2);
+  border: var(--border-1);
+  font-size: var(--text-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--slate);
+  white-space: nowrap;
+}
+.vui-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--slate);
+}
+.vui-status-chip[data-tone="live"]  .vui-status-dot { background: var(--success); animation: vui-live-dot 2.2s ease-out infinite; }
+.vui-status-chip[data-tone="busy"]  .vui-status-dot { background: var(--warning); }
+.vui-status-chip[data-tone="error"] .vui-status-dot { background: var(--error); }
+
+/* ---- Body ---- */
+.vui-modal__body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-6) var(--space-6) 0;
+}
+.vui-orb--modal { width: 132px; height: 132px; margin-bottom: var(--space-6); flex: none; animation: vui-mode-in 0.3s cubic-bezier(.2,.9,.3,1); }
+.vui-orb--modal[hidden] { display: none; }
+.vui-modal__voice {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.vui-modal__voice[hidden] { display: none; }
+
+/* ---- Transcript / chat ---- */
+.vui-chat { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+.vui-chat__log {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  scrollbar-width: thin;
+}
+
+.vui-msg {
+  max-width: 82%;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  line-height: var(--lh-normal);
+}
+.vui-msg--agent {
+  align-self: flex-start;
+  background: var(--surface-2);
+  border: var(--border-1);
+  border-top-left-radius: 4px;
+}
+.vui-msg--user {
+  align-self: flex-end;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-top-right-radius: 4px;
+}
+.vui-msg--system {
+  align-self: center;
+  background: transparent;
+  color: var(--slate);
+  font-size: var(--text-xs);
+  text-align: center;
+}
+
+.vui-chat__typing {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-2);
+  border-radius: var(--radius-md);
+  border-top-left-radius: 4px;
+}
+.vui-chat__typing[hidden] { display: none; }
+.vui-chat__typing span {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--slate);
+  animation: vui-typing 1.2s ease-in-out infinite;
+}
+.vui-chat__typing span:nth-child(2) { animation-delay: 0.2s; }
+.vui-chat__typing span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes vui-mode-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ---- Footer ---- */
+.vui-modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+  border-top: var(--border-1);
+  background: var(--surface);
+}
+
+.vui-hangup {
+  width: 62px;
+  height: 62px;
+  border-radius: var(--radius-full);
+  background: var(--error);
+  color: #FFFFFF;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 10px 24px -6px rgba(229, 72, 47, 0.5);
+  transition: transform var(--dur-micro) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+}
+.vui-hangup:hover { transform: scale(1.05); }
+.vui-hangup:active { transform: scale(0.94); }
+
+/* ---- Chat input ---- */
+.vui-chat-input {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border-top: var(--border-1);
+  background: var(--surface);
+  animation: vui-mode-in 0.3s cubic-bezier(.2,.9,.3,1);
+}
+.vui-chat-input[hidden] { display: none; }
+.vui-chat-input input {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  border: var(--border-1);
+  color: var(--ink);
+}
+.vui-chat-input input::placeholder { color: var(--muted); }

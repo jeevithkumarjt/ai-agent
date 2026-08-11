@@ -1,0 +1,1625 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#FBFBF9">
+<meta name="description" content="Tryvium AI — a calm, human-sounding voice agent widget with a living, generative orb.">
+<title>Tryvium AI — Talk to an Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   TRYVIUM AI · VOICE WIDGET — "Aurora Obsidian"
+   ------------------------------------------------------------
+   Design intent: a living digital organism. Deep glass surfaces,
+   generative canvas motion, spring physics, subtle aurora light.
+   Nothing animates on a perfect loop — every frame is procedural.
+   ============================================================ */
+
+.aw-root, .aw-root * { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+.aw-root {
+  --ink-900:  #141518;
+  --ink-500:  #5C636E;
+  --ink-400:  #8A9099;
+  --glass:    rgba(255,255,255,0.75);
+  --glass-2:  rgba(255,255,255,0.95);
+  --line:     rgba(18,22,30,0.09);
+  --line-2:   rgba(18,22,30,0.18);
+  --accent:   #2E6BFF;
+  --accent-2: #5B8CFF;
+  --brand:    #2E6BFF;
+  --good:     #17A34A;
+  --warn:     #F59E0B;
+  --bad:      #E5484D;
+  --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-serif: 'Instrument Serif', Georgia, serif;
+
+  --radius-lg: 26px;
+  --radius-md: 18px;
+  --radius-sm: 12px;
+
+  position: relative;
+  min-height: 100vh;
+  padding: 0;
+  font-family: var(--font-display);
+  color: var(--ink-900);
+  background: #FBFBF9;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ---- Ambient canvas layers (behind everything) ---- */
+.aw-ambient { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+.aw-vignette {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(255,255,255,0) 45%, rgba(255,255,255,0.7) 100%),
+    radial-gradient(90% 70% at 50% 110%, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 60%);
+}
+
+.aw-shell {
+  position: relative; z-index: 2;
+  max-width: 1080px; margin: 0 auto;
+  padding: clamp(48px, 9vh, 96px) 24px 72px;
+  display: flex; flex-direction: column; align-items: center;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.aw-header { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: clamp(36px, 6vh, 64px); }
+
+.aw-live-pill {
+  display: inline-flex; align-items: center; gap: 9px;
+  padding: 7px 14px 7px 10px;
+  border: 1px solid var(--line); border-radius: 999px;
+  background: var(--glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--ink-500);
+}
+.aw-live-pill i {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--good);
+  box-shadow: 0 0 0 0 rgba(23,163,74,0.4);
+  animation: aw-ping 2.4s ease-out infinite;
+}
+@keyframes aw-ping {
+  0%   { box-shadow: 0 0 0 0 rgba(23,163,74,0.4); }
+  70%  { box-shadow: 0 0 0 9px rgba(23,163,74,0); }
+  100% { box-shadow: 0 0 0 0 rgba(23,163,74,0); }
+}
+
+.aw-title {
+  margin: 22px 0 14px;
+  font-size: clamp(34px, 6vw, 60px);
+  font-weight: 800; letter-spacing: -0.03em; line-height: 1.04;
+}
+.aw-title em {
+  font-family: var(--font-serif); font-weight: 400; font-style: italic;
+  letter-spacing: -0.01em;
+  background: linear-gradient(96deg, var(--accent) 0%, #8FE3FF 55%, var(--accent-2) 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.aw-sub {
+  margin: 0; max-width: 46ch;
+  font-size: clamp(15px, 1.8vw, 17px); line-height: 1.55;
+  color: var(--ink-500); font-weight: 400;
+}
+
+/* ============================================================
+   STAGE — generative coverflow
+   ============================================================ */
+.aw-stage-zone { width: 100%; }
+
+.aw-stage {
+  position: relative;
+  height: clamp(330px, 48vh, 450px);
+  perspective: 1400px; user-select: none; touch-action: pan-y;
+}
+.aw-stage.is-dragging .aw-card { transition: none !important; }
+.aw-stage.is-dragging { cursor: grabbing; }
+
+.aw-card {
+  position: absolute; top: 50%; left: 50%;
+  width: clamp(190px, 30vw, 288px);
+  height: clamp(300px, 44vh, 416px);
+  transform: translate(-50%, -50%);
+  will-change: transform, opacity;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(10px, 2vh, 18px);
+  background: rgba(255,255,255,0.82);
+  border: 1px solid rgba(18,22,30,0.08);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 18px 48px -22px rgba(20,30,60,0.28), 0 0 0 1px rgba(255,255,255,0.5) inset;
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+}
+.aw-card::after { /* soft top sheen */
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(180deg, rgba(255,255,255,0.65) 0%, rgba(255,255,255,0) 24%);
+}
+.aw-card:hover { border-color: rgba(46,107,255,0.4); box-shadow: 0 24px 60px -24px rgba(46,107,255,0.35), 0 0 0 1px rgba(255,255,255,0.6) inset; }
+.aw-card[data-front="true"] {
+  background: rgba(255,255,255,0.94);
+  border-color: rgba(46,107,255,0.32);
+  box-shadow: 0 30px 70px -30px rgba(46,107,255,0.45), 0 0 0 1px rgba(255,255,255,0.7) inset;
+}
+
+/* Orb + play affordance */
+.aw-orb { position: relative; width: clamp(108px, 22vw, 158px); height: clamp(108px, 22vw, 158px); flex: none; }
+.aw-orb canvas { width: 100%; height: 100%; display: block; border-radius: 50%; }
+.aw-card .aw-orb { transition: transform 0.55s cubic-bezier(.2,.9,.25,1); }
+.aw-card[data-front="true"] .aw-orb { transform: scale(1); }
+.aw-card:not([data-front="true"]) .aw-orb { transform: scale(0.92); }
+.aw-card:hover .aw-orb, .aw-card:focus-visible .aw-orb { transform: scale(1.04); }
+
+.aw-play {
+  position: absolute; inset: 0; margin: auto;
+  width: 46px; height: 46px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.96);
+  color: #14151A;
+  box-shadow: 0 12px 30px -10px rgba(46,107,255,0.55), 0 0 0 1px rgba(18,22,30,0.08) inset;
+  opacity: 0; transform: scale(0.85);
+  transition: opacity 0.3s cubic-bezier(.2,.9,.3,1), transform 0.35s cubic-bezier(.2,.9,.3,1), background 0.2s;
+  pointer-events: none;
+}
+.aw-play svg { width: 17px; height: 17px; margin-left: 2px; }
+.aw-card[data-front="true"] .aw-play { opacity: 0.95; transform: scale(1); }
+.aw-card:hover .aw-play, .aw-card:focus-visible .aw-play { opacity: 1; transform: scale(1.07); background: #fff; }
+.aw-card[data-front="true"] .aw-play:active { transform: scale(0.92); }
+
+.aw-card-tag {
+  position: relative; z-index: 1;
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--ink-400);
+}
+.aw-card-title {
+  position: relative; z-index: 1;
+  margin: 0; font-size: clamp(17px, 2vw, 21px); font-weight: 700; letter-spacing: -0.01em;
+  color: var(--ink-900);
+}
+.aw-card[data-front="true"] .aw-card-tag { color: var(--accent); }
+
+/* ---- Nav arrows ---- */
+.aw-nav {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 46px; height: 46px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.85); border: 1px solid var(--line);
+  color: var(--ink-500); cursor: pointer; z-index: 110;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 10px 26px -14px rgba(20,30,60,0.3);
+  transition: transform 0.25s cubic-bezier(.2,.9,.3,1), background 0.2s, color 0.2s, border-color 0.2s;
+}
+.aw-nav:hover { background: #fff; color: var(--accent); border-color: var(--line-2); transform: translateY(-50%) scale(1.06); }
+.aw-nav:active { transform: translateY(-50%) scale(0.94); }
+.aw-nav svg { width: 18px; height: 18px; }
+.aw-nav-prev { left: max(4px, calc(50% - min(560px, 52vw))); }
+.aw-nav-next { right: max(4px, calc(50% - min(560px, 52vw))); }
+
+/* ---- Dots + CTA ---- */
+.aw-dots { display: flex; justify-content: center; gap: 8px; margin-top: 34px; }
+.aw-dot {
+  width: 7px; height: 7px; border-radius: 999px; border: none; padding: 0; cursor: pointer;
+  background: rgba(18,22,30,0.16);
+  transition: all 0.4s cubic-bezier(.2,.9,.3,1);
+}
+.aw-dot:hover { background: rgba(46,107,255,0.5); }
+.aw-dot[aria-current="true"] { width: 24px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+
+.aw-cta-row { margin-top: 30px; display: flex; justify-content: center; }
+.aw-cta {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 13px 26px 13px 20px;
+  border-radius: 999px;
+  font-size: 14.5px; font-weight: 700; color: #fff;
+  background: linear-gradient(120deg, var(--accent-2), var(--brand) 60%, #0060B8);
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: 0 14px 40px -12px rgba(14,118,229,0.65), 0 0 0 1px rgba(255,255,255,0.08) inset;
+  cursor: pointer;
+  transition: transform 0.25s cubic-bezier(.2,.9,.3,1), box-shadow 0.3s, filter 0.2s;
+}
+.aw-cta:hover { transform: translateY(-2px); box-shadow: 0 20px 54px -14px rgba(14,118,229,0.85), 0 0 0 1px rgba(255,255,255,0.12) inset; }
+.aw-cta:active { transform: translateY(0) scale(0.98); }
+.aw-cta svg { width: 16px; height: 16px; }
+
+.aw-legal {
+  margin-top: 26px; text-align: center;
+  font-size: 12px; color: var(--ink-400);
+}
+
+/* ============================================================
+   CALL MODAL
+   ============================================================ */
+.aw-overlay {
+  position: fixed; inset: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: center; padding: 22px;
+  background: rgba(240,242,246,0.55);
+  backdrop-filter: blur(16px) saturate(120%); -webkit-backdrop-filter: blur(16px) saturate(120%);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.34s ease;
+}
+.aw-overlay.is-open { opacity: 1; pointer-events: auto; }
+
+.aw-modal {
+  position: relative;
+  width: min(440px, 100%);
+  height: min(640px, 88vh);
+  display: flex; flex-direction: column;
+  border-radius: var(--radius-lg);
+  background: rgba(255,255,255,0.96);
+  border: 1px solid rgba(18,22,30,0.1);
+  box-shadow: 0 40px 100px -40px rgba(20,30,60,0.4), 0 0 0 1px rgba(255,255,255,0.6) inset;
+  overflow: hidden;
+  transform: translateY(16px) scale(0.955);
+  filter: blur(6px);
+  transition: transform 0.46s cubic-bezier(.2,1.1,.28,1), filter 0.4s ease;
+}
+.aw-overlay.is-open .aw-modal { transform: translateY(0) scale(1); filter: blur(0); }
+
+/* modal head */
+.aw-modal-head {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+  padding: 26px 26px 0;
+}
+.aw-modal-eyebrow { font-size: 10.5px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); }
+.aw-modal-title { margin: 6px 0 0; font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+.aw-modal-right { display: flex; align-items: center; gap: 12px; }
+
+.aw-status {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 12px; border-radius: 999px;
+  font-size: 12px; font-weight: 600; color: var(--ink-500);
+  background: var(--glass); border: 1px solid var(--line);
+  white-space: nowrap;
+}
+.aw-status i { width: 7px; height: 7px; border-radius: 50%; background: var(--ink-400); transition: background 0.3s; }
+.aw-status[data-state="connecting"] i { background: var(--warn); animation: aw-ping 1.4s ease-out infinite; }
+.aw-status[data-state="listening"] i { background: var(--good); animation: aw-ping 2s ease-out infinite; }
+.aw-status[data-state="speaking"] i { background: var(--accent); animation: aw-ping 1.1s ease-out infinite; }
+.aw-status[data-state="thinking"] i { background: var(--warn); animation: aw-ping 1.6s ease-out infinite; }
+.aw-status[data-state="error"] i { background: var(--bad); }
+.aw-status[data-state="ended"] i { background: var(--ink-400); }
+
+.aw-icon-btn {
+  width: 34px; height: 34px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent; border: 1px solid var(--line);
+  color: var(--ink-500); cursor: pointer;
+  transition: transform 0.3s cubic-bezier(.2,.9,.3,1), background 0.2s, color 0.2s, border-color 0.2s;
+}
+.aw-icon-btn:hover { background: #fff; color: var(--ink-900); border-color: var(--line-2); transform: rotate(90deg); }
+.aw-icon-btn:active { transform: rotate(90deg) scale(0.9); }
+.aw-icon-btn svg { width: 15px; height: 15px; }
+
+/* modal body */
+.aw-modal-body { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 18px 26px 0; }
+
+.aw-voice { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px; text-align: center; animation: aw-mode-in 0.34s cubic-bezier(.2,.9,.3,1); }
+
+.aw-orb-call { position: relative; isolation: isolate; width: clamp(150px, 34vw, 200px); height: clamp(150px, 34vw, 200px); }
+.aw-orb-call canvas { width: 100%; height: 100%; display: block; position: relative; z-index: 1; }
+.aw-orb-halo {
+  position: absolute; inset: -34%; border-radius: 50%; pointer-events: none; z-index: 0;
+  background: radial-gradient(circle, var(--orb-glow, rgba(88,185,255,0.4)) 0%, rgba(0,0,0,0) 65%);
+  filter: blur(6px);
+  opacity: 0.55;
+  transition: background 0.8s ease, opacity 0.5s ease;
+}
+
+.aw-call-msg {
+  margin: 0; max-width: 30ch;
+  font-size: 16.5px; font-weight: 600; line-height: 1.45; color: var(--ink-900);
+  min-height: 1.5em;
+}
+.aw-call-msg.is-muted { color: var(--ink-500); font-weight: 500; font-size: 14.5px; }
+.aw-call-msg.is-error { color: var(--bad); font-weight: 600; }
+
+.aw-retry {
+  padding: 9px 18px; border-radius: 999px;
+  font-size: 13px; font-weight: 700; color: #fff;
+  background: linear-gradient(120deg, var(--accent-2), var(--brand));
+  border: 1px solid rgba(255,255,255,0.18); cursor: pointer;
+  transition: transform 0.2s, filter 0.2s;
+}
+.aw-retry:hover { transform: translateY(-1px); filter: brightness(1.08); }
+
+/* ---- chat mode ---- */
+.aw-chat { flex: 1; min-height: 0; display: flex; flex-direction: column; animation: aw-mode-in 0.34s cubic-bezier(.2,.9,.3,1); }
+.aw-chat-log { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding: 6px 2px 16px; scrollbar-width: thin; scrollbar-color: rgba(18,22,30,0.18) transparent; }
+.aw-chat-log::-webkit-scrollbar { width: 6px; }
+.aw-chat-log::-webkit-scrollbar-thumb { background: rgba(18,22,30,0.18); border-radius: 3px; }
+
+.aw-msg {
+  max-width: 84%;
+  padding: 11px 14px; border-radius: 16px;
+  font-size: 13.5px; line-height: 1.5;
+  animation: aw-msg-in 0.34s cubic-bezier(.2,.9,.3,1);
+}
+.aw-msg.agent { align-self: flex-start; background: #F1F3F6; border: 1px solid #E6E9EE; border-bottom-left-radius: 5px; color: var(--ink-900); }
+.aw-msg.user { align-self: flex-end; background: linear-gradient(120deg, var(--accent-2), var(--brand) 70%); border-bottom-right-radius: 5px; color: #fff; }
+.aw-msg .aw-msg-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 8px; vertical-align: middle; background: var(--msg-glow, var(--accent)); }
+.aw-msg.typing { display: inline-flex; gap: 5px; align-items: center; padding: 14px 16px; }
+.aw-msg.typing span { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-500); animation: aw-typing 1.2s infinite ease-in-out; }
+.aw-msg.typing span:nth-child(2) { animation-delay: 0.16s; }
+.aw-msg.typing span:nth-child(3) { animation-delay: 0.32s; }
+@keyframes aw-typing { 0%,60%,100% { opacity: .3; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-3px); } }
+@keyframes aw-msg-in { from { opacity: 0; transform: translateY(10px) scale(0.97); } to { opacity: 1; transform: none; } }
+@keyframes aw-mode-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.aw-composer { display: flex; gap: 10px; align-items: flex-end; padding: 2px 0 0; }
+.aw-composer textarea {
+  flex: 1; min-height: 44px; max-height: 120px; resize: none;
+  padding: 12px 15px; border-radius: 14px;
+  background: #fff; border: 1px solid #E3E6EB;
+  color: var(--ink-900); font: 500 14px/1.4 var(--font-display);
+  outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+}
+.aw-composer textarea::placeholder { color: var(--ink-400); }
+.aw-composer textarea:focus { border-color: rgba(46,107,255,0.55); box-shadow: 0 0 0 3px rgba(46,107,255,0.12); }
+.aw-composer button {
+  width: 44px; height: 44px; flex: none; border-radius: 14px; border: none;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(120deg, var(--accent-2), var(--brand));
+  color: #fff; cursor: pointer;
+  transition: transform 0.18s cubic-bezier(.2,.9,.3,1), filter 0.2s, opacity 0.2s;
+}
+.aw-composer button:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.1); }
+.aw-composer button:active { transform: scale(0.92); }
+.aw-composer button:disabled { opacity: 0.45; cursor: not-allowed; }
+.aw-composer button svg { width: 18px; height: 18px; margin-left: 1px; }
+
+/* modal foot */
+.aw-modal-foot { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 4px 26px 28px; }
+
+.aw-hangup {
+  position: relative;
+  width: 64px; height: 64px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,90,95,0.14); border: 1px solid rgba(255,90,95,0.45);
+  color: var(--bad); cursor: pointer;
+  transition: transform 0.2s cubic-bezier(.2,.9,.3,1), background 0.25s, box-shadow 0.3s;
+}
+.aw-hangup:hover { background: rgba(255,90,95,0.22); transform: scale(1.06); }
+.aw-hangup:active { transform: scale(0.94); }
+.aw-hangup[data-restart="true"] { border-color: rgba(23,163,74,0.5); color: var(--good); background: rgba(23,163,74,0.1); }
+.aw-hangup svg { width: 24px; height: 24px; }
+
+.aw-link {
+  background: none; border: none; cursor: pointer;
+  font-size: 13.5px; font-weight: 600; color: var(--ink-500);
+  padding: 2px 4px; border-bottom: 1px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+}
+.aw-link:hover { color: var(--ink-900); border-bottom-color: var(--ink-500); }
+
+/* ============================================================
+   ACCESSIBILITY + MOTION PREFERENCES
+   ============================================================ */
+.aw-root :focus-visible { outline: 2px solid rgba(46,107,255,0.9); outline-offset: 3px; border-radius: 8px; }
+.aw-card:focus-visible { outline-offset: 4px; border-radius: var(--radius-lg); }
+
+@media (prefers-contrast: more) {
+  .aw-root { --line: rgba(18,22,30,0.28); --line-2: rgba(18,22,30,0.5); --ink-500: #3E434B; --ink-400: #565C66; }
+  .aw-card, .aw-modal { border-color: rgba(18,22,30,0.22); }
+  .aw-card { box-shadow: 0 0 0 1px rgba(18,22,30,0.18); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aw-live-pill i, .aw-status i, .aw-msg.typing span { animation: none !important; }
+  .aw-msg { animation: none; }
+  .aw-overlay, .aw-modal, .aw-card, .aw-nav, .aw-cta, .aw-icon-btn { transition: none !important; }
+  .aw-play, .aw-orb { transition: none !important; }
+}
+
+@media (max-width: 640px) {
+  .aw-nav { width: 40px; height: 40px; }
+  .aw-stage { height: clamp(300px, 52vh, 380px); }
+  .aw-modal { height: min(680px, 92vh); }
+}
+</style>
+</head>
+<body style="margin:0; background:#FBFBF9;">
+
+<canvas class="aw-ambient" id="aw-ambient" aria-hidden="true"></canvas>
+<div class="aw-vignette" aria-hidden="true"></div>
+
+<section class="aw-root" id="aw-root">
+
+  <div class="aw-shell">
+    <header class="aw-header">
+      <span class="aw-live-pill" aria-hidden="true"><i></i> Tryvium AI · Live voice</span>
+      <h1 class="aw-title">Talk to an agent <em>out loud.</em></h1>
+      <p class="aw-sub">A calm, human-sounding voice conversation — no menus, no hold music, no “press 2”.</p>
+    </header>
+
+    <div class="aw-stage-zone">
+      <nav class="aw-stage" id="aw-stage" aria-label="Choose a scenario" aria-roledescription="carousel" role="group">
+        <button class="aw-nav aw-nav-prev" id="aw-prev" aria-label="Previous scenario"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <button class="aw-nav aw-nav-next" id="aw-next" aria-label="Next scenario"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
+      </nav>
+
+      <div class="aw-dots" id="aw-dots" aria-label="Scenarios"></div>
+
+      <div class="aw-cta-row">
+        <button class="aw-cta" id="aw-cta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v3M8 21h8"/></svg>
+          Speak with an agent
+        </button>
+      </div>
+      <p class="aw-legal" id="aw-caption">Voice is generated live — this is a working demo.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== CALL MODAL ==================== -->
+<div class="aw-overlay" id="aw-overlay" role="presentation">
+  <div class="aw-modal" id="aw-modal" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="aw-call-title" aria-describedby="aw-call-message">
+    <header class="aw-modal-head">
+      <div>
+        <div class="aw-modal-eyebrow" id="aw-call-tag">Healthcare</div>
+        <h3 class="aw-modal-title" id="aw-call-title">Patient services</h3>
+      </div>
+      <div class="aw-modal-right">
+        <span class="aw-status" id="aw-call-status" data-state="connecting"><i aria-hidden="true"></i><span id="aw-status-text">Connecting</span></span>
+        <button class="aw-icon-btn" id="aw-close" aria-label="Close call"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+      </div>
+    </header>
+
+    <div class="aw-modal-body">
+      <div class="aw-voice" id="aw-voice">
+        <div class="aw-orb-call" id="aw-orb-call">
+          <div class="aw-orb-halo" aria-hidden="true"></div>
+          <canvas aria-hidden="true"></canvas>
+        </div>
+        <p class="aw-call-msg is-muted" id="aw-call-message"></p>
+        <button class="aw-retry" id="aw-retry" hidden>Enable microphone</button>
+      </div>
+
+      <div class="aw-chat" id="aw-chat" hidden>
+        <div class="aw-chat-log" id="aw-chat-log" role="log" aria-live="polite"></div>
+        <form class="aw-composer" id="aw-composer">
+          <textarea id="aw-chat-input" rows="1" aria-label="Message the agent" placeholder="Type a message…"></textarea>
+          <button type="submit" id="aw-chat-send" aria-label="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
+        </form>
+      </div>
+    </div>
+
+    <footer class="aw-modal-foot" id="aw-voice-foot">
+      <button class="aw-hangup" id="aw-hangup" aria-label="End call">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 13.5L21 3M16 3h5v5M3 3l3.5 8L3 14.5a15 15 0 0 0 10 10L16.5 21 21 20.5"/></svg>
+      </button>
+      <button class="aw-link" id="aw-type-instead">Type instead</button>
+    </footer>
+    <footer class="aw-modal-foot" id="aw-chat-foot" hidden>
+      <button class="aw-link" id="aw-back-to-voice">Return to voice</button>
+    </footer>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ================================================================
+     1 · UTILITIES
+     ================================================================ */
+  var TAU = Math.PI * 2;
+
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function smoothstep(a, b, v) { var t = clamp((v - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); }
+  /* Exponential damping — frame-rate independent approach to a target. */
+  function damp(current, target, lambda, dt) { return lerp(current, target, 1 - Math.exp(-lambda * dt)); }
+  function rand(a, b) { return a + Math.random() * (b - a); }
+  function hexToRgb(h) {
+    var n = parseInt(h.slice(1), 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+  function rgba(c, a) { return "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + a + ")"; }
+
+  /* ================================================================
+     2 · PERLIN NOISE (procedural, deterministic, seeded)
+     Used everywhere instead of sine loops so motion never repeats.
+     ================================================================ */
+  var perm = new Uint8Array(512);
+  (function seedPerm() {
+    var p = [], i, j, tmp;
+    for (i = 0; i < 256; i++) p[i] = i;
+    var s = 1337;
+    function rnd() { s = (s * 1664525 + 1013904223) >>> 0; return s; }
+    for (i = 255; i > 0; i--) { j = rnd() % (i + 1); tmp = p[i]; p[i] = p[j]; p[j] = tmp; }
+    for (i = 0; i < 512; i++) perm[i] = p[i & 255];
+  })();
+  function fade(t) { return t * t * t * (t * (t * 6 - 15) + 10); }
+  function grad(h, x, y) {
+    switch (h & 3) {
+      case 0: return x + y;
+      case 1: return -x + y;
+      case 2: return x - y;
+      default: return -x - y;
+    }
+  }
+  function pnoise(x, y) {
+    var X = Math.floor(x) & 255, Y = Math.floor(y) & 255;
+    x -= Math.floor(x); y -= Math.floor(y);
+    var u = fade(x), v = fade(y);
+    var A = perm[X] + Y, B = perm[X + 1] + Y;
+    return lerp(
+      lerp(grad(perm[A], x, y), grad(perm[B], x - 1, y), u),
+      lerp(grad(perm[A + 1], x, y - 1), grad(perm[B + 1], x - 1, y - 1), u), v
+    ) * 1.5;
+  }
+
+  /* ================================================================
+     3 · SPRING (damped harmonic oscillator — momentum, inertia)
+     ================================================================ */
+  function Spring(o) {
+    this.x = o.x || 0;
+    this.v = o.v || 0;
+    this.k = o.k || 160;   /* stiffness */
+    this.c = o.c || 18;    /* damping coefficient */
+    this.target = (o.target !== undefined) ? o.target : this.x;
+  }
+  Spring.prototype.step = function (dt) {
+    var a = (this.target - this.x) * this.k - this.v * this.c;
+    this.v += a * dt;
+    this.x += this.v * dt;
+  };
+  Spring.prototype.set = function (t) { this.target = t; };
+
+  /* ================================================================
+     4 · AUDIO — mic analyser + synthetic speech envelope (demo)
+     ================================================================ */
+  function AudioMeter(stream) {
+    this.energy = 0;
+    this.ctx = null; this.analyser = null; this.buf = null;
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      this.ctx = new AC();
+      this.analyser = this.ctx.createAnalyser();
+      this.analyser.fftSize = 256;
+      this.analyser.smoothingTimeConstant = 0.55;
+      this.ctx.createMediaStreamSource(stream).connect(this.analyser);
+      this.buf = new Uint8Array(this.analyser.frequencyBinCount);
+    } catch (e) { console.warn("[audio] analyser unavailable:", e); }
+  }
+  AudioMeter.prototype.sample = function (dt) {
+    if (!this.analyser) return 0;
+    this.analyser.getByteFrequencyData(this.buf);
+    var sum = 0, i, n = 24;                       /* low-mid band = speech energy */
+    for (i = 0; i < n; i++) sum += this.buf[i];
+    return damp(this.energy, (sum / (n * 255)), 9, dt);
+  };
+
+  /* Synthetic "speaking" envelope — random syllable bursts. */
+  var SynthVoice = {
+    energy: 0,
+    timer: 0,
+    update: function (dt) {
+      this.timer -= dt;
+      if (this.timer <= 0) {
+        this.timer = rand(0.07, 0.2);
+        if (Math.random() < 0.55) this.energy = rand(0.4, 1);
+      }
+      this.energy = Math.pow(0.02, dt) * this.energy;
+    }
+  };
+
+  /* ================================================================
+     5 · ORB — generative living sphere (Canvas 2D, GPU-composited)
+     ---------------------------------------------------------------
+     A soft metaball field rendered with pre-built radial gradients
+     and additive blending. Every blob drifts on Perlin noise with a
+     different speed/phase, so the surface never repeats. Breathing,
+     glow, fade and pulses are spring-driven; audio energy modulates
+     amplitude, glow and ripple rate. All gradients are created once
+     and reused — zero per-frame allocations.
+     ================================================================ */
+  var STATE_CFG = {
+    idle:       { breath: 0.028, glow: 0.50, speed: 0.55, fade: 1.0, ripple: 0, err: 0, circ: 0.0, halo: 0.5 },
+    sleeping:   { breath: 0.008, glow: 0.35, speed: 0.20, fade: 1.0, ripple: 0, err: 0, circ: 0.0, halo: 0.3 },
+    connecting: { breath: 0.020, glow: 0.60, speed: 0.80, fade: 1.0, ripple: 0, err: 0, circ: 0.0, halo: 0.5 },
+    listening:  { breath: 0.050, glow: 0.72, speed: 1.00, fade: 1.0, ripple: 1, err: 0, circ: 0.0, halo: 0.6 },
+    speaking:   { breath: 0.060, glow: 0.95, speed: 1.70, fade: 1.0, ripple: 0, err: 0, circ: 0.0, halo: 0.9 },
+    thinking:   { breath: 0.032, glow: 0.65, speed: 1.15, fade: 1.0, ripple: 0, err: 0, circ: 0.5, halo: 0.55 },
+    error:      { breath: 0.022, glow: 0.50, speed: 0.50, fade: 1.0, ripple: 0, err: 1, circ: 0.0, halo: 0.45 },
+    ended:      { breath: 0.005, glow: 0.22, speed: 0.12, fade: 0.4, ripple: 0, err: 0, circ: 0.0, halo: 0.18 }
+  };
+
+  function Orb(canvas, palette, size) {
+    this.cv = canvas;
+    this.ctx = canvas.getContext("2d");
+    this.palette = palette;
+    this.t = 0;
+    this.state = "idle";
+    this.circ = rand(0, TAU);
+    this.circV = 0;
+    this.speed = 0.55;
+    this.ripple = 0;
+    this.err = 0;
+    this.energy = 0;
+    this.nextPulse = rand(4, 9);
+    this.inputEnergy = null;   /* optional fn() -> 0..1 */
+    this.breath = new Spring({ k: 130, c: 19, x: 0.028, target: 0.028 });
+    this.glow = new Spring({ k: 110, c: 15, x: 0.5, target: 0.5 });
+    this.fade = new Spring({ k: 90, c: 13, x: 1, target: 1 });
+    this.pulse = new Spring({ k: 240, c: 26, x: 0, target: 0 });
+    this.resize(size);
+  }
+  Orb.prototype.resize = function (size) {
+    this.S = size;
+    this.R = size / 2;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    this.dpr = dpr;
+    this.cv.width = Math.round(size * dpr);
+    this.cv.height = Math.round(size * dpr);
+    this.buildGradients();
+    this.buildBlobs();
+    if (this.t > 0) this.draw();
+  };
+  Orb.prototype.buildGradients = function () {
+    var ctx = this.ctx, R = this.R, p = this.palette;
+    var g;
+
+    /* base sphere shading (top-light) */
+    g = ctx.createRadialGradient(0, -R * 0.3, 0, 0, 0, R * 1.15);
+    g.addColorStop(0, rgba(p.light, 0.6));
+    g.addColorStop(0.55, rgba(p.mid, 0.85));
+    g.addColorStop(1, rgba(p.deep, 1));
+    this.baseGrad = g;
+
+    /* outer halo (unclipped, additive) */
+    g = ctx.createRadialGradient(0, 0, R * 0.05, 0, 0, R * 1.5);
+    g.addColorStop(0, rgba(p.glow, 0.4));
+    g.addColorStop(0.55, rgba(p.glow, 0.12));
+    g.addColorStop(1, rgba(p.glow, 0));
+    this.haloGrad = g;
+
+    /* internal core light */
+    g = ctx.createRadialGradient(0, 0, 0, 0, 0, R * 0.6);
+    g.addColorStop(0, "rgba(255,255,255,0.55)");
+    g.addColorStop(0.32, rgba(p.light, 0.22));
+    g.addColorStop(1, rgba(p.light, 0));
+    this.coreGrad = g;
+
+    /* inner occlusion shading (sphere depth) */
+    g = ctx.createRadialGradient(0, R * 0.3, R * 0.2, 0, R * 0.3, R * 1.25);
+    g.addColorStop(0, "rgba(5,8,16,0)");
+    g.addColorStop(0.72, "rgba(5,8,16,0.08)");
+    g.addColorStop(1, "rgba(5,8,16,0.55)");
+    this.shadeGrad = g;
+
+    /* specular highlight (glass reflection) */
+    g = ctx.createRadialGradient(0, 0, 0, 0, 0, R * 0.62);
+    g.addColorStop(0, "rgba(255,255,255,0.6)");
+    g.addColorStop(0.4, "rgba(255,255,255,0.16)");
+    g.addColorStop(1, "rgba(255,255,255,0)");
+    this.specGrad = g;
+
+    /* error wash */
+    g = ctx.createRadialGradient(0, 0, 0, 0, 0, R * 1.25);
+    g.addColorStop(0, "rgba(255,64,74,0.5)");
+    g.addColorStop(1, "rgba(255,64,74,0)");
+    this.errGrad = g;
+
+    this.rimColor = rgba([18, 24, 40], 0.16);
+    this.rimGlow = rgba(p.glow, 0.4);
+  };
+  Orb.prototype.buildBlobs = function () {
+    var ctx = this.ctx, R = this.R, p = this.palette;
+    var trios = [
+      [p.light, p.mid], [p.mid, p.deep], [p.light, p.deep],
+      [p.mid, p.deep], [p.light, p.mid], [p.light, p.deep]
+    ];
+    this.blobs = [];
+    for (var i = 0; i < 6; i++) {
+      var rr = R * rand(0.3, 0.62);
+      var g = ctx.createRadialGradient(0, 0, 0, 0, 0, rr);
+      var cA = trios[i][0], cB = trios[i][1];
+      g.addColorStop(0, rgba(cA, 0.5));
+      g.addColorStop(0.6, rgba(cB, 0.18));
+      g.addColorStop(1, rgba(cB, 0));
+      this.blobs.push({
+        grad: g,
+        radius: rr,
+        orbit: R * rand(0.26, 0.56),
+        sp: rand(0.10, 0.22),
+        ph: rand(0, TAU),
+        alpha: rand(0.7, 1)
+      });
+    }
+    this.dust = [];
+    for (i = 0; i < 5; i++) {
+      this.dust.push({ r: R * rand(0.5, 0.82), sp: rand(0.12, 0.4), ph: rand(0, TAU), sz: rand(1.2, 2.6) });
+    }
+  };
+  Orb.prototype.setState = function (s) { this.state = s; };
+
+  Orb.prototype.update = function (dt) {
+    this.t += dt;
+    var cfg = STATE_CFG[this.state] || STATE_CFG.idle;
+
+    this.breath.set(cfg.breath);
+    this.glow.set(cfg.glow);
+    this.fade.set(cfg.fade);
+    this.speed = damp(this.speed, cfg.speed, 2.5, dt);
+    this.ripple = damp(this.ripple, cfg.ripple, 3, dt);
+    this.err = damp(this.err, cfg.err, 3, dt);
+    this.circV = damp(this.circV, cfg.circ, 2, dt);
+    this.circ += this.circV * dt;
+
+    /* input energy */
+    var inp = this.inputEnergy ? this.inputEnergy() : 0;
+    this.energy = damp(this.energy, inp, 6, dt);
+
+    /* occasional involuntary pulse (idle/sleeping) — organic imperfection */
+    if ((this.state === "idle" || this.state === "sleeping") && this.t > this.nextPulse) {
+      this.pulse.set(1);
+      this.nextPulse = this.t + rand(5, 14);
+    } else if (this.pulse.target === 1 && this.pulse.x > 0.55) {
+      this.pulse.set(0);
+    }
+
+    this.breath.step(dt);
+    this.glow.step(dt);
+    this.fade.step(dt);
+    this.pulse.step(dt);
+    this.draw();
+  };
+
+  Orb.prototype.draw = function () {
+    var ctx = this.ctx, R = this.R, S = this.S;
+    var fadeA = this.fade.x;
+
+    ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = "source-over";
+    ctx.clearRect(0, 0, S, S);
+
+    ctx.save();
+    ctx.translate(S / 2, S / 2);
+
+    /* halo */
+    ctx.globalCompositeOperation = "screen";
+    ctx.globalAlpha = (this.glow.x * (0.3 + this.energy * 0.6) + this.pulse.x * 0.2) * fadeA;
+    ctx.fillStyle = this.haloGrad;
+    ctx.beginPath(); ctx.arc(0, 0, R * 1.5, 0, TAU); ctx.fill();
+
+    ctx.globalCompositeOperation = "source-over";
+    ctx.globalAlpha = fadeA;
+
+    ctx.beginPath(); ctx.arc(0, 0, R, 0, TAU); ctx.clip();
+
+    /* base sphere */
+    ctx.fillStyle = this.baseGrad;
+    ctx.fillRect(-R, -R, R * 2, R * 2);
+
+    /* metaball field */
+    ctx.save();
+    var nb = pnoise(this.t * 0.26, 7.7);                 /* irregular bob */
+    ctx.translate(0, nb * 3.2);
+    var swell = 1 + this.breath.x * (0.5 + 0.5 * (nb * 0.5 + 0.5)) + this.pulse.x * 0.05;
+    ctx.scale(swell, swell);
+    ctx.rotate(this.circ);
+
+    ctx.globalCompositeOperation = "lighter";
+    var i, b;
+    for (i = 0; i < this.blobs.length; i++) {
+      b = this.blobs[i];
+      var a = b.ph + this.t * b.sp * 0.9 + pnoise(this.t * b.sp, 13.1 + i * 7.7) * 2.4;
+      var rr = b.orbit * (1 + 0.3 * pnoise(this.t * b.sp * 0.7 + i * 3.3, 21.7));
+      var bx = Math.cos(a) * rr, by = Math.sin(a) * rr * 0.92;
+      ctx.globalAlpha = (0.62 + this.energy * 0.4) * b.alpha * fadeA;
+      ctx.fillStyle = b.grad;
+      ctx.save(); ctx.translate(bx, by); ctx.fillRect(-b.radius, -b.radius, b.radius * 2, b.radius * 2); ctx.restore();
+    }
+
+    /* internal dust */
+    for (i = 0; i < this.dust.length; i++) {
+      var d = this.dust[i];
+      var da = d.ph + this.t * d.sp * 1.5 + pnoise(this.t * 0.2, 40 + i) * 1.6;
+      ctx.globalAlpha = (0.14 + 0.1 * (0.5 + 0.5 * Math.sin(this.t * d.sp + d.ph))) * fadeA;
+      ctx.fillStyle = "rgba(255,255,255,1)";
+      ctx.beginPath();
+      ctx.arc(Math.cos(da) * d.r, Math.sin(da) * d.r * 0.9, d.sz, 0, TAU);
+      ctx.fill();
+    }
+    ctx.globalAlpha = fadeA;
+    ctx.globalCompositeOperation = "source-over";
+    ctx.restore();
+
+    /* core glow */
+    ctx.globalCompositeOperation = "lighter";
+    ctx.globalAlpha = (0.45 + this.energy * 0.55) * fadeA;
+    ctx.fillStyle = this.coreGrad;
+    ctx.fillRect(-R, -R, R * 2, R * 2);
+
+    /* sphere depth occlusion */
+    ctx.globalCompositeOperation = "source-over";
+    ctx.globalAlpha = fadeA;
+    ctx.fillStyle = this.shadeGrad;
+    ctx.fillRect(-R, -R, R * 2, R * 2);
+
+    /* listening ripples */
+    if (this.ripple > 0.05) {
+      ctx.globalCompositeOperation = "lighter";
+      var amp = 0.1 + this.energy * 0.9;
+      for (i = 0; i < 3; i++) {
+        var ph = (this.t * (0.55 + amp * 0.9) + i / 3) % 1;
+        var rad = ph * R * 1.15;
+        ctx.globalAlpha = (1 - ph) * 0.22 * amp * fadeA;
+        ctx.strokeStyle = rgba([255, 255, 255], 1);
+        ctx.lineWidth = 1.4;
+        ctx.beginPath(); ctx.arc(0, 0, Math.max(rad, 2), 0, TAU); ctx.stroke();
+      }
+      ctx.globalAlpha = fadeA;
+      ctx.globalCompositeOperation = "source-over";
+    }
+
+    /* error wash */
+    if (this.err > 0.05) {
+      var pulseA = 0.14 + 0.2 * (0.5 + 0.5 * Math.sin(this.t * 2.6));
+      ctx.globalCompositeOperation = "lighter";
+      ctx.globalAlpha = this.err * pulseA * fadeA;
+      ctx.fillStyle = this.errGrad;
+      ctx.fillRect(-R, -R, R * 2, R * 2);
+      ctx.globalAlpha = fadeA;
+      ctx.globalCompositeOperation = "source-over";
+    }
+
+    ctx.restore(); /* clip */
+
+    /* rim */
+    ctx.lineWidth = 1.25;
+    ctx.strokeStyle = this.rimColor;
+    ctx.beginPath(); ctx.arc(0, 0, R - 0.6, 0, TAU); ctx.stroke();
+
+    /* connecting ring */
+    if (this.state === "connecting") {
+      var ca = (this.t * 0.9) % 1;
+      ctx.globalCompositeOperation = "screen";
+      ctx.strokeStyle = this.rimGlow;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(0, 0, R + 6 + ca * 14, ca * TAU, ca * TAU + TAU * 0.7);
+      ctx.stroke();
+      ctx.globalCompositeOperation = "source-over";
+    }
+
+    /* specular glass highlight */
+    ctx.globalCompositeOperation = "screen";
+    ctx.globalAlpha = (0.5 + this.glow.x * 0.4) * fadeA;
+    ctx.fillStyle = this.specGrad;
+    ctx.save();
+    ctx.translate(-R * 0.34, -R * 0.38);
+    ctx.scale(1, 0.82);
+    ctx.rotate(-0.5);
+    ctx.fillRect(-R * 0.62, -R * 0.62, R * 1.24, R * 1.24);
+    ctx.restore();
+
+    ctx.globalCompositeOperation = "source-over";
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  };
+
+  /* ================================================================
+     6 · AMBIENT BACKGROUND — drifting aurora + dust, very subtle
+     Rendered at low resolution and stretched → free soft blur.
+     ================================================================ */
+  function Ambient(canvas) {
+    this.cv = canvas;
+    this.ctx = canvas.getContext("2d");
+    this.mx = 0; this.my = 0; this.smx = 0; this.smy = 0;
+    this.parts = [];
+    this.auroras = [
+      { x: 0.18, y: 0.22, r: 0.75, hue: 212, off: 0,  alpha: 0.17, par: 30 },
+      { x: 0.85, y: 0.8,  r: 0.8,  hue: 262, off: 40, alpha: 0.13, par: -40 },
+      { x: 0.55, y: 0.45, r: 0.6,  hue: 182, off: 90, alpha: 0.11, par: 14 }
+    ];
+    for (var i = 0; i < 26; i++) {
+      this.parts.push({ x: Math.random(), y: Math.random(), sp: rand(0.02, 0.09), r: rand(0.6, 1.8), ph: rand(0, TAU) });
+    }
+    this.resize();
+  }
+  Ambient.prototype.resize = function () {
+    this.w = window.innerWidth; this.h = window.innerHeight;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2) * 0.55;
+    this.cv.width = Math.round(this.w * dpr);
+    this.cv.height = Math.round(this.h * dpr);
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  };
+  Ambient.prototype.update = function (dt, t) {
+    var ctx = this.ctx, w = this.w, h = this.h, i, a, p;
+    this.smx = damp(this.smx, this.mx, 1.6, dt);
+    this.smy = damp(this.smy, this.my, 1.6, dt);
+
+    ctx.globalCompositeOperation = "source-over";
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = "#FBFBF9";
+    ctx.fillRect(0, 0, w, h);
+
+    var minDim = Math.min(w, h), i2, g;
+    ctx.globalCompositeOperation = "lighter";
+    for (i = 0; i < this.auroras.length; i++) {
+      a = this.auroras[i];
+      var cx = (a.x + pnoise(t * 0.03, i * 9.1) * 0.05) * w + this.smx * a.par;
+      var cy = (a.y + pnoise(t * 0.025 + 40, i * 9.1) * 0.05) * h + this.smy * a.par;
+      var hue = a.hue + Math.sin(t * 0.02 + a.off) * 8;
+      g = ctx.createRadialGradient(cx, cy, 0, cx, cy, a.r * minDim);
+      g.addColorStop(0, "hsla(" + hue + ",72%,52%," + a.alpha + ")");
+      g.addColorStop(1, "hsla(" + hue + ",72%,52%,0)");
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(cx, cy, a.r * minDim, 0, TAU); ctx.fill();
+    }
+
+    for (i = 0; i < this.parts.length; i++) {
+      p = this.parts[i];
+      p.y -= p.sp * dt * 0.05;
+      if (p.y < -0.02) { p.y = 1.02; p.x = Math.random(); }
+      ctx.globalAlpha = 0.16 + 0.12 * (0.5 + 0.5 * Math.sin(t * p.sp * 4 + p.ph));
+      ctx.fillStyle = "#9db4ff";
+      ctx.beginPath();
+      ctx.arc(p.x * w + this.smx * 6, p.y * h + this.smy * 6, p.r, 0, TAU);
+      ctx.fill();
+    }
+    ctx.globalCompositeOperation = "source-over";
+    ctx.globalAlpha = 1;
+  };
+
+  /* ================================================================
+     7 · CONTENT + palettes
+     ================================================================ */
+  var SCENARIOS = [
+    {
+      key: "azure", tag: "Your Company", title: "Ask anything",
+      light: [138, 217, 255], mid: [46, 155, 238], deep: [11, 74, 140], glow: [88, 185, 255],
+      agent: "Ava", speak: "I can help with just about anything. What's on your mind?",
+      greet: "Hi! I'm Ava. What can I help you with today?",
+      replies: ["Got it — can you tell me a bit more?", "I can help with that, one moment.", "Noted. Anything else I can check?", "Let me look into this for you."],
+      api: { baseUrl: "https://api.tryvium.ai/v1/support", key: null }   /* demo when key === null */
+    },
+    {
+      key: "verdant", tag: "Healthcare", title: "Patient services",
+      light: [200, 245, 138], mid: [87, 177, 70], deep: [20, 74, 38], glow: [134, 224, 90],
+      agent: "Nora", speak: "I can check your appointment or refill a prescription. What do you need?",
+      greet: "Hi, I'm Nora from patient services. How can I help?",
+      replies: ["Your next appointment is confirmed for this week. Anything else?", "I can help with prescription refills — what's the medication?", "Let me pull up your records, one moment.", "I've noted that. Is there anything else?"],
+      api: { baseUrl: "https://api.tryvium.ai/v1/health", key: null }
+    },
+    {
+      key: "ember", tag: "Insurance", title: "Claims & service",
+      light: [255, 177, 153], mid: [226, 94, 92], deep: [126, 36, 64], glow: [255, 138, 107],
+      agent: "Rae", speak: "I can check a claim status or walk you through a filing. Where should we start?",
+      greet: "Hi, I'm Rae from claims. What can I help you with?",
+      replies: ["I found your claim — it's being reviewed and should update within 24 hours.", "You can file a claim right here. What happened?", "Let me check your coverage details.", "That's taken care of. Anything else?"],
+      api: { baseUrl: "https://api.tryvium.ai/v1/claims", key: null }
+    },
+    {
+      key: "solar", tag: "Financial", title: "Customer service",
+      light: [255, 217, 138], mid: [232, 168, 58], deep: [110, 62, 18], glow: [255, 192, 74],
+      agent: "Milo", speak: "I can help with transactions, statements, or your account. What do you need?",
+      greet: "Hi, I'm Milo. How can I help with your account today?",
+      replies: ["I can see that transaction on your account — looks correct.", "Would you like a statement for the last month?", "Let me verify your identity first, one moment.", "All set. Is there anything else I can do?"],
+      api: { baseUrl: "https://api.tryvium.ai/v1/finance", key: null }
+    }
+  ];
+  var N = SCENARIOS.length;
+
+  /* ----------------------------------------------------------------
+     AGENT API — the only block your dev team edits.
+     Each scenario carries its own agent config; a null key = demo mode.
+     Drop a real baseUrl + server-injected key onto a scenario and every
+     call, chat message, and session routes to that endpoint.
+     Contract unchanged from the original widget.
+     ---------------------------------------------------------------- */
+  function createAgent(config) {
+    config = config || {};
+    var demo = !config.baseUrl || !config.key;   /* key === null  →  demo mode */
+    var sessionId = null;
+    function delay(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+    function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    return {
+      _demo: demo,
+      key: config.key,
+      startSession: function (mode) {
+        if (demo) return delay(450).then(function () { sessionId = "demo-" + Date.now(); return { sessionId: sessionId, agentName: config.agent || "Ava" }; });
+        return fetch(config.baseUrl + "/sessions", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + config.key }, body: JSON.stringify({ mode: mode, agent: config.agent }) })
+          .then(function (res) { if (!res.ok) throw new Error("Failed to start session: " + res.status); return res.json().then(function (d) { sessionId = d.sessionId; return d; }); });
+      },
+      sendMessage: function (text) {
+        if (demo) return delay(700 + Math.random() * 600).then(function () { return pick(config.replies || ["Got it — can you tell me a bit more?"]); });
+        return fetch(config.baseUrl + "/sessions/" + sessionId + "/messages", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + config.key }, body: JSON.stringify({ text: text }) })
+          .then(function (res) { if (!res.ok) throw new Error("Message failed: " + res.status); return res.json().then(function (d) { return d.reply; }); });
+      },
+      endSession: function () {
+        if (demo) return delay(120).then(function () { sessionId = null; });
+        return fetch(config.baseUrl + "/sessions/" + sessionId, { method: "DELETE", headers: { "Authorization": "Bearer " + config.key } }).then(function () { sessionId = null; }).catch(function () { sessionId = null; });
+      }
+    };
+  }
+  var AgentAPI = createAgent(SCENARIOS[0].api);
+  var activeAgent = AgentAPI;   /* reassigned on every openCall */
+  var activeScenario = SCENARIOS[0];
+
+  /* ================================================================
+     9 · CAROUSEL — spring-driven coverflow with momentum/inertia
+     ================================================================ */
+  var stage = document.getElementById("aw-stage");
+  var dotsWrap = document.getElementById("aw-dots");
+  var REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var current = 0;
+  var cardEls = [];
+  var spacing = 240;
+  var autoplayTimer = null;
+  var overlayOpen = false;
+
+  function signedDiff(i) {
+    var raw = i - current;
+    while (raw > N / 2) raw -= N;
+    while (raw < -N / 2) raw += N;
+    return raw;
+  }
+
+  function cardTransform(card, t, frontBob) {
+    var d = card.spring.x;
+    var abs = Math.min(Math.abs(d), 2.4);
+    var x = d * spacing;
+    var rot = d * -15;
+    var scale = Math.max(1 - abs * 0.085, 0.72);
+    var y = frontBob * (1 - Math.min(abs * 0.5, 1));   /* only the front card bobs */
+    card.el.style.transform = "translate(-50%,-50%) translate(" + x + "px," + y + "px) rotateY(" + rot + "deg) scale(" + scale + ")";
+    card.el.style.zIndex = Math.round(100 - abs * 40);
+    card.el.style.opacity = (abs > 2.3) ? 0 : (1 - smoothstep(1.6, 2.3, abs));
+    card.el.style.pointerEvents = (abs > 2.3) ? "none" : "auto";
+    card.el.setAttribute("data-front", d === 0 ? "true" : "false");
+  }
+
+  function buildCards() {
+    stage.innerHTML = "";
+    dotsWrap.innerHTML = "";
+    cardEls = [];
+    SCENARIOS.forEach(function (s, i) {
+      var el = document.createElement("article");
+      el.className = "aw-card";
+      el.tabIndex = 0;
+      el.setAttribute("role", "group");
+      el.setAttribute("aria-roledescription", "slide");
+      el.setAttribute("aria-label", s.tag + " — " + s.title + ". Activate to speak with an agent.");
+
+      var orbWrap = document.createElement("div");
+      orbWrap.className = "aw-orb";
+      var cv = document.createElement("canvas");
+      orbWrap.appendChild(cv);
+      var play = document.createElement("span");
+      play.className = "aw-play";
+      play.setAttribute("aria-hidden", "true");
+      play.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+      orbWrap.appendChild(play);
+
+      var tag = document.createElement("p"); tag.className = "aw-card-tag"; tag.textContent = s.tag;
+      var title = document.createElement("h3"); title.className = "aw-card-title"; title.textContent = s.title;
+
+      el.appendChild(orbWrap); el.appendChild(tag); el.appendChild(title);
+      stage.appendChild(el);
+
+      var orb = new Orb(cv, s, orbWrap.clientWidth || 158);
+      var card = { el: el, orb: orb, index: i, spring: new Spring({ k: 130, c: 17, x: signedDiff(i), target: signedDiff(i) }) };
+      cardEls.push(card);
+      orb.setState(i === 0 ? "idle" : "sleeping");
+      orb.update(0); /* paint initial frame */
+
+      el.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          activate(card.index);
+        }
+      });
+
+      var dot = document.createElement("button");
+      dot.className = "aw-dot";
+      dot.setAttribute("aria-label", "Go to " + s.tag);
+      dot.addEventListener("click", function () { goTo(card.index); });
+      dotsWrap.appendChild(dot);
+
+      if (window.ResizeObserver) {
+        new ResizeObserver(function () { orb.resize(orbWrap.clientWidth || 158); }).observe(orbWrap);
+      }
+    });
+    reflow();
+    layout();
+  }
+
+  function reflow() {
+    var w = window.innerWidth;
+    spacing = w < 480 ? 120 : w < 768 ? 168 : 240;
+  }
+
+  /* hard layout (no animation) */
+  function layout() {
+    var t = performance.now() / 1000;
+    cardEls.forEach(function (card) {
+      card.spring.x = signedDiff(card.index);
+      card.spring.v = 0;
+      cardTransform(card, t, pnoise(t * 0.3, card.index * 3.7) * 3);
+    });
+    updateDots();
+  }
+
+  /* animated transition */
+  function goTo(i) {
+    current = ((i % N) + N) % N;
+    cardEls.forEach(function (card) { card.spring.set(signedDiff(card.index)); });
+    if (REDUCED) layout();   /* snap — no motion */
+    updateDots();
+    restartAutoplay();
+  }
+
+  function next() { goTo(current + 1); }
+  function prev() { goTo(current - 1); }
+
+  function updateDots() {
+    Array.prototype.forEach.call(dotsWrap.children, function (dot, i) {
+      if (i === current) dot.setAttribute("aria-current", "true");
+      else dot.removeAttribute("aria-current");
+    });
+  }
+
+  function activate(index) {
+    if (signedDiff(index) === 0) openCall(SCENARIOS[current]);
+    else goTo(index);
+  }
+
+  function startAutoplay() {
+    if (REDUCED || overlayOpen) return;
+    clearInterval(autoplayTimer);
+    autoplayTimer = setInterval(next, 4200);
+  }
+  function stopAutoplay() { clearInterval(autoplayTimer); }
+  function restartAutoplay() { stopAutoplay(); startAutoplay(); }
+
+  /* ---- drag + inertia ---- */
+  var drag = null;
+  function dragStart(x) {
+    if (drag) return;
+    drag = { startX: x, dx: 0, moved: false, vel: 0, samples: [] };
+    stopAutoplay();
+    stage.classList.add("is-dragging");
+  }
+  function dragMove(x) {
+    if (!drag) return;
+    drag.dx = x - drag.startX;
+    if (!drag.moved && Math.abs(drag.dx) > 6) drag.moved = true;
+    if (!drag.moved) return;
+    var now = performance.now();
+    drag.samples.push({ t: now, dx: drag.dx });
+    while (drag.samples.length && now - drag.samples[0].t > 90) drag.samples.shift();
+    cardEls.forEach(function (card) {
+      card.spring.x = signedDiff(card.index) + drag.dx / spacing;
+      card.spring.v = 0;
+    });
+  }
+  function dragEnd(x) {
+    if (!drag) return;
+    var d = drag;
+    drag = null;
+    stage.classList.remove("is-dragging");
+    var now = performance.now();
+    if (d.samples.length) {
+      var s0 = d.samples[0], s1 = d.samples[d.samples.length - 1];
+      var dt = (s1.t - s0.t) / 1000 || 0.001;
+      d.vel = (s1.dx - s0.dx) / dt;   /* px / s */
+    }
+    var threshold = spacing * 0.35;
+    if (d.moved && (d.dx < -threshold || (Math.abs(d.dx) < threshold && d.vel < -500))) next();
+    else if (d.moved && (d.dx > threshold || d.vel > 500)) prev();
+    else layout();
+    /* carry momentum into the spring settle */
+    cardEls.forEach(function (card) { card.spring.v = clamp(d.vel / spacing * 0.45, -7, 7); });
+    startAutoplay();
+  }
+  function dragClick(x, y) {
+    var el = document.elementFromPoint(x, y);
+    if (!el) return;
+    var cardEl = el.closest ? el.closest(".aw-card") : null;
+    if (!cardEl) return;
+    var idx = cardEls.findIndex(function (c) { return c.el === cardEl; });
+    if (idx >= 0) activate(idx);
+  }
+
+  stage.addEventListener("pointerdown", function (e) {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    stage.setPointerCapture(e.pointerId);
+    dragStart(e.clientX);
+    e.preventDefault();
+  });
+  stage.addEventListener("pointermove", function (e) {
+    if (drag) { dragMove(e.clientX); e.preventDefault(); }
+  });
+  stage.addEventListener("pointerup", function (e) {
+    if (!drag) return;
+    var wasMoved = drag.moved;
+    dragEnd(e.clientX);
+    if (!wasMoved) dragClick(e.clientX, e.clientY);
+  });
+  stage.addEventListener("pointercancel", function () { if (drag) dragEnd(0); });
+
+  stage.addEventListener("mouseenter", stopAutoplay);
+  stage.addEventListener("mouseleave", startAutoplay);
+
+  document.getElementById("aw-prev").addEventListener("click", prev);
+  document.getElementById("aw-next").addEventListener("click", next);
+  document.getElementById("aw-cta").addEventListener("click", function () { openCall(SCENARIOS[current]); });
+
+  document.addEventListener("keydown", function (e) {
+    if (overlayOpen) return;
+    if (e.key === "ArrowLeft") prev();
+    else if (e.key === "ArrowRight") next();
+    else if (e.key === "Home") goTo(0);
+    else if (e.key === "End") goTo(N - 1);
+  });
+
+  /* ================================================================
+     10 · CALL MODAL — states, mic, chat, focus + live-region a11y
+     ================================================================ */
+  var overlay = document.getElementById("aw-overlay");
+  var modal = document.getElementById("aw-modal");
+  var callOrbWrap = document.getElementById("aw-orb-call");
+  var halo = callOrbWrap.querySelector(".aw-orb-halo");
+  var callMessage = document.getElementById("aw-call-message");
+  var statusEl = document.getElementById("aw-call-status");
+  var statusText = document.getElementById("aw-status-text");
+  var callTag = document.getElementById("aw-call-tag");
+  var callTitle = document.getElementById("aw-call-title");
+  var voiceEl = document.getElementById("aw-voice");
+  var chatEl = document.getElementById("aw-chat");
+  var voiceFoot = document.getElementById("aw-voice-foot");
+  var chatFoot = document.getElementById("aw-chat-foot");
+  var chatLog = document.getElementById("aw-chat-log");
+  var chatInput = document.getElementById("aw-chat-input");
+  var chatSend = document.getElementById("aw-chat-send");
+  var composer = document.getElementById("aw-composer");
+  var hangup = document.getElementById("aw-hangup");
+  var retryBtn = document.getElementById("aw-retry");
+
+  var callOrb = new Orb(callOrbWrap.querySelector("canvas"), SCENARIOS[1], 200);
+  callOrb.setState("idle");
+
+  var meter = null;           /* AudioMeter */
+  var micStream = null;
+  var lastFocused = null;
+  var ended = false;
+
+  function setStatus(state, label) {
+    statusEl.setAttribute("data-state", state);
+    statusText.textContent = label;
+  }
+  function setMessage(text, cls) {
+    callMessage.textContent = text || "";
+    callMessage.className = "aw-call-msg" + (cls ? " " + cls : "");
+  }
+
+  function applyScenario(scenario) {
+    activeScenario = scenario;
+    callTag.textContent = scenario.tag.toUpperCase();
+    callTitle.textContent = scenario.title;
+    callOrb.palette = scenario;
+    callOrb.buildGradients();
+    callOrb.buildBlobs();
+    modal.style.setProperty("--orb-glow", rgba(scenario.glow, 0.42));
+    modal.style.setProperty("--msg-glow", rgba(scenario.glow, 1));
+  }
+
+  function stopMic() {
+    if (micStream) { micStream.getTracks().forEach(function (t) { t.stop(); }); micStream = null; }
+    if (meter && meter.ctx && meter.ctx.state === "running") { meter.ctx.close(); }
+    meter = null;
+    callOrb.inputEnergy = null;
+  }
+  var demoTimers = [];
+  function stopDemo() { demoTimers.forEach(clearTimeout); demoTimers = []; }
+
+  /* Unified energy source for the call orb: real mic → synth (demo). */
+  function callEnergy() {
+    if (activeAgent._demo && callOrb.state === "speaking") return SynthVoice.energy;
+    if (meter) return meter.sample(1 / 60);
+    return SynthVoice.energy * 0.55;
+  }
+
+  function openCall(scenario) {
+    if (overlay.classList.contains("is-open") && !ended) return;
+    activeAgent = createAgent(scenario.api);   /* every scenario gets its own agent API */
+    lastFocused = document.activeElement;
+    ended = false;
+    overlayOpen = true;
+
+    applyScenario(scenario);
+    stopMic(); stopDemo();
+
+    /* reset UI */
+    setStatus("connecting", "Connecting");
+    setMessage("Waking the agent…", "is-muted");
+    callOrb.setState("connecting");
+    voiceEl.hidden = false; voiceFoot.hidden = false;
+    chatEl.hidden = true; chatFoot.hidden = true;
+    chatLog.innerHTML = "";
+    chatInput.value = "";
+    retryBtn.hidden = true;
+    hangup.setAttribute("data-restart", "false");
+    hangup.setAttribute("aria-label", "End call");
+
+    overlay.classList.add("is-open");
+    document.body.style.overflow = "hidden";
+    modal.focus({ preventScroll: true });
+
+    beginSession(scenario);
+  }
+
+  function beginSession(scenario) {
+    activeAgent.startSession("voice").then(function () {
+      var onStream = function (stream) {
+        micStream = stream;
+        meter = new AudioMeter(stream);
+        callOrb.inputEnergy = callEnergy;
+        setStatus("listening", "Listening");
+        setMessage("Go ahead — I'm listening…", "is-muted");
+        callOrb.setState("listening");
+        if (activeAgent._demo) runDemoConversation();
+      };
+      var onFail = function () {
+        if (activeAgent._demo) {
+          /* demo survives without a mic — simulated input */
+          callOrb.inputEnergy = callEnergy;
+          setStatus("listening", "Demo · simulated audio");
+          setMessage("Mic off — running a simulated call…", "is-muted");
+          callOrb.setState("listening");
+          runDemoConversation();
+        } else {
+          setStatus("error", "Mic unavailable");
+          setMessage("Microphone access is blocked. Turn it on in your browser, then try again.", "is-error");
+          callOrb.setState("error");
+          retryBtn.hidden = false;
+        }
+      };
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ audio: true, echoCancellation: true, noiseSuppression: true })
+          .then(onStream, onFail);
+      } else {
+        onFail();
+      }
+    }).catch(function (err) {
+      setStatus("error", "Unavailable");
+      setMessage("Sorry — the agent could not be reached right now.", "is-error");
+      callOrb.setState("error");
+      console.error("[activeAgent] session failed:", err);
+    });
+  }
+
+  /* Demo voice conversation: cycles listening → thinking → speaking. */
+  function runDemoConversation() {
+    stopDemo();
+    demoTimers.push(setTimeout(function () {
+      callOrb.setState("thinking");
+      setStatus("thinking", "Thinking");
+      setMessage("Just a moment…", "is-muted");
+    }, 2600));
+    demoTimers.push(setTimeout(function () {
+      callOrb.setState("speaking");
+      setStatus("speaking", "Speaking");
+      setMessage(activeScenario.speak || "Here's what I can do for you.", "");
+      SynthVoice.energy = 0.85;
+    }, 3600));
+    demoTimers.push(setTimeout(function () {
+      callOrb.setState("listening");
+      setStatus("listening", "Listening");
+      setMessage("Anything else I can help with?", "is-muted");
+    }, 6200));
+    demoTimers.push(setTimeout(function () {
+      runDemoConversation();
+    }, 7600));
+  }
+
+  function closeCall() {
+    if (!overlay.classList.contains("is-open")) return;
+    overlayOpen = false;
+    overlay.classList.remove("is-open");
+    document.body.style.overflow = "";
+    stopMic(); stopDemo();
+    callOrb.inputEnergy = null;
+    activeAgent.endSession().catch(function (e) { console.error(e); });
+    restartAutoplay();
+    if (lastFocused) lastFocused.focus({ preventScroll: true });
+  }
+
+  document.getElementById("aw-close").addEventListener("click", closeCall);
+  overlay.addEventListener("pointerdown", function (e) { if (e.target === overlay) closeCall(); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && overlay.classList.contains("is-open")) closeCall();
+  });
+
+  /* focus trap */
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Tab" || !overlay.classList.contains("is-open")) return;
+    var focusables = modal.querySelectorAll("button, textarea, [tabindex]:not([tabindex='-1'])");
+    if (!focusables.length) return;
+    var first = focusables[0], last = focusables[focusables.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
+
+  hangup.addEventListener("click", function () {
+    if (ended) { openCall(SCENARIOS[current]); return; }
+    ended = true;
+    stopMic(); stopDemo();
+    callOrb.setState("ended");
+    setStatus("ended", "Call ended");
+    setMessage("Call ended.", "is-muted");
+    hangup.setAttribute("data-restart", "true");
+    hangup.setAttribute("aria-label", "Start a new call");
+  });
+
+  retryBtn.addEventListener("click", function () {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+    retryBtn.hidden = true;
+    setStatus("connecting", "Connecting");
+    setMessage("Reconnecting…", "is-muted");
+    callOrb.setState("connecting");
+    navigator.mediaDevices.getUserMedia({ audio: true, echoCancellation: true, noiseSuppression: true })
+      .then(function (stream) {
+        micStream = stream;
+        meter = new AudioMeter(stream);
+        callOrb.inputEnergy = callEnergy;
+        setStatus("listening", "Listening");
+        setMessage("Go ahead — I'm listening…", "is-muted");
+        callOrb.setState("listening");
+        if (activeAgent._demo) runDemoConversation();
+      })
+      .catch(function () { callOrb.setState("error"); setStatus("error", "Mic unavailable"); });
+  });
+
+  /* voice ⇄ chat */
+  document.getElementById("aw-type-instead").addEventListener("click", switchToChat);
+  document.getElementById("aw-back-to-voice").addEventListener("click", function () {
+    chatEl.hidden = true; chatFoot.hidden = true;
+    voiceEl.hidden = false; voiceFoot.hidden = false;
+    setStatus("listening", "Listening");
+    callOrb.setState("listening");
+    if (activeAgent._demo) runDemoConversation();
+  });
+
+  function switchToChat() {
+    stopMic(); stopDemo();
+    voiceEl.hidden = true; voiceFoot.hidden = true;
+    chatEl.hidden = false; chatFoot.hidden = false;
+    setStatus("online", "Online");
+    if (chatLog.children.length === 0) addChatMessage("agent", activeScenario.greet || "Hi! What can I help you with today?");
+    chatInput.focus();
+  }
+
+  function addChatMessage(who, text) {
+    var el = document.createElement("div");
+    el.className = "aw-msg " + who;
+    if (who === "agent") el.innerHTML = '<span class="aw-msg-dot" aria-hidden="true"></span>';
+    el.appendChild(document.createTextNode(text));
+    chatLog.appendChild(el);
+    chatLog.scrollTop = chatLog.scrollHeight;
+    return el;
+  }
+  function showTyping() {
+    var el = document.createElement("div");
+    el.className = "aw-msg agent typing";
+    el.setAttribute("aria-label", "Agent is typing");
+    el.innerHTML = "<span></span><span></span><span></span>";
+    chatLog.appendChild(el);
+    chatLog.scrollTop = chatLog.scrollHeight;
+    return el;
+  }
+  function sendChat() {
+    var text = chatInput.value.trim();
+    if (!text) return;
+    addChatMessage("user", text);
+    chatInput.value = ""; resizeInput();
+    chatSend.disabled = true;
+    var typingEl = showTyping();
+    activeAgent.sendMessage(text).then(function (reply) {
+      typingEl.remove();
+      addChatMessage("agent", reply);
+    }).catch(function (err) {
+      typingEl.remove();
+      addChatMessage("agent", "Sorry — something went wrong reaching the agent.");
+      console.error(err);
+    }).then(function () {
+      chatSend.disabled = false;
+      chatInput.focus();
+    });
+  }
+  composer.addEventListener("submit", function (e) { e.preventDefault(); sendChat(); });
+  chatInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChat(); }
+  });
+  function resizeInput() {
+    chatInput.style.height = "auto";
+    chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + "px";
+  }
+  chatInput.addEventListener("input", resizeInput);
+
+  /* ================================================================
+     11 · ENGINE — single rAF loop, delta-time, everything springs
+     ================================================================ */
+  var ambient = new Ambient(document.getElementById("aw-ambient"));
+  var running = false;
+  var last = performance.now();
+  var clock = 0;
+
+  function tick(now) {
+    if (!running) return;
+    var dt = clamp((now - last) / 1000, 0, 0.05);
+    last = now;
+    clock += dt;
+
+    /* carousel + its orbs (card orbs pause while modal is open) */
+    var t = clock;
+    if (!overlayOpen) {
+      cardEls.forEach(function (card) {
+        card.spring.step(dt);
+        cardTransform(card, t, pnoise(t * 0.3, card.index * 3.7) * 3);
+        card.orb.update(dt);
+      });
+    }
+    ambient.update(dt, t);
+
+    /* call orb */
+    SynthVoice.update(dt);   /* cheap; only consumed when no real mic */
+    callOrb.update(dt);
+
+    requestAnimationFrame(tick);
+  }
+
+  function startEngine() {
+    running = true;
+    requestAnimationFrame(tick);
+  }
+
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) { running = false; stopAutoplay(); }
+    else { running = true; last = performance.now(); requestAnimationFrame(tick); startAutoplay(); }
+  });
+
+  window.addEventListener("resize", function () {
+    ambient.resize();
+    reflow();
+    layout();
+  });
+
+  window.addEventListener("pointermove", function (e) {
+    ambient.mx = e.clientX / window.innerWidth - 0.5;
+    ambient.my = e.clientY / window.innerHeight - 0.5;
+  }, { passive: true });
+
+  /* ================================================================
+     12 · BOOT
+     ================================================================ */
+  buildCards();
+  document.getElementById("aw-caption").setAttribute("aria-hidden", "true");
+
+  if (REDUCED) {
+    /* Static render — motion-averse users get a calm, still composition. */
+    cardEls.forEach(function (card) { card.orb.setState("idle"); card.orb.update(0); });
+    callOrb.setState("idle"); callOrb.update(0);
+    ambient.update(0, 0);
+  } else {
+    startEngine();
+    startAutoplay();
+  }
+})();
+</script>
+</body>
+</html>

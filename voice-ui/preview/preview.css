@@ -1,0 +1,230 @@
+/* ==========================================================================
+   Voice UI — Preview harness styles (preview/preview.css)
+   --------------------------------------------------------------------------
+   DEV ONLY. This file styles the local token reference page. It is never
+   enqueued in WordPress. Keep it scoped under .tp-* so it can never clash
+   with the widget's own .vui-* classes in the same document.
+   ========================================================================== */
+
+html { color-scheme: light; }
+html[data-theme="dark"] { color-scheme: dark; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--lh-normal);
+  -webkit-font-smoothing: antialiased;
+  transition: background var(--dur-base) ease;
+}
+
+/* ---- Header ---- */
+.tp-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-nav);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  padding: var(--space-4) var(--gutter);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-bottom: var(--glass-border);
+  box-shadow: var(--glass-highlight);
+}
+.tp-header h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  letter-spacing: var(--ls-narrow);
+}
+.tp-header p { margin: 2px 0 0; font-size: var(--text-xs); color: var(--slate); }
+.tp-btn {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: var(--fw-semibold);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  box-shadow: var(--shadow-2);
+}
+.tp-btn:active { transform: scale(0.97); }
+
+/* ---- Layout ---- */
+.tp-main { max-width: var(--container); margin: 0 auto; padding: var(--space-12) var(--gutter) var(--space-24); }
+.tp-section { margin-bottom: var(--space-16); }
+.tp-section > h2 {
+  font-size: var(--text-2xl);
+  margin: 0 0 var(--space-2);
+}
+.tp-note { margin: 0 0 var(--space-6); font-size: var(--text-sm); color: var(--slate); max-width: 70ch; }
+
+/* ---- Swatches ---- */
+.tp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--space-3); }
+.tp-swatch { border: var(--border-1); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-1); background: var(--surface-3); }
+.tp-swatch-color { height: 72px; }
+.tp-swatch-meta { padding: var(--space-2) var(--space-2); }
+.tp-swatch-meta strong { display: block; font-size: var(--text-sm); }
+.tp-swatch-meta span { font-size: var(--text-2xs); color: var(--slate); font-family: monospace; }
+
+.tp-swatch--chip { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2); border: var(--border-1); border-radius: var(--radius-md); background: var(--surface-3); }
+.tp-swatch--chip .tp-swatch-color { height: 32px; width: 32px; border-radius: var(--radius-sm); flex: none; }
+.tp-swatch--chip strong { font-size: var(--text-sm); }
+.tp-swatch--chip span { display: block; font-size: var(--text-2xs); color: var(--slate); font-family: monospace; }
+
+/* ---- Gradients ---- */
+.tp-grad { height: 64px; border-radius: var(--radius-md); border: var(--border-1); }
+.tp-grad + .tp-note { margin-top: var(--space-2); }
+
+/* ---- Typography ---- */
+.tp-type-row { display: flex; align-items: baseline; gap: var(--space-6); padding: var(--space-2) 0; border-bottom: var(--border-1); }
+.tp-type-label { width: 170px; flex: none; font-size: var(--text-2xs); color: var(--slate); font-family: monospace; }
+
+/* ---- Spacing ---- */
+.tp-space-row { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-1) 0; }
+.tp-space-bar { height: 20px; border-radius: var(--radius-sm); background: var(--accent); }
+.tp-space-label { width: 130px; flex: none; font-size: var(--text-2xs); color: var(--slate); font-family: monospace; }
+
+/* ---- Radius ---- */
+.tp-radius-row { display: flex; gap: var(--space-6); flex-wrap: wrap; align-items: center; }
+.tp-radius-box { width: 84px; height: 84px; border: 2px solid var(--accent); background: var(--accent-soft); display: flex; align-items: center; justify-content: center; text-align: center; font-size: var(--text-2xs); color: var(--ink); }
+.tp-radius-box .tp-space-label { width: auto; }
+
+/* ---- Shadows ---- */
+.tp-shadow-row { display: flex; gap: var(--space-8); flex-wrap: wrap; align-items: center; }
+.tp-shadow-box { width: 150px; height: 96px; border-radius: var(--radius-md); background: var(--surface-3); display: flex; align-items: center; justify-content: center; font-size: var(--text-2xs); color: var(--slate); }
+
+/* ---- Motion ---- */
+.tp-chip {
+  display: inline-block;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--surface-2);
+  border: var(--border-1);
+  font-size: var(--text-xs);
+  font-family: monospace;
+  color: var(--ink);
+  margin: 0 var(--space-2) var(--space-2) 0;
+}
+.tp-float-demo {
+  width: 72px; height: 72px; border-radius: var(--radius-full);
+  background: var(--grad-indigo);
+  box-shadow: var(--shadow-3);
+  animation: vui-float 6s var(--ease-inout) infinite;
+}
+
+/* ---- Glass ---- */
+.tp-glass-demo {
+  position: relative;
+  height: 260px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--aurora-sky), var(--aurora-violet), var(--aurora-coral));
+}
+.tp-glass-demo::after {
+  content: "";
+  position: absolute; inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,.5) 1px, transparent 1px);
+  background-size: 22px 22px;
+  opacity: .4;
+}
+.tp-glass-panel {
+  position: absolute;
+  inset: var(--space-10) var(--space-10) auto;
+  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  box-shadow: var(--glass-highlight);
+}
+.tp-glass-panel strong { font-family: var(--font-display); font-size: var(--text-lg); display: block; margin-bottom: var(--space-1); }
+.tp-glass-panel span { font-size: var(--text-sm); color: var(--slate); }
+
+/* ---- Icons ---- */
+.tp-icon-row { display: flex; gap: var(--space-3); flex-wrap: wrap; }
+.tp-icon-chip { display: flex; flex-direction: column; align-items: center; gap: var(--space-1); padding: var(--space-3); border: var(--border-1); border-radius: var(--radius-md); background: var(--surface-3); min-width: 84px; }
+.tp-icon-chip span { font-size: var(--text-2xs); color: var(--slate); font-family: monospace; }
+
+/* ==========================================================================
+   Background demo page (preview/background.html) — dev only
+   Demonstrates the module against real content so depth is visible.
+   ========================================================================== */
+.vui-root--bg-demo { position: relative; min-height: 100dvh; background: transparent; }
+.vui-root--bg-demo > .tp-header { position: sticky; }
+.vui-root--bg-demo > .tp-main { position: relative; z-index: 1; }
+
+.tp-bg-content { max-width: var(--container); margin: 0 auto; padding: clamp(64px, 12vh, 140px) var(--gutter) var(--space-24); }
+.tp-bg-content h2 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-extrabold);
+  font-size: var(--text-4xl);
+  letter-spacing: var(--ls-tight);
+  line-height: var(--lh-tight);
+  max-width: 16ch;
+}
+.tp-bg-content p { max-width: 46ch; color: var(--slate); font-size: var(--text-lg); line-height: var(--lh-snug); margin-top: var(--space-4); }
+.tp-bg-content .tp-note { max-width: 56ch; }
+.tp-bg-card {
+  margin-top: var(--space-8);
+  max-width: 420px;
+  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  box-shadow: var(--glass-highlight), var(--shadow-3);
+}
+.tp-bg-card strong { font-family: var(--font-display); font-size: var(--text-lg); display: block; margin-bottom: var(--space-1); }
+.tp-bg-card span { font-size: var(--text-sm); color: var(--slate); }
+.tp-bg-hint { margin-top: var(--space-12); font-size: var(--text-sm); color: var(--slate); max-width: 60ch; }
+
+/* ==========================================================================
+   Hero demo page (preview/hero.html) — dev only
+   ========================================================================== */
+.vui-root--hero { position: relative; min-height: 100dvh; background: transparent; }
+.vui-root--hero > .tp-header { position: sticky; z-index: var(--z-nav); }
+.vui-root--hero > .tp-main { position: relative; z-index: 1; }
+
+.tp-hero-copy { padding-block: var(--rhythm-sm) var(--rhythm-md); }
+
+.tp-section-head { max-width: 640px; margin-bottom: var(--space-8); }
+.tp-section-head h2 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-extrabold);
+  font-size: var(--text-3xl);
+  letter-spacing: var(--ls-tight);
+  line-height: var(--lh-tight);
+}
+.tp-section-head p { margin-top: var(--space-3); color: var(--slate); font-size: var(--text-md); line-height: var(--lh-snug); max-width: 46ch; }
+
+.tp-features { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-4); }
+.tp-feature {
+  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  box-shadow: var(--glass-highlight), var(--shadow-2);
+}
+.tp-feature .vui-icon { color: var(--accent); margin-bottom: var(--space-3); }
+.tp-feature h3 { font-family: var(--font-display); font-size: var(--text-lg); font-weight: var(--fw-bold); letter-spacing: var(--ls-narrow); margin-bottom: var(--space-1); }
+.tp-feature p { font-size: var(--text-sm); color: var(--slate); line-height: var(--lh-normal); }
+
+/* ==========================================================================
+   Composited app page (preview/index.html) — dev only
+   Loads every module; the root hosts the fixed background and the modal.
+   ========================================================================== */
+.vui-root--app { position: relative; min-height: 100dvh; background: transparent; }
+.vui-root--app > .tp-header { position: sticky; z-index: var(--z-nav); }
+.vui-root--app > .tp-main { position: relative; z-index: 1; }
+.vui-root--app .vui-section--md { padding-bottom: 0; }

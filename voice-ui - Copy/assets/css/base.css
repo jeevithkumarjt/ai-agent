@@ -1,0 +1,180 @@
+/* ==========================================================================
+   Voice UI — Base (base.css)
+   --------------------------------------------------------------------------
+   Scoped reset, typography defaults, focus/a11y primitives and utility
+   classes. Loaded AFTER variables.css, BEFORE any component stylesheet.
+
+   Scoping strategy
+   ----------------
+   The widget must render identically inside any WordPress + Elementor theme.
+   Every rule is therefore prefixed with `.vui-root` so the widget can never
+   bleed styles into the theme, and the theme's own resets can never leak
+   into the widget's layout. Page-level <html>/<body> rules are intentionally
+   avoided — the host theme owns those.
+   ========================================================================== */
+
+.vui-root,
+.vui-root *,
+.vui-root *::before,
+.vui-root *::after {
+  box-sizing: border-box;
+}
+
+.vui-root {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--lh-normal);
+  color: var(--ink);
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* ---- Typographic reset (scoped) ---- */
+.vui-root h1,
+.vui-root h2,
+.vui-root h3,
+.vui-root h4,
+.vui-root h5,
+.vui-root h6,
+.vui-root p,
+.vui-root ul,
+.vui-root ol,
+.vui-root figure,
+.vui-root blockquote {
+  margin: 0;
+  padding: 0;
+}
+
+.vui-root h1,
+.vui-root h2,
+.vui-root h3,
+.vui-root h4 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-extrabold);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-narrow);
+  color: var(--ink);
+}
+
+.vui-root h1 { font-size: var(--text-hero); letter-spacing: var(--ls-tight); }
+.vui-root h2 { font-size: var(--text-3xl); }
+.vui-root h3 { font-size: var(--text-2xl); }
+.vui-root h4 { font-size: var(--text-xl); }
+
+.vui-root ul,
+.vui-root ol { list-style: none; }
+
+/* ---- Media defaults ---- */
+.vui-root img,
+.vui-root svg,
+.vui-root canvas,
+.vui-root video {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* ---- Form controls ---- */
+.vui-root button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+.vui-root button:disabled { cursor: not-allowed; }
+.vui-root input,
+.vui-root textarea,
+.vui-root select {
+  font: inherit;
+  color: inherit;
+}
+
+/* ==========================================================================
+   Focus & accessibility
+   ========================================================================== */
+
+/* Visible, high-contrast focus ring on every interactive element. The ring
+   uses the accent color so it reads on both themes; individual components
+   may refine offset/radius via --vui-focus-* overrides. */
+.vui-root :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Screen-reader-only text: visually hidden, kept in the a11y tree. */
+.vui-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Hard-hide (used by JS to swap modes); element removed from layout. */
+.vui-hidden { display: none !important; }
+
+/* Selection matches the brand accent. */
+.vui-root ::selection { background: var(--accent-soft); color: var(--ink); }
+
+/* ==========================================================================
+   Typography utilities
+   ========================================================================== */
+
+/* Overline / tag label (uppercase micro label). */
+.vui-overline {
+  font-family: var(--font-body);
+  font-weight: var(--fw-semibold);
+  font-size: var(--text-2xs);
+  line-height: 1.4;
+  letter-spacing: var(--ls-overline);
+  text-transform: uppercase;
+  color: var(--slate);
+}
+
+/* Display title inside cards/panels. */
+.vui-title {
+  font-family: var(--font-display);
+  font-weight: var(--fw-extrabold);
+  font-size: var(--text-lg);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-narrow);
+  color: var(--ink);
+}
+
+/* Lead / secondary paragraph. */
+.vui-lead {
+  font-size: var(--text-lg);
+  line-height: var(--lh-snug);
+  color: var(--slate);
+}
+
+/* Numeric/status emphasis. */
+.vui-mono {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* ==========================================================================
+   Icon primitive
+   Icons are referenced from the sprite (assets/svg/icons/icons.svg) via
+   <svg class="vui-icon"><use href="icons.svg#icon-play"/></svg>. Size is
+   set here; color/stroke are inherited from currentColor by the symbol.
+   ========================================================================== */
+.vui-icon {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  pointer-events: none;
+}
+.vui-icon--sm { width: 18px; height: 18px; }
+.vui-icon--lg { width: 32px; height: 32px; }

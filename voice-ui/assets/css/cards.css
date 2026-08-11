@@ -1,0 +1,153 @@
+/* ==========================================================================
+   Voice UI — Solution cards (cards.css) — M6 / enterprise card
+   --------------------------------------------------------------------------
+   Card architecture: glass container · orb · industry · solution name ·
+   description · tags · CTA footer · hover overlay.
+
+   The card is positioned by carousel.js (transform is fully JS-owned), so
+   hover effects are restricted to inner elements and box-shadow only — never
+   the transform, which would be overwritten every frame.
+   ========================================================================== */
+
+.vui-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--card-w);
+  height: var(--card-h);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: var(--border-1);
+  box-shadow: var(--shadow-2);
+  overflow: hidden;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+  transform-origin: center;
+  will-change: transform, opacity;
+  transition: box-shadow var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+}
+
+.vui-card.is-front {
+  box-shadow: 0 0 0 1px var(--accent-soft), var(--shadow-3);
+}
+
+/* ---- Media (orb + icon watermark + play badge) ---- */
+.vui-card__media {
+  position: relative;
+  height: 200px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(160deg, var(--surface-2), var(--surface));
+  border-bottom: var(--border-1);
+}
+
+.vui-orb--card { width: 112px; height: 112px; }
+
+.vui-card__icon {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: rgba(128, 128, 138, 0.14);
+  pointer-events: none;
+}
+.vui-card__icon .vui-icon--lg { width: 72px; height: 72px; }
+
+.vui-play-badge {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  color: var(--on-accent);
+  display: grid;
+  place-items: center;
+  box-shadow: var(--shadow-2), 0 0 0 6px rgba(255, 255, 255, 0.15);
+  transition: transform var(--dur-micro) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+}
+.vui-card:hover .vui-play-badge { transform: scale(1.1); }
+.vui-card.is-front .vui-play-badge { box-shadow: var(--shadow-3), 0 0 0 8px var(--accent-soft); }
+
+/* ---- Body ---- */
+.vui-card__body { padding: var(--space-5) var(--space-6) var(--space-6); }
+.vui-card__body .vui-overline { color: var(--accent); }
+
+.vui-card__title { margin-top: var(--space-1); }
+
+.vui-card__blurb {
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--slate);
+  line-height: var(--lh-normal);
+}
+
+/* ---- Tags ---- */
+.vui-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding: 0;
+  list-style: none;
+}
+.vui-tag {
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--surface-2);
+  border: var(--border-1);
+  font-size: var(--text-2xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--ls-overline);
+  text-transform: uppercase;
+  color: var(--slate);
+  white-space: nowrap;
+}
+
+/* ---- CTA footer ---- */
+.vui-card__footer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: var(--border-1);
+}
+.vui-card__cta {
+  font-weight: var(--fw-bold);
+  font-size: var(--text-sm);
+  color: var(--accent);
+}
+.vui-card__cta-icon {
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  transition: transform var(--dur-micro) var(--ease-out);
+}
+.vui-card:hover .vui-card__cta-icon { transform: translateX(3px); }
+
+/* ---- Hover overlay ---- */
+.vui-card__overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--space-5);
+  background: linear-gradient(165deg, var(--accent-soft), rgba(0, 0, 0, 0.05));
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-smooth) var(--ease-out);
+}
+.vui-card__overlay-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: var(--fw-bold);
+  font-size: var(--text-sm);
+  box-shadow: var(--shadow-3);
+}
+.vui-card:hover .vui-card__overlay,
+.vui-card:focus-visible .vui-card__overlay { opacity: 1; }

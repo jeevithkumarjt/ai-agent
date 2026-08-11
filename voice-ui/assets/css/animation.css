@@ -1,0 +1,85 @@
+/* ==========================================================================
+   Voice UI — Animation primitives (animation.css)
+   --------------------------------------------------------------------------
+   Keyframes and entrance utilities that are safe to use anywhere. Loaded
+   after base.css. The heavy, choreographed motion (hero entrance, carousel
+   physics, modal morph) lives with its owning module and runs through the
+   JS motion engine; this file only defines reusable CSS keyframes.
+
+   Motion budget (see docs §11):
+     micro 120ms · fast 200ms · base 300ms · smooth 450ms
+     expressive 700ms · hero 900ms
+   ========================================================================== */
+
+/* ---- Entrance primitives ---- */
+
+@keyframes vui-fade-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes vui-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes vui-scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Themed "reveal" helper: pair with .vui-enter, add .is-in via JS when the
+   element scrolls into view (M3/M10 wire this up with an observer). */
+.vui-enter { opacity: 0; }
+.vui-enter.is-in {
+  animation: vui-fade-up var(--dur-expressive) var(--ease-out) both;
+}
+
+/* ---- Loop primitives ---- */
+
+/* Typing indicator dots (chat fallback). */
+@keyframes vui-typing {
+  0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+  30%           { opacity: 1;   transform: translateY(-3px); }
+}
+
+/* Listening halo — expanding ring behind the orb (M8). */
+@keyframes vui-pulse-ring {
+  0%   { transform: scale(0.85); opacity: 0.55; }
+  70%  { transform: scale(1.35); opacity: 0; }
+  100% { opacity: 0; }
+}
+
+/* Slow ambient float for decorative background orbs (M2). */
+@keyframes vui-float {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50%      { transform: translate3d(0, -12px, 0); }
+}
+
+/* Spinner for loading states. */
+@keyframes vui-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Shimmer sweep for skeleton / pending surfaces. */
+@keyframes vui-shimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+/* ---- Reduced motion ---- */
+
+/* Kill-switch: one rule neutralizes every animation/transition in the
+   widget. All entrance classes below are gated on this too. */
+@media (prefers-reduced-motion: reduce) {
+  .vui-root *,
+  .vui-root *::before,
+  .vui-root *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .vui-enter { opacity: 1; }
+  .vui-enter.is-in { animation: none; }
+}

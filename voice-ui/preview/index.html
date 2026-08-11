@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tryvium Voice UI — Enterprise homepage</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/variables.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/layout.css">
+<link rel="stylesheet" href="../assets/css/animation.css">
+<link rel="stylesheet" href="../assets/css/background.css">
+<link rel="stylesheet" href="../assets/css/hero.css">
+<link rel="stylesheet" href="../assets/css/orb.css">
+<link rel="stylesheet" href="../assets/css/cards.css">
+<link rel="stylesheet" href="../assets/css/carousel.css">
+<link rel="stylesheet" href="../assets/css/modal.css">
+<link rel="stylesheet" href="../assets/css/micro.css">
+<link rel="stylesheet" href="../assets/css/sections.css">
+<link rel="stylesheet" href="../assets/css/responsive.css">
+<link rel="stylesheet" href="../assets/css/a11y.css">
+<link rel="stylesheet" href="preview.css">
+</head>
+<body>
+
+<div class="vui-root vui-root--app" id="app-root">
+
+  <div id="bg-root" class="vui-bg" role="presentation" aria-hidden="true"></div>
+
+  <header class="tp-header">
+    <div>
+      <h1>Tryvium Voice UI — Enterprise homepage</h1>
+      <p>10 sections · aurora background · hero · showcase carousel · capabilities · industries · features · stories · integrations · pricing · FAQ · CTA · footer</p>
+    </div>
+    <button type="button" class="tp-btn" id="theme-toggle">Toggle theme</button>
+  </header>
+
+  <main class="tp-main vui-app-main">
+
+    <!-- 01 Hero -->
+    <section class="vui-hero">
+      <div class="vui-container">
+        <div class="vui-hero__grid">
+
+          <div class="vui-hero__copy">
+            <span class="vui-enter vui-overline vui-hero__overline">Tryvium AI · Voice</span>
+            <h1 class="vui-enter vui-hero__title">Conversations that<br>feel <span class="vui-hero__accent">human.</span></h1>
+            <p class="vui-enter vui-lead vui-hero__lead">Tryvium Voice answers every call in your brand&rsquo;s voice &mdash; understands intent, follows your workflows, and hands off to a person the moment it matters.</p>
+            <div class="vui-enter vui-hero__cta">
+              <button type="button" class="vui-btn vui-btn--primary">
+                <svg class="vui-icon vui-icon--sm" aria-hidden="true"><use href="#icon-phone"></use></svg>
+                Start a call
+              </button>
+              <button type="button" class="vui-btn vui-btn--ghost">
+                Browse scenarios
+                <svg class="vui-icon vui-icon--sm" aria-hidden="true"><use href="#icon-chevron-right"></use></svg>
+              </button>
+            </div>
+            <ul class="vui-enter vui-hero__trust">
+              <li class="vui-trust-pill"><svg class="vui-icon vui-icon--sm" aria-hidden="true"><use href="#icon-check"></use></svg>SOC 2 Type II</li>
+              <li class="vui-trust-pill"><svg class="vui-icon vui-icon--sm" aria-hidden="true"><use href="#icon-check"></use></svg>99.99% uptime</li>
+              <li class="vui-trust-pill"><svg class="vui-icon vui-icon--sm" aria-hidden="true"><use href="#icon-check"></use></svg>&lt; 350 ms response</li>
+            </ul>
+          </div>
+
+          <div class="vui-enter vui-hero__visual">
+            <div class="vui-hero__glow"></div>
+
+            <div class="vui-hero__card" data-depth="14">
+              <div class="vui-hero__card-head">
+                <span class="vui-hero__status"><span class="vui-hero__dot"></span>Live session</span>
+                <span class="vui-hero__tag">Support · Travel</span>
+              </div>
+              <div class="vui-hero__meter" aria-hidden="true">
+                <span class="vui-hero__bar"></span>
+                <span class="vui-hero__bar"></span>
+                <span class="vui-hero__bar"></span>
+                <span class="vui-hero__bar"></span>
+                <span class="vui-hero__bar"></span>
+                <span class="vui-hero__bar"></span>
+                <span class="vui-hero__bar"></span>
+              </div>
+              <div class="vui-hero__rows">
+                <div class="vui-hero__row"><span>Agent</span><strong>Tryvium Voice</strong></div>
+                <div class="vui-hero__row"><span>Intent</span><strong>Flight change · 0.97</strong></div>
+              </div>
+            </div>
+
+            <div class="vui-hero__float vui-hero__float--a" data-depth="22">
+              <svg class="vui-icon vui-icon--sm" aria-hidden="true"><use href="#icon-check"></use></svg>
+              Resolved in 42s
+            </div>
+            <div class="vui-hero__float vui-hero__float--b" data-depth="28">
+              <svg class="vui-icon vui-icon--sm" aria-hidden="true"><use href="#icon-mic"></use></svg>
+              Avg. latency &lt; 350 ms
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 AI Solutions Showcase -->
+    <section class="vui-section vui-section--md" aria-labelledby="vui-scenarios-title">
+      <div class="vui-container">
+        <div class="tp-section-head vui-enter" data-reveal>
+          <span class="vui-overline">Try a scenario</span>
+          <h2 id="vui-scenarios-title">Pick a scenario, talk to it.</h2>
+          <p>Each scenario carries its own palette, greeting and scripted flow. Drag or use the arrows; press a card to open the call.</p>
+        </div>
+        <div class="vui-carousel vui-enter" data-reveal role="region" aria-label="Voice scenarios"></div>
+      </div>
+    </section>
+
+    <!-- Trust metrics -->
+    <section class="vui-section" aria-label="Platform metrics">
+      <div class="vui-container">
+        <div class="vui-stats vui-enter" data-reveal>
+          <div class="vui-stat"><b>12M+</b><span>Calls handled monthly</span></div>
+          <div class="vui-stat"><b>38</b><span>Languages supported</span></div>
+          <div class="vui-stat"><b>97%</b><span>Fully automated</span></div>
+          <div class="vui-stat"><b>48h</b><span>Typical go-live</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 AI Capabilities -->
+    <section class="vui-section vui-section--lg" aria-labelledby="vui-capabilities-title">
+      <div class="vui-container">
+        <div class="vui-section-head vui-enter" data-reveal>
+          <span class="vui-overline">AI capabilities</span>
+          <h2 id="vui-capabilities-title" class="vui-section-title">Purpose-built for the contact center.</h2>
+          <p>Four capabilities that turn every call into a resolvable, recordable interaction.</p>
+        </div>
+        <div class="vui-cap-grid vui-enter" data-reveal>
+          <div class="vui-cap">
+            <svg class="vui-icon" aria-hidden="true"><use href="#icon-sparkle"></use></svg>
+            <h3>Understands intent</h3>
+            <p>Captures meaning beyond keywords &mdash; tone, follow-ups and context across the whole call.</p>
+          </div>
+          <div class="vui-cap">
+            <svg class="vui-icon" aria-hidden="true"><use href="#icon-phone"></use></svg>
+            <h3>Your brand voice</h3>
+            <p>Tone, guardrails and answers trained on your own operations, not a generic script.</p>
+          </div>
+          <div class="vui-cap">
+            <svg class="vui-icon" aria-hidden="true"><use href="#icon-mic"></use></svg>
+            <h3>Realtime speech</h3>
+            <p>Interrupts, confirms and recovers naturally &mdash; sub-350&nbsp;ms turnarounds.</p>
+          </div>
+          <div class="vui-cap">
+            <svg class="vui-icon" aria-hidden="true"><use href="#icon-check"></use></svg>
+            <h3>Seamless handoff</h3>
+            <p>Escalates to a human with full context &mdash; mid-conversation, with no repeats.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 Industries -->
+    <section class="vui-section vui-section--lg" aria-labelledby="vui-industries-title">
+      <div class="vui-container">
+        <div class="vui-section-head vui-enter" data-reveal>
+          <span class="vui-overline">Industries</span>
+          <h2 id="vui-industries-title" class="vui-section-title">Every front desk, answered.</h2>
+          <p>Deployed across the verticals that live on the phone.</p>
+        </div>
+        <div class="vui-industries vui-enter" data-reveal>
+          <div class="vui-industry"><svg class="vui-icon" aria-hidden="true"><use href="#icon-phone"></use></svg><b>Healthcare</b></div>
+          <div class="vui-industry"><svg class="vui-icon" aria-hidden="true"><use href="#icon-check"></use></svg><b>Insurance</b></div>
+          <div class="vui-industry"><svg class="vui-icon" aria-hidden="true"><use href="#icon-sparkle"></use></svg><b>Financial</b></div>
+          <div class="vui-industry"><svg class="vui-icon" aria-hidden="true"><use href="#icon-mic"></use></svg><b>Hospitality</b></div>
+          <div class="vui-industry"><svg class="vui-icon" aria-hidden="true"><use href="#icon-phone"></use></svg><b>Retail</b></div>
+          <div class="vui-industry"><svg class="vui-icon" aria-hidden="true"><use href="#icon-send"></use></svg><b>Logistics</b></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 Features -->
+    <section class="vui-section vui-section--lg" aria-labelledby="vui-features-title">
+      <div class="vui-container">
+        <div class="vui-features vui-enter" data-reveal>
+          <div class="vui-features__copy">
+            <span class="vui-overline">Platform features</span>
+            <h2 id="vui-features-title">Built for real contact centers.</h2>
+            <p>Three things separate a voice experience from a voice menu.</p>
+          </div>
+          <div class="vui-features__list">
+            <div class="vui-feature-row">
+              <svg class="vui-icon" aria-hidden="true"><use href="#icon-phone"></use></svg>
+              <div>
+                <h3>Omnichannel by default</h3>
+                <p>Voice, chat and messaging share one conversation state and one agent handoff.</p>
+              </div>
+            </div>
+            <div class="vui-feature-row">
+              <svg class="vui-icon" aria-hidden="true"><use href="#icon-check"></use></svg>
+              <div>
+                <h3>Guardrails you control</h3>
+                <p>Policy, compliance and escalation rules enforced on every utterance.</p>
+              </div>
+            </div>
+            <div class="vui-feature-row">
+              <svg class="vui-icon" aria-hidden="true"><use href="#icon-sparkle"></use></svg>
+              <div>
+                <h3>Analytics that close loops</h3>
+                <p>Transcripts, intents and sentiment surfaced where your ops team already works.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 06 Customer Stories -->
+    <section class="vui-section vui-section--lg" aria-labelledby="vui-stories-title">
+      <div class="vui-container">
+        <div class="vui-section-head vui-enter" data-reveal>
+          <span class="vui-overline">Customer stories</span>
+          <h2 id="vui-stories-title" class="vui-section-title">Teams that stopped holding.</h2>
+          <p>What leaders say after moving their front desk to Tryvium Voice.</p>
+        </div>
+        <div class="vui-stories vui-enter" data-reveal>
+          <div class="vui-story">
+            <blockquote>&ldquo;Our patients get answers at 2am. That alone changed how our clinic runs.&rdquo;</blockquote>
+            <div class="vui-story__who">
+              <span class="vui-story__avatar" aria-hidden="true">DR</span>
+              <div><b>Dr. Amara Osei</b><span>Chief Medical Officer · Northside Clinic</span></div>
+            </div>
+          </div>
+          <div class="vui-story">
+            <blockquote>&ldquo;We automated 71% of claim calls in the first quarter. No scripts.&rdquo;</blockquote>
+            <div class="vui-story__who">
+              <span class="vui-story__avatar" aria-hidden="true">JL</span>
+              <div><b>James Liu</b><span>VP Operations · Meridian Insurance</span></div>
+            </div>
+          </div>
+          <div class="vui-story">
+            <blockquote>&ldquo;The handoff is seamless — the agent knows everything before picking up.&rdquo;</blockquote>
+            <div class="vui-story__who">
+              <span class="vui-story__avatar" aria-hidden="true">SK</span>
+              <div><b>Sofia Keller</b><span>Head of CX · Apex Financial</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 07 Integrations -->
+    <section class="vui-section vui-section--lg" aria-labelledby="vui-integrations-title">
+      <div class="vui-container">
+        <div class="vui-section-head vui-enter" data-reveal>
+          <span class="vui-overline">Integrations</span>
+          <h2 id="vui-integrations-title" class="vui-section-title">Plays well with your stack.</h2>
+          <p>Two-way data with the tools your operations team already runs.</p>
+        </div>
+        <div class="vui-integrations vui-enter" data-reveal>
+          <span class="vui-integration">Salesforce</span>
+          <span class="vui-integration">HubSpot</span>
+          <span class="vui-integration">Zendesk</span>
+          <span class="vui-integration">Twilio</span>
+          <span class="vui-integration">Stripe</span>
+          <span class="vui-integration">Slack</span>
+          <span class="vui-integration">Snowflake</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 08 Pricing -->
+    <section class="vui-section vui-section--lg" aria-labelledby="vui-pricing-title">
+      <div class="vui-container">
+        <div class="vui-section-head vui-enter" data-reveal>
+          <span class="vui-overline">Pricing</span>
+          <h2 id="vui-pricing-title" class="vui-section-title">Simple, per-minute pricing.</h2>
+          <p>No setup fees. No per-seat tax. Scale as your call volume grows.</p>
+        </div>
+        <div class="vui-pricing vui-enter" data-reveal>
+          <div class="vui-plan">
+            <h3>Starter</h3>
+            <div class="vui-plan__price">$0.12<small> / min</small></div>
+            <p class="vui-plan__desc">For teams trying their first automated line.</p>
+            <ul>
+              <li><svg class="vui-icon vui-icon--sm" aria-hidden="true"><use href="#icon-check"></use></svg>1 phone line</li>
+              <li><svg class="vui-icon vui-icon--sm" aria-hidden="true"><use href="#icon-check"></use></svg>Scripted scenarios</li>
+              <li><svg class="vui-icon vui-icon--sm" aria-hidden="true"><use href="#icon-check"></use></svg>Email transcripts</li>
+            </ul>
+            <button type="button" class="vui-btn vui-btn--ghost">Start free</button>
+          </div>
+          <div class="vui-plan is-featured">
+            <span class="vui-plan__badge">Most popular</span>
+            <h3>Growth</h3>
+            <div class="vui-plan__price">$0.09<small> / min</small></div>
+            <p class="vui-plan__desc">For contact centers automating real volume.</p>
+            <ul>
+              <li><svg class="vui-icon vui-icon--sm" aria-hidden="true"><use href="#icon-check"></use></svg>Unlimited lines</li>
+              <li><svg class="vui-icon vui-icon--sm" aria-hidden="true"><use href="#icon-check"></use></svg>Custom brand voice</li>
+              <li><svg class="vui-icon vui-icon--sm" aria-hidden="true"><use href="#icon-check"></use></svg>CRM + helpdesk sync</li>
+              <li><svg class="vui-icon vui-icon--sm" aria-hidden="true"><use href="#icon-check"></use></svg>Sentiment analytics</li>
+            </ul>
+            <button type="button" class="vui-btn vui-btn--primary">Book a demo</button>
+          </div>
+          <div class="vui-plan">
+            <h3>Enterprise</h3>
+            <div class="vui-plan__price">Custom<small></small></div>
+            <p class="vui-plan__desc">For regulated, multi-brand and global rollouts.</p>
+            <ul>
+              <li><svg class="vui-icon vui-icon--sm" aria-hidden="true"><use href="#icon-check"></use></svg>SSO + RBAC</li>
+              <li><svg class="vui-icon vui-icon--sm" aria-hidden="true"><use href="#icon-check"></use></svg>On-prem / VPC options</li>
+              <li><svg class="vui-icon vui-icon--sm" aria-hidden="true"><use href="#icon-check"></use></svg>Custom LLM routing</li>
+              <li><svg class="vui-icon vui-icon--sm" aria-hidden="true"><use href="#icon-check"></use></svg>Dedicated success team</li>
+            </ul>
+            <button type="button" class="vui-btn vui-btn--ghost">Talk to sales</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 09 FAQ -->
+    <section class="vui-section vui-section--lg" aria-labelledby="vui-faq-title">
+      <div class="vui-container">
+        <div class="vui-section-head vui-enter" data-reveal>
+          <span class="vui-overline">FAQ</span>
+          <h2 id="vui-faq-title" class="vui-section-title">Common questions.</h2>
+        </div>
+        <div class="vui-faq vui-enter" data-reveal>
+          <details open>
+            <summary>How fast can we go live?</summary>
+            <p>Most teams route their first call within 48 hours. We import your workflows, train the voice on your docs, and hand you a test line before you switch over.</p>
+          </details>
+          <details>
+            <summary>How does the human handoff work?</summary>
+            <p>When a caller asks for a person (or intent confidence drops), the session escalates with a full transcript, detected intent and any captured data — so the agent never asks the caller to repeat anything.</p>
+          </details>
+          <details>
+            <summary>Is our data used to train shared models?</summary>
+            <p>No. Your calls stay in your tenant. Transcripts and model context are yours; nothing is used to train models for other customers.</p>
+          </details>
+          <details>
+            <summary>Does it work with our existing phone system?</summary>
+            <p>Yes. We connect over SIP, PSTN or your existing telephony provider, and route to your CRM or helpdesk in real time.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10 Final CTA -->
+    <section class="vui-section vui-section--lg" aria-label="Get started">
+      <div class="vui-container">
+        <div class="vui-cta-band vui-enter" data-reveal>
+          <h2>Hear the difference.</h2>
+          <p>Watch a live call resolve a real scenario — then bring it to your front desk.</p>
+          <button type="button" class="vui-btn vui-btn--primary">
+            <svg class="vui-icon vui-icon--sm" aria-hidden="true"><use href="#icon-phone"></use></svg>
+            Start a call
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="vui-footer vui-app-main">
+    <div class="vui-container">
+      <div class="vui-footer__grid">
+        <div class="vui-footer__brand">
+          <b>Tryvium</b>
+          <p>AI voice experiences for teams that live on the phone. Enterprise-grade, brand-true, and ready in days.</p>
+        </div>
+        <div>
+          <h4>Product</h4>
+          <ul>
+            <li><a href="#vui-scenarios-title">Voice scenarios</a></li>
+            <li><a href="#vui-capabilities-title">Capabilities</a></li>
+            <li><a href="#vui-pricing-title">Pricing</a></li>
+            <li><a href="#vui-integrations-title">Integrations</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Company</h4>
+          <ul>
+            <li><a href="#">About</a></li>
+            <li><a href="#">Customers</a></li>
+            <li><a href="#">Careers</a></li>
+            <li><a href="#">Contact</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="#">Documentation</a></li>
+            <li><a href="#">API reference</a></li>
+            <li><a href="#">Status</a></li>
+            <li><a href="#">Security</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="vui-footer__bottom">
+        <span>© 2026 Tryvium AI, Inc.</span>
+        <span>Privacy · Terms · SOC 2 Type II</span>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+<!-- The sprite ships in assets/svg/icons/icons.svg; app.js injects it at boot,
+     so the fragment itself stays inline-free. -->
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/motion-engine.js"></script>
+<script src="../assets/js/background.js"></script>
+<script src="../assets/js/renderer.js"></script>
+<script src="../assets/js/orb-engine.js"></script>
+<script src="../assets/js/api-adapter.js"></script>
+<script src="../assets/js/hero.js"></script>
+<script src="../assets/js/carousel.js"></script>
+<script src="../assets/js/modal.js"></script>
+<script src="../assets/js/audio.js"></script>
+<script src="../assets/js/voice-ui.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="preview.js"></script>
+</body>
+</html>
