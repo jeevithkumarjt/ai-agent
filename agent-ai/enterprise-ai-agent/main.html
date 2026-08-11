@@ -709,7 +709,7 @@
     </div>
 
     <h1 class="aw-hero-title">Talk to your enterprise AI <span>out loud.</span></h1>
-    <p class="aw-hero-sub">Ask about products, pricing, policies &#8212; TryMe answers from your organization&#8217;s knowledge base with voice replies and structured next steps.</p>
+    <p class="aw-hero-sub">Ask about products, pricing, policies &#8212; TryMe gives you a clear, conversational answer in seconds, wherever you are.</p>
 
     <div class="aw-stage-zone">
       <div class="aw-stage">
@@ -857,8 +857,7 @@
     ? { email: window.APP_CRED.email, password: window.APP_CRED.password }
     : null;
 
-  var THINK_STEPS = ['Retrieving context\u2026', 'Reasoning\u2026', 'Composing answer\u2026'];
-  var QUICK_CHIPS = ['Summarize pricing', 'Compare plans', 'Explain integrations', 'What are next steps?'];
+  var THINK_STEPS = ['Thinking\u2026', 'Reasoning\u2026', 'Composing answer\u2026'];
   var GREETING = 'Hey, I\u2019m TryMe Assistant. What kind of help do you need today?';
 
   /* ================================================================
@@ -1240,7 +1239,6 @@
   function scrollLog() { log.scrollTop = log.scrollHeight; }
   function hint(t) { hintEl.textContent = t; hintEl.classList.remove('is-off'); }
   function hintOff() { hintEl.classList.add('is-off'); }
-  function stripMd(s) { return String(s).replace(/[*_`#]/g, '').trim(); }
 
   function statusLabel(s) {
     var m = { connecting: 'Connecting', thinking: 'Thinking', listening: 'Listening', speaking: 'Speaking', error: 'Error', ended: 'Ready' };
@@ -1312,10 +1310,7 @@
   }
   function streamInto(ans, text) {
     ans.innerHTML = '';
-    var p = el('p');
-    p.setAttribute('style', 'margin:0;font-size:13.5px;line-height:1.55;color:#374151;white-space:pre-wrap;');
-    p.textContent = text;
-    ans.appendChild(p);
+    ans.appendChild(paragraphNode(text));
   }
   function errorBubble(msg) {
     var b = el('div', 'aw-msg agent');
@@ -1365,10 +1360,8 @@
     voice.innerHTML = '<s></s><s></s><s></s><span>Speaking</span>';
     var msg = el('p', 'aw-welcome-msg');
     msg.textContent = GREETING;
-    var chips = el('div', 'aw-actions aw-welcome-chips');
-    chips.appendChild(chipsRow());
     welcome.appendChild(label); welcome.appendChild(orb); welcome.appendChild(voice);
-    welcome.appendChild(msg); welcome.appendChild(chips);
+    welcome.appendChild(msg);
     log.appendChild(welcome);
     welcomeOrb = new Orb(cv, SKY, 150);
     welcomeOrb.setState('speaking');
@@ -1431,87 +1424,19 @@
     requestAnimationFrame(function () { logBgEl.classList.add('is-visible'); });
   }
 
-  /* ---------- structured sections ---------- */
-  function parseSections(text) {
-    var lines = String(text).replace(/\r\n?/g, '\n').split('\n');
-    var sections = [];
-    var cur = null;
-    function flush() { if (cur && (cur.title || cur.content || cur.items.length)) sections.push(cur); cur = null; }
-    for (var i = 0; i < lines.length; i++) {
-      var t = lines[i].trim();
-      if (!t) continue;
-      var m;
-      if ((m = t.match(/^#{1,6}\s+(.*)$/))) { flush(); cur = { title: stripMd(m[1]), kind: 'block', content: '', items: [] }; continue; }
-      if ((m = t.match(/^\*\*(.+?)\*\*:?\s*$/))) { flush(); cur = { title: stripMd(m[1]), kind: 'block', content: '', items: [] }; continue; }
-      if (/^\d{1,2}[.)]\s+/.test(t)) {
-        if (!cur || cur.kind !== 'ol') { flush(); cur = { title: '', kind: 'ol', content: '', items: [] }; }
-        cur.items.push(stripMd(t.replace(/^\d{1,2}[.)]\s+/, ''))); continue;
-      }
-      if (/^[-*+•]\s+/.test(t)) {
-        if (!cur || cur.kind === 'ol') { flush(); cur = { title: '', kind: 'ul', content: '', items: [] }; }
-        cur.items.push(stripMd(t.replace(/^[-*+•]\s+/, ''))); continue;
-      }
-      if (/^[A-Z][A-Za-z0-9 ,&/()'-]{2,50}:$/.test(t)) { flush(); cur = { title: t.replace(/:\s*$/, ''), kind: 'block', content: '', items: [] }; continue; }
-      if (!cur) cur = { title: '', kind: 'block', content: '', items: [] };
-      cur.content += (cur.content ? '\n' : '') + t;
-    }
-    flush();
-    if (!sections.length) sections.push({ title: '', kind: 'block', content: text, items: [] });
-    if (sections[0] && !sections[0].title) sections[0].title = 'Overview';
-    return sections;
-  }
-
-  function buildSection(s, i) {
-    var sec = el('div', 'aw-sec' + (i === 0 ? ' is-open' : ''));
-    sec.style.animationDelay = (i * 200) + 'ms';
-    var head = el('button', 'aw-sec-head');
-    head.type = 'button';
-    head.setAttribute('aria-expanded', i === 0 ? 'true' : 'false');
-    head.innerHTML = '<svg class="aw-sec-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
-    head.appendChild(document.createTextNode(s.title || 'Overview'));
-    var body = el('div', 'aw-sec-body');
-    var inner = el('div', 'aw-sec-inner');
-    if (s.kind === 'ul' || s.kind === 'ol') {
-      var list = el(s.kind === 'ul' ? 'ul' : 'ol');
-      for (var j = 0; j < s.items.length; j++) { var li = el('li'); li.textContent = s.items[j]; list.appendChild(li); }
-      inner.appendChild(list);
-    } else {
-      var paras = s.content.split('\n');
-      for (var k = 0; k < paras.length; k++) {
-        if (!paras[k].trim()) continue;
-        var p = el('p'); p.textContent = paras[k].trim(); inner.appendChild(p);
-      }
-    }
-    body.appendChild(inner);
-    head.addEventListener('click', function () {
-      var open = sec.classList.toggle('is-open');
-      head.setAttribute('aria-expanded', open ? 'true' : 'false');
-    });
-    sec.appendChild(head);
-    sec.appendChild(body);
-    return sec;
-  }
-
-  function chipsRow() {
-    var wrap = el('div', 'aw-actions');
-    for (var i = 0; i < QUICK_CHIPS.length; i++) {
-      (function (q) {
-        var c = el('button', 'aw-chip');
-        c.type = 'button'; c.textContent = q;
-        c.addEventListener('click', function () { send(q); });
-        wrap.appendChild(c);
-      })(QUICK_CHIPS[i]);
-    }
-    return wrap;
+  /* ---------- answer rendering ---------- */
+  function paragraphNode(text) {
+    var p = el('p');
+    p.setAttribute('style', 'margin:0;font-size:13.5px;line-height:1.55;color:#374151;white-space:pre-wrap;');
+    p.textContent = String(text);
+    return p;
   }
 
   function renderAnswer() {
     if (!answer) return;
     var ans = answer.bubble.querySelector('.aw-ans');
     ans.innerHTML = '';
-    var secs = parseSections(answer.text);
-    for (var i = 0; i < secs.length; i++) ans.appendChild(buildSection(secs[i], i));
-    ans.appendChild(chipsRow());
+    ans.appendChild(paragraphNode(answer.text));
     scrollLog();
   }
 
@@ -1678,7 +1603,6 @@
       ttsPush(ev.text);
       scrollLog();
     } else if (ev.type === 'message_done') {
-      answer.citations = ev.citations || [];
       answer.messageId = ev.message_id;
     } else if (ev.type === 'error') {
       answer.text += (answer.text ? '\n' : '') + '[error] ' + (ev.message || 'request failed');
@@ -1686,7 +1610,7 @@
   }
 
   function doStream(content) {
-    answer = { text: '', citations: [] };
+    answer = { text: '' };
     var b = createAgentBubble();
     answer.bubble = b;
     log.appendChild(b);

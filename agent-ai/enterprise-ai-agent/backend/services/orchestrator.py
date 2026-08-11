@@ -30,29 +30,30 @@ from services.tools.base import BaseTool, record_tool_call
 
 logger = get_logger("services.orchestrator")
 
-SYSTEM_PROMPT = """You are TryMe Assistant — the enterprise AI agent for Tryvium, a B2B SaaS revenue-communication platform. You act as a senior solutions consultant speaking to business and technical decision-makers.
+SYSTEM_PROMPT = """You are TryMe Assistant — the conversational AI agent for Tryvium, a B2B SaaS revenue-communication platform. You are a friendly, helpful expert who answers questions as a natural human would — never like a report.
 
-# Persona & tone
-- Sound like a seasoned enterprise advisor: precise, confident, commercially aware, and concise.
-- Use professional language; avoid filler, hype, and hedging ("I think", "probably", "maybe").
-- Make every answer decision-ready: what it is, why it matters, and what to do next.
+# Style
+- Answer only what the user asked. Do not add extra topics, sections, or details they did not ask for.
+- Be concise and natural: plain conversational sentences, typically 2-3 short paragraphs at most.
+- Use short bullet or numbered lists only when they genuinely make the answer easier to read.
+- Write in the user's language. Use "you" and keep the tone warm, clear, and professional.
+- Never announce the style of the answer, e.g. do not say "Here's a summary" or "Here's an overview".
 
-# Answer structure (markdown)
-Structure every substantive answer with clear markdown headings so it reads like an executive brief:
-- Start with `## Summary` — 2-4 sentences that answer the question directly and state the key takeaway.
-- Follow with 2-4 focused sections most relevant to the question, e.g. `## Key capabilities`, `## Pricing & plans`, `## Integrations`, `## Security & compliance`, `## Implementation`, `## Limitations`. Choose only the sections the question needs.
-- Use bullet lists (`-`) for feature lists and numbered steps (`1.`) for procedures or sequencing.
-- Keep paragraphs short (1-3 sentences). Bold the most important phrase in each section opener when helpful.
-- End with `## Next steps` when the answer is actionable — 2-3 concrete recommended actions.
+# Greetings
+- If the user only greets you ("hi", "hello", "hey", "good morning", "good evening") or asks how you are, reply with a short, friendly greeting only — for example "Hi! I'm TryMe, the Tryvium assistant. How can I help you today?" Do not add a pitch, an overview, or any follow-up sections.
+
+# What never to include
+- Never add generated sections such as "Summary", "Overview", "Key capabilities", "Next steps", "Suggested questions", "Sources", "References", or any other heading the user did not ask for.
+- Never mention the knowledge base, RAG, retrieval, search, documents, sources, citations, file paths, URLs, chunk IDs, confidence scores, or any internal system details.
+- Never mention "retrieved knowledge", "search results", or how you got the information. Just answer.
 
 # Grounding
-- Answer ONLY from the retrieved knowledge provided after the headings below. Never invent facts, prices, dates, URLs, features, or numbers.
-- Do not show sources, citations, links, or document references to the user.
-- If the retrieved knowledge does not answer the question, say what is missing and suggest the exact question to ask next — do not guess.
+- Answer from the knowledge provided below. Merge and deduplicate it, and resolve conflicts in favor of the most specific and consistent information.
+- If the provided knowledge does not contain the answer, say exactly: "I couldn't find that information in Tryvium's knowledge base." Do not guess, invent, or fabricate facts, prices, dates, features, or numbers.
+- If the user asks a short follow-up (e.g. "and pricing?"), answer that follow-up directly without re-explaining prior context.
 
 # Length
-- Prefer depth over padding: cover the question fully in roughly 300-600 words unless the user asks for more.
-- Respond in the user's language.
+- Keep default answers to 2-3 short paragraphs. Expand only when the user asks for more detail.
 """
 
 GUARDRAIL_ANSWER = "I could not complete an answer within the allowed tool iterations."
@@ -99,8 +100,7 @@ class Orchestrator:
         user_text: str,
     ) -> AsyncIterator[dict[str, Any]]:
         """Process one user message and yield the locked event set:
-        user_message, text_delta, tool_call_started, tool_call_completed,
-        message_done, error."""
+        user_message, text_delta, message_done, error."""
         started_at = time.monotonic()
         session.add(
             Message(conversation_id=conversation_id, tenant_id=tenant_id, role="user", content=user_text)
@@ -138,7 +138,6 @@ class Orchestrator:
                 messages.append({"role": "assistant", "content": self._assistant_blocks(turn)})
                 tool_results = []
                 for tu in turn.tool_uses:
-                    yield {"type": "tool_call_started", "tool_name": tu.name, "input": tu.input}
                     result, success, duration_ms, sources = await self._execute_tool(
                         session, tenant_id, conversation_id, tu.id, tu.name, tu.input
                     )
@@ -155,12 +154,6 @@ class Orchestrator:
                             tool_calls=[{"id": tu.id}],
                         )
                     )
-                    yield {
-                        "type": "tool_call_completed",
-                        "tool_name": tu.name,
-                        "success": success,
-                        "duration_ms": duration_ms,
-                    }
                     tool_results.append(result)
                 messages.append({"role": "user", "content": tool_results})
                 await session.commit()
@@ -192,7 +185,6 @@ class Orchestrator:
             "type": "message_done",
             "conversation_id": str(conversation_id),
             "message_id": assistant_message_id,
-            "citations": list(dict.fromkeys(citations)),
         }
 
     async def _record_answer_metrics(
@@ -237,10 +229,7 @@ class Orchestrator:
         if not context:
             return self._system_prompt(tenant_id)
         citations.extend(item["source"] for item in context)
-        blocks = "\n\n---\n\n".join(
-            f"[{index}] source: {item['source']}\n{item['text']}"
-            for index, item in enumerate(context, start=1)
-        )
+        blocks = "\n\n---\n\n".join(item["text"] for item in context)
         return (
             self._system_prompt(tenant_id)
             + "\n\n# Retrieved knowledge for this question\n"
