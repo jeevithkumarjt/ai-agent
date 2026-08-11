@@ -30,6 +30,8 @@ enterprise-ai-agent/
 ├── api/openapi.yaml        # API contract — source of truth for the wire format
 ├── admin-ai.html           # admin portal SPA
 ├── index.html / main.html  # chat UI (standalone)
+├── api-config.js           # window.APP_API_BASE (Pages/backend URL)
+├── api-credentials.example.js  # copy to api-credentials.js (gitignored) — chat auto-login
 ├── docker-compose.yml      # postgres + backend
 └── .env.example            # every configuration key, documented
 ```
@@ -160,10 +162,29 @@ Every key is documented in `.env.example`. The essential ones:
 
 ## Security
 
-- Secrets are read from the environment only (never committed).
+- Secrets are read from the environment only (never committed). The chat frontends'
+  auto-login credentials live in `api-credentials.js`, which is gitignored
+  (`api-credentials.example.js` is the committed template). If it is absent or empty,
+  the chat shows a sign-in form instead.
+- Passwords are stored as Argon2 hashes (`backend/core/security.py`).
+- JWT access (30 min) + refresh (14 day) tokens carry `tenant_id` and `role` claims;
+  refresh tokens renew the pair, so a logged-in session survives page reloads.
 - RBAC enforced per admin route with scopes in `backend/core/rbac.py`; role changes and
   user deactivation take effect immediately (role is resolved from the DB row).
 - Tokens rotate on a 30-minute access / 14-day refresh cycle.
+
+## Frontend authentication flow
+
+Both the admin SPA (`admin-ai.html`) and the chat pages (`index.html`, `main.html`) use
+the same API:
+
+1. `POST /v1/auth/login` returns `access_token` + `refresh_token`.
+2. The page stores the pair in `localStorage` (`at` / `rt`).
+3. On every load, `ensureSession()` restores the access token, creates a conversation,
+   and transparently refreshes via `/v1/auth/refresh` when the access token expires.
+4. If no valid session exists, the chat pages either auto-login with `api-credentials.js`
+   (local dev convenience) or present a sign-in form.
+5. The admin portal exposes a login form and a logout that clears stored tokens.
 
 ## Documentation
 

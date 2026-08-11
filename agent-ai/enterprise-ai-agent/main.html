@@ -8,6 +8,7 @@
 <meta name="description" content="TryMe AI — a refined enterprise AI assistant. Ask about products, pricing, or policies.">
 <title>TryMe AI — Talk to Your Enterprise AI</title>
 <script src="api-config.js"></script>
+<script src="api-credentials.js"></script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3CradialGradient id='g' cx='30%25' cy='25%25' r='90%25'%3E%3Cstop offset='0' stop-color='%2357B5FF'/%3E%3Cstop offset='.6' stop-color='%232E9BEE'/%3E%3Cstop offset='1' stop-color='%23113F88'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='16' cy='16' r='14' fill='url(%23g)'/%3E%3Ccircle cx='16' cy='16' r='14' fill='none' stroke='%23F26E26' stroke-width='2.4' stroke-opacity='.85'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -645,6 +646,18 @@
 .aw-hint { flex: none; text-align: center; font-size: 11.5px; font-weight: 500; color: var(--gray-400); padding: 0 14px 2px; transition: opacity .25s var(--ease); }
 .aw-hint.is-off { opacity: 0; }
 
+/* sign-in panel */
+.aw-login { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; padding: 24px 20px; }
+.aw-login-card { width: 100%; max-width: 300px; display: flex; flex-direction: column; gap: 10px; }
+.aw-login-title { font-size: 15px; font-weight: 700; color: var(--gray-900); }
+.aw-login-sub { margin: -6px 0 2px; font-size: 12px; color: var(--gray-500); }
+.aw-login-card input { width: 100%; padding: 10px 12px; border: 1px solid var(--line-3); border-radius: 10px; font: 500 13px var(--font); color: var(--gray-900); background: #fff; outline: none; transition: border-color .2s var(--ease); }
+.aw-login-card input:focus { border-color: var(--primary); }
+.aw-login-btn { padding: 10px 12px; border: 0; border-radius: 10px; font: 600 13px var(--font); color: #fff; background: linear-gradient(135deg, var(--primary-3), var(--primary)); cursor: pointer; transition: filter .2s var(--ease); }
+.aw-login-btn:hover { filter: brightness(1.08); }
+.aw-login-btn:disabled { opacity: .6; cursor: default; }
+.aw-login-err { min-height: 16px; font-size: 11.5px; font-weight: 500; color: var(--bad); }
+
 /* ============================================================
    ACCESSIBILITY + RESPONSIVE + MOTION PREFERENCES
    ============================================================ */
@@ -784,6 +797,16 @@
       </div>
 
       <div class="aw-body" id="awBody">
+        <div class="aw-login" id="awLogin" hidden>
+          <form class="aw-login-card" id="awLoginForm" autocomplete="on">
+            <div class="aw-login-title">Sign in</div>
+            <p class="aw-login-sub">Authenticate to start chatting.</p>
+            <input type="email" id="awLoginEmail" placeholder="Email" autocomplete="username" required>
+            <input type="password" id="awLoginPass" placeholder="Password" autocomplete="current-password" required>
+            <button class="aw-login-btn" id="awLoginSubmit" type="submit">Continue</button>
+            <div class="aw-login-err" id="awLoginErr" role="alert"></div>
+          </form>
+        </div>
         <div class="aw-log" id="awLog" role="log" aria-live="polite" aria-label="Conversation">
           <div class="aw-log-bg" id="awLogBg" aria-hidden="true">
             <div class="aw-orb">
@@ -830,7 +853,9 @@
   'use strict';
 
   var API = window.APP_API_BASE || 'http://localhost:8000';
-  var CRED = { email: 'admin@example.com', password: '' };
+  var CRED = (window.APP_CRED && window.APP_CRED.email && window.APP_CRED.password)
+    ? { email: window.APP_CRED.email, password: window.APP_CRED.password }
+    : null;
 
   var THINK_STEPS = ['Retrieving context\u2026', 'Reasoning\u2026', 'Composing answer\u2026'];
   var QUICK_CHIPS = ['Summarize pricing', 'Compare plans', 'Explain integrations', 'What are next steps?'];
@@ -1528,31 +1553,120 @@
   }
 
   /* ---------- session ---------- */
-  function ensureSession(ok, fail) {
-    if (token && conversationId) { ok(); return; }
-    setStatus('connecting');
-    fetch(API + '/v1/auth/login', {
+  /* ---------- session ---------- */
+  function storeGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function storeSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function storeDel(k) { try { localStorage.removeItem(k); } catch (e) {} }
+
+  function doLogin(creds) {
+    return fetch(API + '/v1/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(CRED)
+      body: JSON.stringify({ email: creds.email, password: creds.password })
     }).then(function (r) {
       if (!r.ok) throw new Error('auth ' + r.status);
       return r.json();
     }).then(function (d) {
       token = d.access_token || d.accessToken;
       if (!token) throw new Error('no token');
-      return fetch(API + '/v1/conversations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
-      });
+      storeSet('aw_at', d.access_token || token);
+      storeSet('aw_rt', d.refresh_token || '');
+      return token;
+    });
+  }
+
+  function doRefresh() {
+    var rt = storeGet('aw_rt');
+    if (!rt) return Promise.reject(new Error('no refresh token'));
+    return fetch(API + '/v1/auth/refresh', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: rt })
     }).then(function (r) {
-      if (!r.ok) throw new Error('conv ' + r.status);
+      if (!r.ok) throw new Error('refresh failed');
       return r.json();
     }).then(function (d) {
-      conversationId = d.id || d.conversation_id;
-      setStatus('ended');
-      ok();
-    }).catch(function (e) { fail(e); });
+      token = d.access_token || d.accessToken;
+      if (!token) throw new Error('no token');
+      storeSet('aw_at', d.access_token || token);
+      storeSet('aw_rt', d.refresh_token || '');
+      return token;
+    });
+  }
+
+  function ensureSession(ok, fail) {
+    if (token && conversationId) { ok(); return; }
+    setStatus('connecting');
+
+    function proceed() {
+      if (!token) { askCredentials(); return; }
+      fetch(API + '/v1/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
+      }).then(function (r) {
+        if (r.status === 401) throw new Error('unauthorized');
+        if (!r.ok) throw new Error('conv ' + r.status);
+        return r.json();
+      }).then(function (d) {
+        conversationId = d.id || d.conversation_id;
+        setStatus('ended');
+        ok();
+      }).catch(function (e) {
+        if (e.message === 'unauthorized') {
+          doRefresh().then(proceed, function () { askCredentials(); });
+        } else {
+          fail(e);
+        }
+      });
+    }
+
+    function askCredentials() {
+      if (CRED) {
+        doLogin(CRED).then(proceed, function (e) { fail(e); });
+      } else {
+        showLogin(function () { proceed(); }, fail);
+      }
+    }
+
+    var stored = storeGet('aw_at');
+    if (stored && !token) { token = stored; }
+    proceed();
+  }
+
+  function showLogin(ok, fail) {
+    var panel = document.getElementById('awLogin');
+    var form = document.getElementById('awLoginForm');
+    var emailEl = document.getElementById('awLoginEmail');
+    var passEl = document.getElementById('awLoginPass');
+    var errEl = document.getElementById('awLoginErr');
+    var submit = document.getElementById('awLoginSubmit');
+    errEl.textContent = '';
+    panel.hidden = false;
+    setTimeout(function () { emailEl.focus(); }, 60);
+
+    function clear() {
+      panel.hidden = true;
+      form.removeEventListener('submit', onsubmit);
+      submit.removeEventListener('click', onsubmit);
+    }
+
+    function onsubmit(e) {
+      e.preventDefault();
+      var email = emailEl.value.trim();
+      var pass = passEl.value;
+      if (!email || !pass) { errEl.textContent = 'Enter your email and password.'; return; }
+      submit.disabled = true;
+      doLogin({ email: email, password: pass }).then(function () {
+        clear();
+        ok();
+      }).catch(function (e2) {
+        submit.disabled = false;
+        errEl.textContent = (e2.message === 'auth 401') ? 'Invalid email or password.' : 'Sign-in failed. Try again.';
+      });
+    }
+
+    form.addEventListener('submit', onsubmit);
+    submit.addEventListener('click', onsubmit);
   }
 
   /* ---------- streaming ---------- */
@@ -1656,7 +1770,9 @@
     dismissWelcome();
     showThinking();
     setStatus('thinking');
-    ensureSession(function () { doStream(content); }, function () { finishError('Could not reach the assistant service.'); });
+    ensureSession(function () { doStream(content); }, function (e) {
+      finishError(e && e.message === 'auth 401' ? 'Sign-in failed. Check your credentials.' : 'Could not reach the assistant service.');
+    });
   }
 
   function updateSendState() { sendBtn.disabled = !input.value.trim() || busy; }

@@ -2,6 +2,7 @@
 .env
 .env.*
 !.env.example
+api-credentials.js
 
 # Node
 node_modules/
