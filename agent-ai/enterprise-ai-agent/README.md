@@ -116,6 +116,25 @@ docker build -f backend/Dockerfile -t agentai-backend .
 docker run --env-file .env -p 8000:8000 agentai-backend
 ```
 
+## Deploy to Render (free tier)
+
+The repo root contains a `render.yaml` Blueprint that provisions the backend
+web service and a managed Postgres (pgvector included) with one click.
+
+1. Push the repo to GitHub, then open https://render.com → **New** → **Blueprint**.
+2. Connect the `jeevithkumarjt/ai-agent` repo. Render reads `render.yaml`,
+   creates `ai-agent-db` (Postgres) and `ai-agent-backend` (web service).
+3. After the first deploy, open the `ai-agent-backend` service → **Environment**
+   and set the values marked `sync: false`:
+   - `ANTHROPIC_API_KEY` — Groq key (`gsk_…`) for the LLM
+   - `EMBEDDINGS_API_KEY` — OpenAI-compatible embeddings key (empty = dev hash fallback)
+   - `BOOTSTRAP_OWNER_EMAIL` / `BOOTSTRAP_OWNER_PASSWORD` — the admin login
+4. Click **Manual Deploy → Deploy latest commit**. Render runs
+   `alembic upgrade head` + `seed` automatically on every boot.
+5. Note the service URL (e.g. `https://ai-agent-backend.onrender.com`) and set
+   it in `agent-ai/enterprise-ai-agent/api-config.js`, then re-push to GitHub —
+   the Pages frontends (admin + chat) will use it via `window.APP_API_BASE`.
+
 Notes for production:
 
 - Set `APP_ENV=production`, a strong `JWT_SECRET`, a real database, and a real

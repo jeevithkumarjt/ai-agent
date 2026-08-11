@@ -7,6 +7,7 @@
 <meta name="theme-color" content="#F8FAFC">
 <meta name="description" content="TryMe AI — a refined enterprise AI assistant. Ask about products, pricing, or policies.">
 <title>TryMe AI — Enterprise Assistant</title>
+<script src="api-config.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -707,7 +708,7 @@
 (function () {
   'use strict';
 
-  var API = 'http://localhost:8000';
+  var API = window.APP_API_BASE || 'http://localhost:8000';
   var CRED = { email: 'admin@example.com', password: '' };
 
   var THINK_STEPS = ['Retrieving context\u2026', 'Reasoning\u2026', 'Composing answer\u2026'];

@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TryMe Enterprise AI — Admin Portal</title>
+<script src="api-config.js"></script>
 <style>
 :root{
   --primary:#294199; --primary-2:#1E3378; --primary-3:#3B5BDB;
@@ -249,8 +250,8 @@ svg text{user-select:none}
 
 <script>
 "use strict";
-const API="http://127.0.0.1:8000/v1/admin";
-const AUTH="http://127.0.0.1:8000/v1/auth";
+const API=(window.APP_API_BASE||"http://127.0.0.1:8000")+"/v1/admin";
+const AUTH=(window.APP_API_BASE||"http://127.0.0.1:8000")+"/v1/auth";
 const $=(s,el)=>el?el.querySelector(s):document.querySelector(s);
 const $$=(s,el)=>(el?el:document).querySelectorAll(s);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));

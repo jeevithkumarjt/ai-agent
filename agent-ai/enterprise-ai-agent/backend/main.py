@@ -7,6 +7,7 @@ App services live on app.state so routes stay dependency-injectable:
 from __future__ import annotations
 
 import asyncio
+import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager, suppress
 from pathlib import Path
@@ -31,12 +32,19 @@ from services.tools.search_knowledge_base import SearchKnowledgeBaseTool
 
 logger = get_logger("app")
 
-ALLOWED_ORIGINS = [
+_DEFAULT_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
+    "https://jeevithkumarjt.github.io",
 ]
+# Override via CORS_ORIGINS (comma-separated) in hosted environments.
+ALLOWED_ORIGINS = (
+    [o.strip() for o in os.environ.get("CORS_ORIGINS", "").split(",") if o.strip()]
+    if os.environ.get("CORS_ORIGINS")
+    else _DEFAULT_ORIGINS
+)
 
 
 def create_app() -> FastAPI:

@@ -1,0 +1,51 @@
+# Render blueprint — Enterprise AI Agent backend + managed Postgres.
+# Deploy: https://render.com -> New -> Blueprint -> connect this repo.
+# After deploy, set the "sync: false" env vars (API keys, owner credentials)
+# in the Render dashboard for the ai-agent-backend service, then Deploy again.
+databases:
+  - name: ai-agent-db
+    plan: free
+    databaseName: agentai
+    user: agentai
+    region: oregon
+
+services:
+  - type: web
+    name: ai-agent-backend
+    runtime: docker
+    plan: free
+    region: oregon
+    rootDir: agent-ai/enterprise-ai-agent
+    dockerfilePath: backend/Dockerfile
+    healthCheckPath: /v1/health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ai-agent-db
+          property: connectionString
+      - key: APP_ENV
+        value: production
+      - key: DEBUG
+        value: "false"
+      - key: CORS_ORIGINS
+        value: "https://jeevithkumarjt.github.io"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: LLM_PROVIDER
+        value: groq
+      - key: ANTHROPIC_BASE_URL
+        value: https://api.groq.com/openai/v1
+      - key: ANTHROPIC_MODEL
+        value: llama-3.3-70b-versatile
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: EMBEDDINGS_BASE_URL
+        value: https://api.openai.com/v1
+      - key: EMBEDDINGS_MODEL
+        value: text-embedding-3-small
+      - key: EMBEDDINGS_API_KEY
+        sync: false
+      - key: BOOTSTRAP_OWNER_EMAIL
+        sync: false
+      - key: BOOTSTRAP_OWNER_PASSWORD
+        sync: false
