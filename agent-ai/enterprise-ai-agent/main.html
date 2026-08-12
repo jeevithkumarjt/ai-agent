@@ -900,7 +900,7 @@
               <div class="row"><span>Status</span><b id="hpStatus" class="ok">Checking&hellip;</b></div>
               <div class="row"><span>Response time</span><b id="hpLatency">&ndash;</b></div>
               <div class="row"><span>Provider</span><b id="hpProvider">&ndash;</b></div>
-              <div class="row"><span>Knowledge</span><b class="ok">Synced</b></div>
+              <div class="row"><span>Knowledge</span><b id="hpKnowledge">Checking&hellip;</b></div>
               <div class="row"><span>Voice</span><b class="ok">Available</b></div>
             </div>
           </span>
@@ -1906,6 +1906,10 @@
       streamInto(answer.bubble.querySelector('.aw-ans'), answer.text);
       ttsPush(ev.text);
       scrollLog();
+    } else if (ev.type === 'tool_call_started') {
+      setThinkingLabel(ev.tool === 'search_knowledge_base' ? 'Searching the knowledge base\u2026' : 'Consulting\u2026');
+    } else if (ev.type === 'tool_call_completed') {
+      setThinkingLabel('Thinking\u2026');
     } else if (ev.type === 'message_done') {
       answer.messageId = ev.message_id;
     } else if (ev.type === 'error') {
@@ -1925,6 +1929,11 @@
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
       body: JSON.stringify({ content: content })
     }).then(function (res) {
+      if (res.status === 429) {
+        var wait = res.headers.get('Retry-After');
+        var rateErr = new Error(wait ? 'You\u2019re moving a little fast \u2014 wait ' + wait + 's before sending another message.' : 'You\u2019re sending messages too quickly. Take a breath, then tap send to retry.');
+        throw rateErr;
+      }
       if (!res.ok || !res.body) {
         return (res.json().catch(function () { return {}; }).then(function (d) {
           var err = new Error('stream http ' + res.status);
@@ -1958,7 +1967,9 @@
     }).then(function () {
       finishOk();
     }).catch(function (err) {
-      finishError(err && err.message ? err.message : 'Network error');
+      var msg = err && err.message ? err.message : 'Network error';
+      if (answer && !answer.text) msg = 'Connection lost before the answer arrived. Tap send to retry.';
+      finishError(msg);
     });
   }
 
@@ -2154,14 +2165,37 @@
         hpStatus.className = '';
         hpLatency.textContent = '\u2013';
       });
+    pollKnowledge();
+  }
+
+  /* live knowledge indicator — real counts from /v1/knowledge/status */
+  function pollKnowledge() {
+    fetch(API + '/v1/knowledge/status')
+      .then(function (res) { if (!res.ok) throw new Error('kstatus ' + res.status); return res.json(); })
+      .then(function (d) {
+        var el = document.getElementById('hpKnowledge');
+        if (!el) return;
+        var n = (d && typeof d.source_count === 'number') ? d.source_count : null;
+        var c = (d && typeof d.chunk_count === 'number') ? d.chunk_count : null;
+        var txt, cls;
+        if (n === null) { txt = 'Not configured'; cls = ''; }
+        else if (d.last_error) { txt = 'Needs attention \u00b7 ' + n + ' source' + (n === 1 ? '' : 's'); cls = ''; }
+        else { txt = 'Synced \u00b7 ' + n + ' source' + (n === 1 ? '' : 's') + ' \u00b7 ' + c + ' chunk' + (c === 1 ? '' : 's'); cls = 'ok'; }
+        el.textContent = txt;
+        el.className = cls;
+      })
+      .catch(function () {
+        var el = document.getElementById('hpKnowledge');
+        if (el) { el.textContent = 'Unavailable'; el.className = ''; }
+      });
   }
 
   /* ---------- init ---------- */
   ttsSetup();
-  setMode('voice');
+  setMode('text');
   setStatus('ended');
   pollHealth();
-  setInterval(pollHealth, 60000);
+  setInterval(function () { pollHealth(); pollKnowledge(); }, 60000);
 
   /* landing orb — the blue AI globe on the launch card */
   var landingOrbEl = document.getElementById('awLandingOrb');

@@ -4,10 +4,10 @@ Public endpoint — safe for landing pages to poll for truthful status badges.
 """
 from __future__ import annotations
 
+from core.settings import settings
 from fastapi import APIRouter
 
 from api.schemas import Health
-from core.settings import settings
 
 router = APIRouter(prefix="/v1/health", tags=["health"])
 

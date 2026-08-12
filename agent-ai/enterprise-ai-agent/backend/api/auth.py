@@ -105,15 +105,3 @@ async def guest_session(request: Request, session: Annotated[AsyncSession, Depen
     sid = secrets.token_urlsafe(16)
     logger.info("guest_session_issued", tenant_id=str(user.tenant_id), user_id=str(user.id))
     return await _token_pair(user, is_guest=True, extra={"sid": sid})
-
-
-@router.post("/refresh", response_model=TokenPair, status_code=status.HTTP_200_OK)
-async def refresh(body: RefreshRequest, session: Annotated[AsyncSession, Depends(get_session)]) -> TokenPair:
-    try:
-        payload = decode_token(body.refresh_token, expected="refresh")
-    except (InvalidToken, ExpiredToken):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid or expired refresh token") from None
-    user = await session.get(User, uuid.UUID(payload["sub"]))
-    if user is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="user no longer exists")
-    return await _token_pair(user)
