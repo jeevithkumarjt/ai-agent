@@ -3,12 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="light">
-<meta name="theme-color" content="#F8FAFC">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0B1120">
 <meta name="description" content="TryMe AI — a refined enterprise AI assistant. Ask about products, pricing, or policies.">
 <title>TryMe AI — Enterprise Assistant</title>
 <script src="api-config.js"></script>
-<script src="api-credentials.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -33,19 +32,19 @@
   --primary-3: #3B5BDB;
   --accent:    #F26E26;
   --accent-2:  #FF8A4C;
-  --gray-900:  #111827;
-  --gray-700:  #374151;
-  --gray-500:  #6B7280;
-  --gray-400:  #9CA3AF;
-  --bg:        #F8FAFC;
-  --card:      rgba(255,255,255,0.78);
-  --glass:     rgba(255,255,255,0.65);
-  --line:      rgba(41,65,153,0.12);
-  --line-2:    rgba(41,65,153,0.22);
-  --line-3:    rgba(41,65,153,0.34);
-  --ok:        #10B981;
-  --warn:      #F59E0B;
-  --bad:       #EF4444;
+  --gray-900:  #E6EAF2;
+  --gray-700:  #C6CDD9;
+  --gray-500:  #9AA3B2;
+  --gray-400:  #6B7688;
+  --bg:        #0B1120;
+  --card:      rgba(23,32,54,0.72);
+  --glass:     rgba(23,32,54,0.6);
+  --line:      rgba(120,140,180,0.14);
+  --line-2:    rgba(120,140,180,0.24);
+  --line-3:    rgba(120,140,180,0.4);
+  --ok:        #34D399;
+  --warn:      #FBBF24;
+  --bad:       #F87171;
   --font:      'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --ease:      cubic-bezier(.22,1,.36,1);
   --dur:       250ms;
@@ -68,8 +67,8 @@
 .aw-root::before {
   content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
   background:
-    radial-gradient(90% 60% at 12% -8%, rgba(41,65,153,0.06) 0%, rgba(41,65,153,0) 60%),
-    radial-gradient(80% 55% at 96% 108%, rgba(242,110,38,0.05) 0%, rgba(242,110,38,0) 60%);
+    radial-gradient(90% 60% at 12% -8%, rgba(59,91,219,0.16) 0%, rgba(59,91,219,0) 60%),
+    radial-gradient(80% 55% at 96% 108%, rgba(242,110,38,0.14) 0%, rgba(242,110,38,0) 60%);
 }
 
 /* ============================================================
@@ -150,12 +149,12 @@
   display: inline-flex; align-items: center; gap: 10px;
   padding: 14px 26px; border-radius: 999px; border: none; cursor: pointer;
   font-family: var(--font); font-size: 15px; font-weight: 700; color: #fff;
-  background: linear-gradient(120deg, var(--primary-3), var(--primary) 60%, var(--primary-2));
-  box-shadow: 0 14px 34px -14px rgba(41,65,153,0.55), inset 0 1px 0 rgba(255,255,255,0.18);
+  background: linear-gradient(120deg, var(--accent-2), var(--accent) 55%, #D8561A);
+  box-shadow: 0 14px 34px -14px rgba(242,110,38,0.65), inset 0 1px 0 rgba(255,255,255,0.28);
   transition: transform .25s var(--ease), box-shadow .3s var(--ease), filter .2s var(--ease);
 }
-.aw-cta:hover { transform: translateY(-2px); box-shadow: 0 20px 44px -16px rgba(41,65,153,0.7), inset 0 1px 0 rgba(255,255,255,0.18); filter: brightness(1.04); }
-.aw-cta:active { transform: translateY(0) scale(0.97); box-shadow: 0 8px 20px -10px rgba(41,65,153,0.5); }
+.aw-cta:hover { transform: translateY(-2px); box-shadow: 0 20px 44px -16px rgba(242,110,38,0.8), inset 0 1px 0 rgba(255,255,255,0.28); filter: brightness(1.05); }
+.aw-cta:active { transform: translateY(0) scale(0.97); box-shadow: 0 8px 20px -10px rgba(242,110,38,0.6); }
 .aw-cta svg { width: 16px; height: 16px; }
 
 /* ============================================================
@@ -581,15 +580,99 @@
   .aw-composer { padding: 8px 10px 10px; }
   .aw-hero-top { flex-direction: column; align-items: center; gap: 10px; }
 }
+
+/* ============================================================
+   DARK ENTERPRISE THEME — signature orange #F26E26 on deep
+   navy #0B1120 (matches the admin console). Overrides the light
+   hardcoded surfaces above.
+   ============================================================ */
+.aw-hero-title span { color: var(--accent); }
+.aw-hero-status { color: var(--gray-400); background: var(--card); border-color: var(--line); }
+.aw-hero-note a { color: var(--accent-2); text-decoration: none; border-bottom: 1px solid rgba(242,110,38,0.4); }
+.aw-hero-note a:hover { color: var(--accent); }
+
+.aw-modal { background: #101828; border-color: var(--line-2); }
+.aw-head::after { background: linear-gradient(90deg, rgba(59,91,219,0) 0%, rgba(59,91,219,0.35) 40%, rgba(242,110,38,0.4) 80%, rgba(59,91,219,0) 100%); }
+
+.aw-status { background: var(--card); }
+.aw-status:hover { box-shadow: 0 8px 20px -10px rgba(242,110,38,0.3); }
+.aw-status-pop { background: #131C31; border-color: var(--line-2); box-shadow: 0 18px 40px -18px rgba(0,0,0,0.6); }
+
+.aw-close { background: var(--glass); }
+.aw-close:hover { background: #1B2740; color: var(--gray-900); }
+
+.aw-mode { background: linear-gradient(180deg, #1B2740 0%, #131C31 100%); }
+.aw-mode-pill { background: linear-gradient(120deg, var(--accent-2), var(--accent) 70%, #D8561A); box-shadow: 0 8px 18px -8px rgba(242,110,38,0.7), inset 0 1px 0 rgba(255,255,255,0.3); }
+
+.aw-log { background: radial-gradient(110% 70% at 50% 0%, rgba(16,24,40,0.9) 0%, rgba(16,24,40,0) 55%); }
+.aw-msg.agent { background: linear-gradient(180deg, #16203A 0%, #121A30 100%); box-shadow: 0 10px 26px -14px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06); }
+.aw-msg.user { background: #1B2740; border-color: var(--line-2); box-shadow: 0 10px 24px -14px rgba(0,0,0,0.55); }
+.aw-sec p, .aw-sec ul li, .aw-sec ol li { color: var(--gray-700); }
+.aw-chip { background: #131C31; color: var(--gray-700); }
+.aw-chip:hover { color: var(--accent-2); box-shadow: 0 8px 18px -10px rgba(0,0,0,0.6); }
+
+.aw-composer { background: linear-gradient(180deg, rgba(16,24,40,0) 0%, #101828 32%); }
+.aw-mic { background: #131C31; border-color: var(--line-2); color: var(--primary-3); }
+.aw-mic:hover svg { color: var(--accent-2); }
+.aw-mic.is-recording { color: #fff; background: linear-gradient(135deg, var(--accent-2), var(--accent)); border-color: transparent; }
+.aw-input-wrap textarea { background: var(--card); color: var(--gray-900); }
+.aw-input-wrap textarea:focus { box-shadow: 0 0 0 3px rgba(242,110,38,0.18); background: #16203A; }
+
+.aw-login-card input { background: #131C31; color: var(--gray-900); border-color: var(--line-3); }
+.aw-login-card input:focus { border-color: var(--accent); }
+.aw-login-btn { background: linear-gradient(135deg, var(--accent-2), var(--accent)); }
+.aw-login-guest {
+  padding: 8px 12px; border: 0; border-radius: 10px;
+  font: 600 12.5px var(--font); color: var(--gray-400);
+  background: none; cursor: pointer; transition: color .2s var(--ease);
+}
+.aw-login-guest:hover { color: var(--gray-900); }
+
+.aw-signin {
+  flex: none; padding: 7px 12px; border-radius: 999px;
+  border: 1px solid rgba(242,110,38,0.5); background: rgba(242,110,38,0.12);
+  font-family: var(--font); font-size: 12px; font-weight: 700; color: var(--accent-2);
+  cursor: pointer; transition: background .25s var(--ease), color .25s var(--ease), border-color .25s var(--ease);
+}
+.aw-signin:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* trust strip — real, linked claims backed by the knowledge base */
+.aw-trust {
+  position: relative; z-index: 1;
+  max-width: 780px; margin: 0 auto; padding: 0 24px 30px;
+  display: flex; align-items: center; justify-content: center; gap: 9px 12px; flex-wrap: wrap;
+  font-size: 12px; font-weight: 600; color: var(--gray-400);
+}
+.aw-trust a {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 13px; border-radius: 999px;
+  background: var(--card); border: 1px solid var(--line);
+  color: var(--gray-400); text-decoration: none;
+  transition: border-color .25s var(--ease), color .2s var(--ease), background .2s var(--ease), transform .22s var(--ease);
+}
+.aw-trust a:hover { color: var(--accent-2); border-color: rgba(242,110,38,0.5); background: rgba(242,110,38,0.1); transform: translateY(-1px); }
+.aw-trust a svg { width: 13px; height: 13px; color: var(--accent-2); }
+.aw-trust .sep { opacity: .35; }
+
+/* landing footer */
+.aw-foot {
+  position: relative; z-index: 1;
+  max-width: 780px; margin: 0 auto; padding: 0 24px 48px;
+  display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap;
+  font-size: 12px; color: var(--gray-400);
+}
+.aw-foot a { color: var(--gray-400); text-decoration: none; transition: color .2s var(--ease); }
+.aw-foot a:hover { color: var(--accent-2); }
+.aw-foot .dot { opacity: .5; }
 </style>
 </head>
-<body style="margin:0; background:#F8FAFC;">
+<body style="margin:0; background:#0B1120;">
 <div class="aw-root">
 
   <!-- ================= HERO (landing) ================= -->
   <main class="aw-hero">
     <div class="aw-hero-top">
-      <span class="aw-hero-status"><i></i>Online · All systems nominal</span>
+      <span class="aw-hero-status"><i></i><span id="heroStatus">Checking&hellip;</span></span>
     </div>
 
     <div class="aw-hero-logo aw-logo-wrap">
@@ -615,8 +698,30 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
     </button>
 
-    <p class="aw-hero-note">Enterprise-grade · Powered by Groq · GDPR-ready</p>
+    <p class="aw-hero-note">Built for enterprise buyers &#8212; verified below, not promised.</p>
   </main>
+
+  <div class="aw-trust" aria-label="Compliance and security">
+    <a href="privacy.html#security"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>SOC 2 Type II</a>
+    <span class="sep">&middot;</span>
+    <a href="privacy.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>GDPR &middot; CCPA/CPRA</a>
+    <span class="sep">&middot;</span>
+    <a href="privacy.html#dpa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>DPA ready</a>
+    <span class="sep">&middot;</span>
+    <a href="privacy.html#security"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>AES-256 &middot; TLS</a>
+    <span class="sep">&middot;</span>
+    <span>Powered by Groq</span>
+  </div>
+
+  <footer class="aw-foot">
+    <span>&copy; <span id="footYear"></span> Tryvium Inc. All rights reserved.</span>
+    <span class="dot">&middot;</span>
+    <a href="privacy.html">Privacy Policy</a>
+    <span class="dot">&middot;</span>
+    <a href="privacy.html#dpa">DPA</a>
+    <span class="dot">&middot;</span>
+    <a href="privacy.html#contact">Contact</a>
+  </footer>
 
   <!-- ================= OVERLAY + MODAL ================= -->
   <div class="aw-overlay" id="awOverlay" hidden aria-hidden="true">
@@ -645,6 +750,7 @@
         </div>
 
         <div class="aw-head-right">
+          <button class="aw-signin" id="awSignin" type="button">Sign in</button>
           <span class="aw-status-wrap">
             <button class="aw-status" id="awStatus" type="button" data-state="ended" aria-label="Live status">
               <i></i>
@@ -652,10 +758,11 @@
               <span class="aw-eq" aria-hidden="true"><s></s><s></s><s></s></span>
             </button>
             <div class="aw-status-pop" role="tooltip" aria-hidden="true">
-              <div class="row"><span>Response time</span><b>220 ms</b></div>
+              <div class="row"><span>Status</span><b id="hpStatus" class="ok">Checking&hellip;</b></div>
+              <div class="row"><span>Response time</span><b id="hpLatency">&ndash;</b></div>
+              <div class="row"><span>Provider</span><b id="hpProvider">&ndash;</b></div>
               <div class="row"><span>Knowledge</span><b class="ok">Synced</b></div>
               <div class="row"><span>Voice</span><b class="ok">Available</b></div>
-              <div class="row"><span>Uptime</span><b>99.98%</b></div>
             </div>
           </span>
           <button class="aw-close" id="awClose" type="button" aria-label="Close assistant">
@@ -686,10 +793,11 @@
         <div class="aw-login" id="awLogin" hidden>
           <form class="aw-login-card" id="awLoginForm" autocomplete="on">
             <div class="aw-login-title">Sign in</div>
-            <p class="aw-login-sub">Authenticate to start chatting.</p>
+            <p class="aw-login-sub" id="awLoginSub">Sign in to save your conversations.</p>
             <input type="email" id="awLoginEmail" placeholder="Email" autocomplete="username" required>
             <input type="password" id="awLoginPass" placeholder="Password" autocomplete="current-password" required>
             <button class="aw-login-btn" id="awLoginSubmit" type="submit">Continue</button>
+            <button class="aw-login-guest" id="awLoginGuest" type="button">Continue as guest</button>
             <div class="aw-login-err" id="awLoginErr" role="alert"></div>
           </form>
         </div>
@@ -732,9 +840,6 @@
   'use strict';
 
   var API = window.APP_API_BASE || 'http://localhost:8000';
-  var CRED = (window.APP_CRED && window.APP_CRED.email && window.APP_CRED.password)
-    ? { email: window.APP_CRED.email, password: window.APP_CRED.password }
-    : null;
 
   var THINK_STEPS = ['Thinking\u2026', 'Reasoning\u2026', 'Composing answer\u2026'];
 
@@ -756,6 +861,10 @@
   var token = null;
   var conversationId = null;
   var busy = false;
+  var isGuest = false;
+  var guestMessages = 0;
+  var guestWaived = false;
+  var GUEST_MSG_LIMIT = 5;
   var mode = 'text';
   var answer = null;
   var thinkTimer = null;
@@ -1048,6 +1157,24 @@
     }).then(function (d) {
       token = d.access_token || d.accessToken;
       if (!token) throw new Error('no token');
+      isGuest = false;
+      storeSet('aw_at', d.access_token || token);
+      storeSet('aw_rt', d.refresh_token || '');
+      return token;
+    });
+  }
+
+  function doGuest() {
+    return fetch(API + '/v1/auth/guest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    }).then(function (r) {
+      if (!r.ok) throw new Error('guest ' + r.status);
+      return r.json();
+    }).then(function (d) {
+      token = d.access_token || d.accessToken;
+      if (!token) throw new Error('no token');
+      isGuest = true;
       storeSet('aw_at', d.access_token || token);
       storeSet('aw_rt', d.refresh_token || '');
       return token;
@@ -1078,7 +1205,6 @@
     setStatus('connecting');
 
     function proceed() {
-      if (!token) { askCredentials(); return; }
       fetch(API + '/v1/conversations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
@@ -1092,34 +1218,35 @@
         ok();
       }).catch(function (e) {
         if (e.message === 'unauthorized') {
-          doRefresh().then(proceed, function () { askCredentials(); });
+          doRefresh().then(proceed, function () { fail(e); });
         } else {
           fail(e);
         }
       });
     }
 
-    function askCredentials() {
-      if (CRED) {
-        doLogin(CRED).then(proceed, function (e) { fail(e); });
-      } else {
-        showLogin(function () { proceed(); }, fail);
-      }
-    }
-
     var stored = storeGet('aw_at');
     if (stored && !token) { token = stored; }
+
+    if (!token) {
+      doGuest().then(proceed, function (e) { fail(e); });
+      return;
+    }
     proceed();
   }
 
-  function showLogin(ok, fail) {
+  function showLogin(opts) {
+    opts = opts || {};
     var panel = document.getElementById('awLogin');
     var form = document.getElementById('awLoginForm');
     var emailEl = document.getElementById('awLoginEmail');
     var passEl = document.getElementById('awLoginPass');
     var errEl = document.getElementById('awLoginErr');
     var submit = document.getElementById('awLoginSubmit');
+    var guestBtn = document.getElementById('awLoginGuest');
+    var subEl = document.getElementById('awLoginSub');
     errEl.textContent = '';
+    subEl.textContent = opts.reason || 'Sign in to save your conversations.';
     panel.hidden = false;
     setTimeout(function () { emailEl.focus(); }, 60);
 
@@ -1127,6 +1254,13 @@
       panel.hidden = true;
       form.removeEventListener('submit', onsubmit);
       submit.removeEventListener('click', onsubmit);
+      guestBtn.removeEventListener('click', onguest);
+    }
+
+    function onguest(e) {
+      e.preventDefault();
+      clear();
+      if (opts.onGuest) opts.onGuest();
     }
 
     function onsubmit(e) {
@@ -1137,7 +1271,7 @@
       submit.disabled = true;
       doLogin({ email: email, password: pass }).then(function () {
         clear();
-        ok();
+        if (opts.onLogin) opts.onLogin();
       }).catch(function (e2) {
         submit.disabled = false;
         errEl.textContent = (e2.message === 'auth 401') ? 'Invalid email or password.' : 'Sign-in failed. Try again.';
@@ -1146,6 +1280,7 @@
 
     form.addEventListener('submit', onsubmit);
     submit.addEventListener('click', onsubmit);
+    guestBtn.addEventListener('click', onguest);
   }
 
   /* ---------- streaming ---------- */
@@ -1240,6 +1375,15 @@
   function send(text) {
     var content = String(text || '').trim();
     if (!content || busy) return;
+    if (isGuest && guestMessages >= GUEST_MSG_LIMIT && !guestWaived) {
+      hint('Demo chat limit reached \u2014 sign in to continue.');
+      showLogin({
+        reason: 'You\u2019ve hit the demo chat limit. Sign in to keep the conversation going.',
+        onGuest: function () { guestWaived = true; hint('Continuing as guest.'); },
+        onLogin: function () { guestMessages = 0; hint('Signed in \u2014 keep chatting.'); }
+      });
+      return;
+    }
     busy = true;
     updateSendState();
     if (attachedName) content = '(attachment: ' + attachedName + ')\n' + content;
@@ -1247,7 +1391,10 @@
     attachedName = ''; fileInp.value = ''; updateAttachUI();
     showThinking();
     setStatus('thinking');
-    ensureSession(function () { doStream(content); }, function (e) {
+    ensureSession(function () {
+      if (isGuest) guestMessages += 1;
+      doStream(content);
+    }, function (e) {
       finishError(e && e.message === 'auth 401' ? 'Sign-in failed. Check your credentials.' : 'Could not reach the assistant service.');
     });
   }
@@ -1341,6 +1488,14 @@
   overlay.addEventListener('click', function (e) { if (e.target === overlay) closeOverlay(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeOverlay(); });
 
+  var signinBtn = document.getElementById('awSignin');
+  if (signinBtn) signinBtn.addEventListener('click', function () {
+    showLogin({
+      onGuest: function () { hint('Continuing as guest.'); },
+      onLogin: function () { guestMessages = 0; guestWaived = true; hint('Signed in \u2014 your conversation is now saved.'); }
+    });
+  });
+
   function openOverlay() {
     overlay.hidden = false;
     overlay.setAttribute('aria-hidden', 'false');
@@ -1358,10 +1513,43 @@
     setTimeout(function () { overlay.hidden = true; }, 520);
   }
 
+  /* ---------- live health badge (truthful, polled from /v1/health) ---------- */
+  var hpStatus = document.getElementById('hpStatus');
+  var hpLatency = document.getElementById('hpLatency');
+  var hpProvider = document.getElementById('hpProvider');
+  var heroStatusEl = document.getElementById('heroStatus');
+
+  function pollHealth() {
+    var started = Date.now();
+    fetch(API + '/v1/health')
+      .then(function (res) {
+        if (!res.ok) throw new Error('health ' + res.status);
+        return res.json();
+      })
+      .then(function (d) {
+        var ok = d && d.status === 'ok';
+        hpStatus.textContent = ok ? 'Operational' : 'Degraded';
+        hpStatus.className = ok ? 'ok' : '';
+        hpLatency.textContent = (Date.now() - started) + ' ms';
+        hpProvider.textContent = (d && d.provider) ? d.provider : '\u2013';
+        if (heroStatusEl) heroStatusEl.textContent = ok ? 'All systems operational' : 'Degraded';
+      })
+      .catch(function () {
+        hpStatus.textContent = 'Offline';
+        hpStatus.className = '';
+        hpLatency.textContent = '\u2013';
+        if (heroStatusEl) heroStatusEl.textContent = 'Offline';
+      });
+  }
+
   /* ---------- init ---------- */
   ttsSetup();
   setMode('text');
   setStatus('ended');
+  var footYear = document.getElementById('footYear');
+  if (footYear) footYear.textContent = new Date().getFullYear();
+  pollHealth();
+  setInterval(pollHealth, 60000);
 })();
 </script>
 
