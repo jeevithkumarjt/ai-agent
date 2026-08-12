@@ -12,6 +12,10 @@ Role = Literal["owner", "admin", "editor", "viewer"]
 
 class Health(BaseModel):
     status: str
+    provider: str | None = None  # llm_provider, e.g. "groq" | "anthropic"
+    model: str | None = None
+    embeddings: bool | None = None  # True when a real embeddings key is configured
+    embeddings_model: str | None = None
 
 
 class LoginRequest(BaseModel):

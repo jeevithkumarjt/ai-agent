@@ -23,7 +23,11 @@ from sqlalchemy import select
 
 logger = get_logger("cli")
 
-SUPPORTED_SUFFIXES = {".md", ".markdown", ".txt", ".rst", ".html"}
+SUPPORTED_SUFFIXES = {
+    ".md", ".markdown", ".txt", ".rst", ".text", ".log",
+    ".html", ".htm", ".xml", ".csv", ".json",
+    ".pdf", ".docx", ".xlsx", ".pptx",
+}
 
 
 def build_parser() -> argparse.ArgumentParser:

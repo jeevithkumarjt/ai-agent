@@ -51,6 +51,14 @@ class Settings(BaseSettings):
     jwt_access_ttl_minutes: int = 30
     jwt_refresh_ttl_days: int = 14
 
+    # --- Anonymous guest sessions (public demo/chat pages) ---
+    # Issues viewer-scoped, rate-limited tokens with NO credentials on disk.
+    # Enable only when anonymous chat is intentional (public landing/demo).
+    guest_enabled: bool = True
+    guest_role: str = "viewer"
+    guest_tenant_id: str = ""  # optional; defaults to the first tenant
+    guest_requests_per_minute: int = 20
+
     # --- Bootstrap (python -m backend.cli seed) ---
     bootstrap_tenant_name: str = "Default"
     bootstrap_owner_email: str = "owner@example.com"

@@ -9,12 +9,15 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
+from core.logging import get_logger
 from core.settings import settings
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from services.rag import RagService
 from services.tools.base import BaseTool, ToolResult
+
+logger = get_logger("services.tools.search_knowledge_base")
 
 MAX_RESULT_CHARS = 12000
 
@@ -40,6 +43,22 @@ class SearchKnowledgeBaseTool(BaseTool):
         query = validated.query.strip()
         if not query:
             return ToolResult(content="Error: `query` must be non-empty.")
+
+        if not settings.embeddings_api_key:
+            # The LocalHash fallback is only for local dev/tests — never pretend
+            # its results are real semantic retrieval for a customer-facing answer.
+            logger.warning(
+                "tool_search_no_embeddings",
+                reason="EMBEDDINGS_API_KEY not configured; vector retrieval is not meaningful",
+            )
+            return ToolResult(
+                content=(
+                    "No real embeddings endpoint is configured, so semantic search is disabled. "
+                    "Answer only from the knowledge already provided in the system prompt, and "
+                    "if it does not contain the answer, say so plainly."
+                ),
+                sources=[],
+            )
 
         chunks = await self.rag.search(session, tenant_id=tenant_id, query=query, top_k=validated.top_k)
         if not chunks:
