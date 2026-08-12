@@ -1476,6 +1476,12 @@
     }
   }
 
+  function setThinkingLabel(txt) {
+    if (!thinkBubble) return;
+    var x = thinkBubble.querySelector('.aw-think-txt');
+    if (x) x.textContent = txt;
+  }
+
   /* ---------- voice welcome — centered orb greeting on open ---------- */
   function showWelcome() {
     if (hasConversation) return;
