@@ -816,7 +816,7 @@
     </div>
 
     <h1 class="aw-hero-title">Talk to your enterprise AI <span>out loud.</span></h1>
-    <p class="aw-hero-sub">Ask about products, pricing, policies &#8212; TryMe gives you a clear, conversational answer in seconds, wherever you are.</p>
+    <p class="aw-hero-sub">Hold the mic or just ask out loud &#8212; about products, pricing, policies. TryMe listens, reasons over your knowledge base, and answers in seconds, hands-free.</p>
 
     <div class="aw-stage-zone">
       <div class="aw-stage">
@@ -1732,7 +1732,9 @@
   }
 
   /* ---------- session ---------- */
-  /* ---------- session ---------- */
+  /* Anonymous visitors chat immediately on a scoped demo token (POST /v1/auth/guest,
+     server-issued, rate-limited). Sign-in is only required to save history or keep
+     going past the demo message cap — never to start chatting. */
   function storeGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function storeSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
   function storeDel(k) { try { localStorage.removeItem(k); } catch (e) {} }
@@ -1796,7 +1798,7 @@
     setStatus('connecting');
 
     function proceed() {
-      if (!token) { askCredentials(); return; }
+      if (!token) { guestOrLogin(); return; }
       fetch(API + '/v1/conversations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
@@ -1810,19 +1812,31 @@
         ok();
       }).catch(function (e) {
         if (e.message === 'unauthorized') {
-          doRefresh().then(proceed, function () { askCredentials(); });
+          doRefresh().then(proceed, function () { guestOrLogin(); });
         } else {
           fail(e);
         }
       });
     }
 
-    function askCredentials() {
-      if (CRED) {
-        doLogin(CRED).then(proceed, function (e) { fail(e); });
-      } else {
-        showLogin(function () { proceed(); }, fail);
-      }
+    // Anonymous start-session: exchange a rate-limited, viewer-scoped token via
+    // /v1/auth/guest. No credentials live in the browser. If the backend has
+    // guest sessions disabled, fall back to the sign-in form.
+    function guestOrLogin() {
+      doGuest().then(proceed, function () {
+        showLogin({
+          reason: 'Continue as a guest, or sign in to save your conversations.',
+          onGuest: function () {
+            doGuest().then(proceed, function () {
+              var panel = document.getElementById('awLogin');
+              var errEl = document.getElementById('awLoginErr');
+              panel.hidden = false;
+              if (errEl) errEl.textContent = 'Guest sessions are unavailable right now. Sign in to continue.';
+            });
+          },
+          onLogin: proceed
+        });
+      });
     }
 
     var stored = storeGet('aw_at');
@@ -1830,14 +1844,18 @@
     proceed();
   }
 
-  function showLogin(ok, fail) {
+  function showLogin(opts) {
+    opts = opts || {};
     var panel = document.getElementById('awLogin');
     var form = document.getElementById('awLoginForm');
     var emailEl = document.getElementById('awLoginEmail');
     var passEl = document.getElementById('awLoginPass');
     var errEl = document.getElementById('awLoginErr');
     var submit = document.getElementById('awLoginSubmit');
+    var guestBtn = document.getElementById('awLoginGuest');
+    var subEl = document.getElementById('awLoginSub');
     errEl.textContent = '';
+    subEl.textContent = opts.reason || 'Sign in to save your conversations.';
     panel.hidden = false;
     setTimeout(function () { emailEl.focus(); }, 60);
 
@@ -1845,6 +1863,13 @@
       panel.hidden = true;
       form.removeEventListener('submit', onsubmit);
       submit.removeEventListener('click', onsubmit);
+      if (guestBtn) guestBtn.removeEventListener('click', onguest);
+    }
+
+    function onguest(e) {
+      e.preventDefault();
+      clear();
+      if (opts.onGuest) opts.onGuest();
     }
 
     function onsubmit(e) {
@@ -1855,7 +1880,7 @@
       submit.disabled = true;
       doLogin({ email: email, password: pass }).then(function () {
         clear();
-        ok();
+        if (opts.onLogin) opts.onLogin();
       }).catch(function (e2) {
         submit.disabled = false;
         errEl.textContent = (e2.message === 'auth 401') ? 'Invalid email or password.' : 'Sign-in failed. Try again.';
@@ -1864,6 +1889,7 @@
 
     form.addEventListener('submit', onsubmit);
     submit.addEventListener('click', onsubmit);
+    if (guestBtn) guestBtn.addEventListener('click', onguest);
   }
 
   /* ---------- streaming ---------- */
@@ -1893,7 +1919,13 @@
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
       body: JSON.stringify({ content: content })
     }).then(function (res) {
-      if (!res.ok || !res.body) throw new Error('stream http ' + res.status);
+      if (!res.ok || !res.body) {
+        return (res.json().catch(function () { return {}; }).then(function (d) {
+          var err = new Error('stream http ' + res.status);
+          err.detail = d && d.detail ? String(d.detail) : '';
+          throw err;
+        }));
+      }
       var reader = res.body.getReader();
       var decoder = new TextDecoder();
       var buffer = '';
@@ -1958,6 +1990,15 @@
   function send(text) {
     var content = String(text || '').trim();
     if (!content || busy) return;
+    if (isGuest && guestMessages >= GUEST_MSG_LIMIT && !guestWaived) {
+      hint('Demo chat limit reached \u2014 sign in to continue.');
+      showLogin({
+        reason: 'You\u2019ve hit the demo chat limit. Sign in to keep the conversation going.',
+        onGuest: function () { guestWaived = true; hint('Continuing as guest.'); },
+        onLogin: function () { guestMessages = 0; hint('Signed in \u2014 keep chatting.'); }
+      });
+      return;
+    }
     busy = true;
     updateSendState();
     if (attachedName) content = '(attachment: ' + attachedName + ')\n' + content;
@@ -1966,7 +2007,10 @@
     dismissWelcome();
     showThinking();
     setStatus('thinking');
-    ensureSession(function () { doStream(content); }, function (e) {
+    ensureSession(function () {
+      if (isGuest) guestMessages += 1;
+      doStream(content);
+    }, function (e) {
       finishError(e && e.message === 'auth 401' ? 'Sign-in failed. Check your credentials.' : 'Could not reach the assistant service.');
     });
   }
@@ -2108,7 +2152,7 @@
 
   /* ---------- init ---------- */
   ttsSetup();
-  setMode('text');
+  setMode('voice');
   setStatus('ended');
   pollHealth();
   setInterval(pollHealth, 60000);
