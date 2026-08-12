@@ -6,8 +6,8 @@ documents the shape and the auth model.
 ## 1. Base
 
 - All routes are namespaced under `/v1`.
-- Auth: `Authorization: Bearer <JWT>` on every route except `/health` and `/v1/auth/login`.
-  The token carries `tenant_id`, `user_id`, `exp` (see `01-architecture-decisions.md` ADR-005).
+- Auth: `Authorization: Bearer <JWT>` on every route except `/health`, `/v1/auth/login`,
+  and `/v1/auth/guest`. The token carries `tenant_id`, `user_id`, `exp` (see `01-architecture-decisions.md` ADR-005).
 - Refresh via `POST /v1/auth/refresh` (short-lived access token + refresh token).
 
 ## 2. Endpoints
@@ -16,6 +16,7 @@ documents the shape and the auth model.
 |---|---|---|---|
 | `GET` | `/v1/health` | none | Liveness |
 | `POST` | `/v1/auth/login` | none | Exchange email+password for a token pair |
+| `POST` | `/v1/auth/guest` | none | Anonymous start-session → viewer-scoped, rate-limited token pair |
 | `POST` | `/v1/auth/refresh` | none (refresh token in body) | Renew token pair |
 | `POST` | `/v1/conversations` | Bearer | Create conversation, returns `conversation_id` |
 | `GET` | `/v1/conversations/{id}/messages` | Bearer | History, paginated |
@@ -48,6 +49,10 @@ types as JSON frames. Both transports carry an identical event set (defined in
 ## 4. Auth model
 
 - `POST /v1/auth/login {email, password}` → `{ access_token, refresh_token, token_type: "bearer", expires_in }`.
+- `POST /v1/auth/guest` (no body) → the same token pair for an anonymous viewer. It is
+  rate-limited per IP (`RateLimitMiddleware`) and the guest role is `viewer`, so it cannot
+  reach any admin endpoint. This is how the public chat pages start a session — no
+  credentials are ever shipped to the browser.
 - Access token TTL: `JWT_ACCESS_TTL_MINUTES` (default 30). Refresh token TTL:
   `JWT_REFRESH_TTL_DAYS` (default 14).
 - The widget holds the token **in memory only** (never `localStorage`) — see ADR-005 / §3.1 of

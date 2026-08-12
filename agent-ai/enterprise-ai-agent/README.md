@@ -31,7 +31,6 @@ enterprise-ai-agent/
 ├── admin-ai.html           # admin portal SPA
 ├── index.html / main.html  # chat UI (standalone)
 ├── api-config.js           # window.APP_API_BASE (Pages/backend URL)
-├── api-credentials.example.js  # copy to api-credentials.js (gitignored) — chat auto-login
 ├── docker-compose.yml      # postgres + backend
 └── .env.example            # every configuration key, documented
 ```
@@ -49,7 +48,7 @@ enterprise-ai-agent/
 # 1. Configure environment
 cp .env.example .env
 #    Fill in: ANTHROPIC_API_KEY (Groq: gsk_..., or Anthropic: sk-ant-...),
-#             JWT_SECRET (32+ random chars), and optionally EMBEDDINGS_API_KEY.
+#             JWT_SECRET (32+ random chars), and EMBEDDINGS_API_KEY (real RAG).
 
 # 2. Start the database (Postgres 16 + pgvector)
 docker compose up -d postgres
@@ -118,27 +117,51 @@ docker build -f backend/Dockerfile -t agentai-backend .
 docker run --env-file .env -p 8000:8000 agentai-backend
 ```
 
-## Deploy to Render (free tier)
+## Deploy to Render
 
 The repo root contains a `render.yaml` Blueprint that provisions the backend
-web service and a managed Postgres (pgvector included) with one click.
+web service, a keep-alive cron job, and a managed Postgres (pgvector included)
+with one click.
+
+> ⚠️ **FREE TIER IS NOT PRODUCTION — READ BEFORE ANY DEMO OR REAL CUSTOMER**
+>
+> The default `render.yaml` uses free plans for cost. On that tier:
+> - The web service **spins down after ~15 min of inactivity**. A customer's
+>   first message after idle can take **30–60s** (cold start). Any uptime /
+>   response-time number the marketing pages show is a warm-instance figure,
+>   not the real first-touch experience.
+> - The free Postgres database is **deleted after 30 days** — data loss is
+>   guaranteed.
+> - The `ai-agent-keepalive` cron job pings `/v1/health` every 10 min to keep
+>   the instance warm. That is a **band-aid, not an SLA**.
+>
+> Before onboarding real customers: edit `render.yaml` and set the web service
+> `plan` to `starter` (or higher) and the database `plan` to `basic-256mb`
+> (or higher), then redeploy. (~$14/mo baseline.)
+
+Steps:
 
 1. Push the repo to GitHub, then open https://render.com → **New** → **Blueprint**.
 2. Connect the `jeevithkumarjt/ai-agent` repo. Render reads `render.yaml`,
-   creates `ai-agent-db` (Postgres) and `ai-agent-backend` (web service).
+   creates `ai-agent-db` (Postgres), `ai-agent-backend` (web service), and
+   `ai-agent-keepalive` (cron job).
 3. After the first deploy, open the `ai-agent-backend` service → **Environment**
    and set the values marked `sync: false`:
    - `ANTHROPIC_API_KEY` — Groq key (`gsk_…`) for the LLM
-   - `EMBEDDINGS_API_KEY` — OpenAI-compatible embeddings key (empty = dev hash fallback)
+   - `EMBEDDINGS_API_KEY` — OpenAI-compatible embeddings key (OpenAI `text-embedding-3-small`, `sk-…`). Required for vector RAG; without it the `search_knowledge_base` tool reports itself disabled and the backend reports `embeddings` unhealthy.
    - `BOOTSTRAP_OWNER_EMAIL` / `BOOTSTRAP_OWNER_PASSWORD` — the admin login
-4. Click **Manual Deploy → Deploy latest commit**. Render runs
+4. Check the `ai-agent-keepalive` cron job's `PING_URL` env var matches the
+   backend URL (default `https://ai-agent-backend-wnc6.onrender.com`).
+5. Click **Manual Deploy → Deploy latest commit**. Render runs
    `alembic upgrade head` + `seed` automatically on every boot.
-5. Note the service URL (e.g. `https://ai-agent-backend.onrender.com`) and set
+6. Note the service URL (e.g. `https://ai-agent-backend.onrender.com`) and set
    it in `agent-ai/enterprise-ai-agent/api-config.js`, then re-push to GitHub —
    the Pages frontends (admin + chat) will use it via `window.APP_API_BASE`.
 
 Notes for production:
 
+- Upgrade the `plan:` values in `render.yaml` before any real customer (see
+  the warning above) — the free tier is a demo/debug configuration only.
 - Set `APP_ENV=production`, a strong `JWT_SECRET`, a real database, and a real
   embeddings endpoint (`EMBEDDINGS_API_KEY`) for meaningful retrieval.
 - Change `BOOTSTRAP_OWNER_PASSWORD` immediately after first login.
@@ -153,19 +176,21 @@ Every key is documented in `.env.example`. The essential ones:
 |-----|---------|
 | `DATABASE_URL` | Postgres DSN (`postgresql+asyncpg://...`) |
 | `LLM_PROVIDER` | `groq` (default) or `anthropic` |
-| `ANTHROPIC_API_KEY` | Groq `gsk_...` or Anthropic `sk-ant-...` |
-| `ANTHROPIC_BASE_URL` | `https://api.groq.com/openai/v1` (Groq) or `https://api.anthropic.com` |
-| `ANTHROPIC_MODEL` | `llama-3.3-70b-versatile` (Groq) or `claude-sonnet-4-5` |
-| `EMBEDDINGS_API_KEY` | OpenAI-compatible embeddings key (empty = dev hash fallback) |
+| `GROQ_API_KEY` | Groq `gsk_...` (provider swap = set this + `LLM_PROVIDER=groq`) |
+| `GROQ_BASE_URL` | `https://api.groq.com/openai/v1` (default) |
+| `GROQ_MODEL` | `llama-3.3-70b-versatile` (default) |
+| `ANTHROPIC_API_KEY` | Anthropic `sk-ant-...` (`ANTHROPIC_*` are the legacy fallback) |
+| `ANTHROPIC_BASE_URL` | `https://api.anthropic.com` |
+| `ANTHROPIC_MODEL` | `claude-sonnet-4-5` |
+| `EMBEDDINGS_API_KEY` | OpenAI-compatible embeddings key (`sk-...`); unset = retrieval/ingestion disabled, never hash vectors |
 | `JWT_SECRET` | 32+ char random string |
 | `KNOWLEDGE_SITES` | comma-separated URLs to crawl into the knowledge base |
 
 ## Security
 
-- Secrets are read from the environment only (never committed). The chat frontends'
-  auto-login credentials live in `api-credentials.js`, which is gitignored
-  (`api-credentials.example.js` is the committed template). If it is absent or empty,
-  the chat shows a sign-in form instead.
+- Secrets are read from the environment only (never committed). No admin credentials
+  ship to browsers: the public chat pages start an anonymous session via
+  `POST /v1/auth/guest`, which returns a **viewer-scoped, rate-limited** token pair.
 - Passwords are stored as Argon2 hashes (`backend/core/security.py`).
 - JWT access (30 min) + refresh (14 day) tokens carry `tenant_id` and `role` claims;
   refresh tokens renew the pair, so a logged-in session survives page reloads.
@@ -175,16 +200,17 @@ Every key is documented in `.env.example`. The essential ones:
 
 ## Frontend authentication flow
 
-Both the admin SPA (`admin-ai.html`) and the chat pages (`index.html`, `main.html`) use
-the same API:
+The admin SPA (`admin-ai.html`) and the chat pages (`index.html`, `main.html`) use the
+same API:
 
-1. `POST /v1/auth/login` returns `access_token` + `refresh_token`.
-2. The page stores the pair in `localStorage` (`at` / `rt`).
-3. On every load, `ensureSession()` restores the access token, creates a conversation,
-   and transparently refreshes via `/v1/auth/refresh` when the access token expires.
-4. If no valid session exists, the chat pages either auto-login with `api-credentials.js`
-   (local dev convenience) or present a sign-in form.
-5. The admin portal exposes a login form and a logout that clears stored tokens.
+1. Chat visitors start as anonymous guests: `POST /v1/auth/guest` issues a
+   viewer-scoped, rate-limited token pair (`GUEST_REQUESTS_PER_MINUTE`, per-IP
+   middleware + per-visitor `GUEST_MESSAGE_LIMIT`). No credentials exist client-side.
+2. `ensureSession()` restores a stored token, creates a conversation, and transparently
+   refreshes via `/v1/auth/refresh` when the access token expires.
+3. Past `GUEST_MESSAGE_LIMIT` guest messages the chat offers `POST /v1/auth/login`
+   (email + password) so a visitor can save the conversation.
+4. The admin portal exposes a login form and a logout that clears stored tokens.
 
 ## Documentation
 

@@ -67,10 +67,14 @@ CREATE TABLE IF NOT EXISTS document_chunks (
     chunk_text  text NOT NULL,
     embedding   vector(1536) NOT NULL,
     metadata    jsonb NOT NULL DEFAULT '{}'::jsonb,
+    -- Generated lexical index (BM25-style tsvector) so hybrid search (ts_rank +
+    -- cosine similarity) runs in one table — no separate in-memory BM25 to drift.
+    tsv         tsvector GENERATED ALWAYS AS (to_tsvector('english', chunk_text)) STORED,
     created_at  timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_document_chunks_tenant ON document_chunks (tenant_id);
 CREATE INDEX IF NOT EXISTS idx_document_chunks_source ON document_chunks (tenant_id, source_id);
+CREATE INDEX IF NOT EXISTS idx_document_chunks_tsv ON document_chunks USING GIN (tsv);
 
 -- ivfflat index on embedding: intentionally SKIPPED for MVP row counts — flat scan is
 -- fine under ~50k rows (ADR-001). Enable when row count justifies it:

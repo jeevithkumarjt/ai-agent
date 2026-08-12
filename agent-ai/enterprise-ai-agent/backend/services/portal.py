@@ -277,7 +277,6 @@ class PortalService:
             )
         )
         await session.commit()
-        await asyncio.to_thread(self.knowledge.refresh_documents_only)
         return {"ok": True, "chunks": 0}
 
     async def list_documents(self, session: AsyncSession, tenant_id: Any, *, q: str = "", status: str = "", limit: int = 200, offset: int = 0) -> dict[str, Any]:
@@ -332,7 +331,6 @@ class PortalService:
                 path.unlink()
         except OSError:
             pass
-        await asyncio.to_thread(self.knowledge.refresh_documents_only)
         await self.audit(session, tenant_id, by, "knowledge.delete", "knowledge", doc_id, detail={"name": name})
         await self.notify(session, tenant_id, "warning", "Knowledge removed", f"\"{name}\" was deleted.")
         return {"ok": True}
@@ -418,8 +416,8 @@ class PortalService:
                                            progress=10 + int(index / total * 80),
                                            message=f"Re-embedding {index} of {total} documents")
                 await session.commit()
-                await self._update_job(session, job_id, tenant_id, 92, "Rebuilding lexical index")
-                await asyncio.to_thread(self.knowledge.refresh)
+                await self._update_job(session, job_id, tenant_id, 92, "Syncing site + document chunks")
+                await self.knowledge.refresh()
                 await self._finish_job(session, job_id, tenant_id, "done", 100, "Knowledge base fully re-trained")
                 await self.notify(session, tenant_id, "success", "Retraining complete", "The knowledge base has been fully re-indexed.")
             except Exception as exc:
@@ -440,8 +438,8 @@ class PortalService:
         async with async_session_factory() as session:
             try:
                 await self._update_job(session, job_id, tenant_id, 20, "Crawling configured sites")
-                await asyncio.to_thread(self.knowledge.refresh)
-                await self._update_job(session, job_id, tenant_id, 90, "Refreshed site + document index")
+                await self.knowledge.refresh()
+                await self._update_job(session, job_id, tenant_id, 90, "Synced site + document chunks")
                 status = self.knowledge.status()
                 await self._finish_job(session, job_id, tenant_id, "done", 100,
                                        f"Sync complete: {status['source_count']} sources, {status['chunk_count']} chunks")
@@ -786,8 +784,8 @@ class PortalService:
         except Exception:
             storage_ok = False
         llm_ok = bool(settings.anthropic_api_key) or settings.app_env == "development"
-        embedding_ok = bool(settings.embeddings_api_key) or settings.app_env == "development"
-        embedding_detail = f"{settings.embeddings_model} (local-hash fallback)" if not settings.embeddings_api_key else settings.embeddings_model
+        embedding_ok = bool(settings.embeddings_api_key)
+        embedding_detail = settings.embeddings_model if settings.embeddings_api_key else "not configured (EMBEDDINGS_API_KEY unset — vector retrieval disabled)"
         components = {
             "database": {"ok": db_ok, "detail": "PostgreSQL + pgvector"},
             "knowledge_store": {"ok": bool(knowledge_status.get("chunk_count")), "detail": f"{knowledge_status.get('chunk_count', 0)} chunks / {knowledge_status.get('source_count', 0)} sources"},

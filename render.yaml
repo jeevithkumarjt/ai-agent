@@ -2,9 +2,25 @@
 # Deploy: https://render.com -> New -> Blueprint -> connect this repo.
 # After deploy, set the "sync: false" env vars (API keys, owner credentials)
 # in the Render dashboard for the ai-agent-backend service, then Deploy again.
+#
+# ⚠️⚠️  LOUD WARNING — FREE TIER IS NOT PRODUCTION  ⚠️⚠️
+# ---------------------------------------------------------------------------
+# 1. Free web services spin down after ~15 min of inactivity. A customer's
+#    first message after idle can take 30-60s (cold start). The frontend
+#    health badge is real (live /v1/health polling), but a cold start is
+#    still a cold start. The `ai-agent-keepalive` cron job below pings
+#    /v1/health every 10 min to keep this instance warm. That is a BAND-AID,
+#    not an SLA — Render may still recycle or spin down the instance.
+# 2. Free Postgres databases are DELETED after 30 days. Data loss is
+#    guaranteed if you keep ai-agent-db on the free plan.
+# 3. BEFORE onboarding any real customer or running a demo that must not
+#    embarrass you: bump the web service `plan` to `starter` (or higher) and
+#    the database `plan` to `basic-256mb` (or higher), then redeploy. The
+#    cost is roughly USD $7 + $7 per month for a real production baseline.
+# ---------------------------------------------------------------------------
 databases:
   - name: ai-agent-db
-    plan: free
+    plan: free            # ⚠️ free Postgres is DELETED after 30 days
     databaseName: agentai
     user: agentai
     region: oregon
@@ -13,7 +29,7 @@ services:
   - type: web
     name: ai-agent-backend
     runtime: docker
-    plan: free
+    plan: free            # ⚠️ free spins down after ~15 min idle
     region: oregon
     rootDir: agent-ai/enterprise-ai-agent
     dockerfilePath: backend/Dockerfile
@@ -49,3 +65,19 @@ services:
         sync: false
       - key: BOOTSTRAP_OWNER_PASSWORD
         sync: false
+
+  # Keep-alive: pings /v1/health every 10 min so the free web service stays
+  # warm. PING_URL below matches the deployed backend (api-config.js); update
+  # it if the service URL changes. This is a stop-gap for demos — see the
+  # warning at the top of this file.
+  - type: cron
+    name: ai-agent-keepalive
+    runtime: docker
+    plan: free
+    region: oregon
+    rootDir: agent-ai/enterprise-ai-agent
+    dockerfilePath: keepalive/Dockerfile
+    schedule: "*/10 * * * *"
+    envVars:
+      - key: PING_URL
+        value: https://ai-agent-backend-wnc6.onrender.com

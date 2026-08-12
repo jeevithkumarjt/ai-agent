@@ -36,6 +36,12 @@ over WebSocket (primary) or SSE (fallback), independent of transport:
 
 ## 2. RAG pipeline
 
+> **Embeddings are required.** Without `EMBEDDINGS_API_KEY` pointing at a real
+> OpenAI-compatible `/v1/embeddings` endpoint, ingestion and retrieval are
+> **disabled** — the dev-only hash fallback can never be written to the store or
+> queried (its vectors are meaningless, so cosine similarity against them would
+> silently return garbage). Misconfigured deployments fail loudly instead.
+
 ### Ingestion (offline/batch, not part of the request path)
 
 1. Source documents chunked (target ~500 tokens/chunk, 50-token overlap).

@@ -1,28 +1,39 @@
-"""Knowledge store — lexical retrieval over the documents/ folder + crawled site pages.
+"""Knowledge store — extraction + ingestion into the DB-backed RAG store.
 
-Runs fully in-process (stdlib only: no DB, no embeddings, no SDK) so it keeps working
-even with AGENT_MAX_TOOL_ITERATIONS=0. Refresh is idempotent: every refresh rebuilds
-the chunk index from disk and the site, so added/edited/removed sources are picked up
-automatically. Content stays invisible to the UI — it is only used to ground answers.
+This is NOT an in-memory index anymore. The old in-process BM25 index never
+survived restarts or horizontal scaling (each backend instance had its own copy,
+and a restart wiped it until the next refresh cycle). Now the store plays one
+job: extract plain text from `documents/` + crawled site pages, chunk it, embed
+it, and upsert those chunks into `document_chunks` — the single source of truth
+for retrieval. Hybrid search (Postgres tsvector ts_rank + pgvector cosine) then
+runs in one query against that table via `RagService.search`.
+
+Refresh is idempotent and best-effort: extraction/embedding/DB failures record
+`last_error` and never crash the app. Chunks are deleted-then-inserted per
+source_id so edits and removals are picked up on the next refresh cycle.
 """
 from __future__ import annotations
 
+import asyncio
 import csv
 import html
 import json
-import math
 import re
 import threading
 import time
 import urllib.request
-from collections import Counter
+import uuid
 from collections.abc import Iterable
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
 
+from core.embeddings import Embedder, get_embedder
 from core.logging import get_logger
 from core.settings import settings
+from db.models import DocumentChunk, Tenant
+from db.session import async_session_factory
+from sqlalchemy import delete, select
 
 from services.rag import chunk_text
 
@@ -30,12 +41,7 @@ logger = get_logger("services.knowledge")
 
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) TryviumKnowledgeBot/1.0"
 
-_TERM_RE = re.compile(r"[a-z0-9]+")
 _HTML_SKIP_TAGS = {"script", "style", "noscript", "header", "nav", "footer", "aside"}
-
-
-def _tokenize(text: str) -> list[str]:
-    return _TERM_RE.findall(text.lower())
 
 
 class _TextExtractor(HTMLParser):
@@ -160,101 +166,78 @@ def _page_title(body: str, fallback: str) -> str:
 
 
 class KnowledgeStore:
-    """In-memory chunk index with BM25 retrieval. Rebuilt on every refresh."""
+    """Extracts `documents/` + site pages and upserts their chunks into `document_chunks`.
 
-    def __init__(self, *, docs_dir: Path | None = None, sites: list[str] | None = None) -> None:
+    Persistent state is only the last-refresh stats; all chunk data lives in
+    Postgres so every backend instance sees the same index and no restart can
+    lose it. Retrieval is handled by `RagService.search` (hybrid ts_rank + cosine).
+    """
+
+    def __init__(
+        self,
+        *,
+        docs_dir: Path | None = None,
+        sites: list[str] | None = None,
+        embedder: Embedder | None = None,
+    ) -> None:
         self.docs_dir = Path(settings.knowledge_docs_dir) if docs_dir is None else docs_dir
         self.sites = list(settings.knowledge_sites) if sites is None else sites
+        self.embedder = embedder if embedder is not None else get_embedder()
         self._lock = threading.Lock()
-        self._chunks: list[dict[str, Any]] = []
         self._sources: list[str] = []
-        self._site_chunks: list[dict[str, Any]] = []
-        self._stats: dict[str, Any] = {"last_refresh": None, "last_error": None, "duration_ms": None}
+        self._stats: dict[str, Any] = {
+            "last_refresh": None,
+            "last_error": None,
+            "duration_ms": None,
+            "chunks": 0,
+        }
 
     # -- refresh ---------------------------------------------------------------
 
-    def _finalize(
-        self,
-        chunks: list[dict[str, Any]],
-        sources: list[str],
-        *,
-        started: float,
-        include_site: bool,
-    ) -> None:
-        if include_site:
-            with self._lock:
-                site_chunks = list(self._site_chunks)
-            chunks.extend(dict(item) for item in site_chunks)
-            sources.extend(item["source"] for item in site_chunks)
-        for index, chunk in enumerate(chunks):
-            chunk["id"] = index
-        with self._lock:
-            self._chunks = chunks
-            self._sources = sources
-        self._stats.update(
-            last_refresh=time.time(),
-            last_error=None,
-            duration_ms=int((time.monotonic() - started) * 1000),
-            chunks=len(chunks),
-        )
-        logger.info(
-            "knowledge_refreshed",
-            chunks=len(chunks),
-            sources=len(sources),
-            duration_ms=self._stats["duration_ms"],
-            site=include_site,
-        )
+    async def refresh(self) -> None:
+        """Extract, embed, and upsert all chunks into `document_chunks`.
 
-    def refresh(self) -> None:
+        Best-effort by design: failures are recorded in `last_error` and the
+        app keeps serving (the previous DB contents remain searchable).
+        """
         started = time.monotonic()
-        chunks: list[dict[str, Any]] = []
-        sources: list[str] = []
-        site_chunks: list[dict[str, Any]] = []
         try:
-            chunks.extend(self._scan_documents(sources))
-            site_chunks = self._crawl_site(sources)
+            chunks = await asyncio.to_thread(self._collect)
+            persisted = await self._persist(chunks)
             with self._lock:
-                self._site_chunks = site_chunks
+                self._sources = sorted({item["source"] for item in chunks})
+            self._stats.update(
+                last_refresh=time.time(),
+                last_error=None,
+                duration_ms=int((time.monotonic() - started) * 1000),
+                chunks=persisted,
+            )
+            logger.info(
+                "knowledge_refreshed",
+                sources=len(self._sources),
+                chunks=persisted,
+                duration_ms=self._stats["duration_ms"],
+            )
         except Exception as exc:
             logger.exception("knowledge_refresh_failed")
             self._stats["last_error"] = str(exc)
-        self._finalize(chunks, sources, started=started, include_site=True)
 
-    def refresh_documents_only(self) -> None:
-        """Rebuild only the documents/ chunks, keeping cached site chunks.
-
-        Used by the admin portal so uploads/edit/delete are reflected in
-        retrieval without re-crawling the website."""
-        started = time.monotonic()
-        chunks: list[dict[str, Any]] = []
-        sources: list[str] = []
-        try:
-            chunks.extend(self._scan_documents(sources))
-        except Exception as exc:
-            logger.exception("knowledge_refresh_docs_failed")
-            self._stats["last_error"] = str(exc)
-        self._finalize(chunks, sources, started=started, include_site=True)
-
-    def _scan_documents(self, sources: list[str]) -> list[dict[str, Any]]:
+    def _collect(self) -> list[dict[str, Any]]:
+        """Extract + chunk documents/ files and crawled site pages (sync I/O)."""
         chunks: list[dict[str, Any]] = []
         if not self.docs_dir.is_dir():
             logger.warning("knowledge_docs_missing", path=str(self.docs_dir))
-            return chunks
-        for path in sorted(self.docs_dir.rglob("*")):
-            if not path.is_file():
-                continue
-            text = _extract_text(path)
-            if not text:
-                continue
-            rel = str(path.relative_to(self.docs_dir)).replace("\\", "/")
-            source = f"documents/{rel}"
-            sources.append(source)
-            for piece in chunk_text(text):
-                chunks.append({"source": source, "title": rel, "kind": "document", "text": piece})
-        return chunks
-
-    def _crawl_site(self, sources: list[str]) -> list[dict[str, Any]]:
-        chunks: list[dict[str, Any]] = []
+        else:
+            for path in sorted(self.docs_dir.rglob("*")):
+                if not path.is_file():
+                    continue
+                text = _extract_text(path)
+                if not text:
+                    continue
+                rel = str(path.relative_to(self.docs_dir)).replace("\\", "/")
+                source = f"documents/{rel}"
+                for piece in chunk_text(text):
+                    chunks.append({"source": source, "title": rel, "kind": "document", "text": piece})
         for url in self._discover_urls():
             body = _http_get(url)
             if not body:
@@ -263,10 +246,63 @@ class KnowledgeStore:
             if not text or len(text) < 200:
                 continue
             title = _page_title(body, url)
-            sources.append(url)
             for piece in chunk_text(text):
                 chunks.append({"source": url, "title": title, "kind": "web", "text": piece})
         return chunks
+
+    async def _persist(self, chunks: list[dict[str, Any]]) -> int:
+        """Embed and upsert chunks into `document_chunks` for the default tenant.
+
+        Each source_id is delete-then-inserted inside one transaction so edited
+        or removed sources are reflected immediately and no stale rows survive.
+        """
+        if not chunks:
+            return 0
+        if not self.embedder.real:
+            # Never write dev-hash vectors into the store: once a real endpoint is
+            # configured they would be cosine-compared against real embeddings.
+            logger.warning(
+                "knowledge_persist_skip",
+                reason="embedder is the dev hash fallback; set EMBEDDINGS_API_KEY",
+            )
+            raise RuntimeError("no real embeddings endpoint configured (EMBEDDINGS_API_KEY unset)")
+
+        tenant_id = await self._default_tenant_id()
+        if tenant_id is None:
+            logger.warning("knowledge_persist_skip", reason="no tenant seeded — run `python -m backend.cli seed`")
+            return 0
+
+        texts = [item["text"] for item in chunks]
+        embeddings = await self.embedder.embed(texts)
+        by_source: dict[str, list[tuple[dict[str, Any], list[float]]]] = {}
+        for item, emb in zip(chunks, embeddings, strict=True):
+            by_source.setdefault(item["source"], []).append((item, emb))
+
+        async with async_session_factory() as session:
+            for source, rows in by_source.items():
+                await session.execute(
+                    delete(DocumentChunk).where(
+                        DocumentChunk.tenant_id == tenant_id, DocumentChunk.source_id == source
+                    )
+                )
+                session.add_all(
+                    DocumentChunk(
+                        tenant_id=tenant_id,
+                        source_id=source,
+                        chunk_text=item["text"],
+                        embedding=emb,
+                        chunk_metadata={"source_id": source, "title": item["title"], "kind": item["kind"]},
+                    )
+                    for item, emb in rows
+                )
+            await session.commit()
+        return len(chunks)
+
+    async def _default_tenant_id(self) -> uuid.UUID | None:
+        async with async_session_factory() as session:
+            return await session.scalar(select(Tenant.id).limit(1))
+
+    # -- site crawl ------------------------------------------------------------
 
     def _discover_urls(self) -> list[str]:
         seen: set[str] = set()
@@ -295,43 +331,6 @@ class KnowledgeStore:
     def _same_origin(base: str, page: str) -> bool:
         host = base.split("//")[-1].split("/")[0]
         return host in page
-
-    # -- retrieval -------------------------------------------------------------
-
-    def search(self, query: str, top_k: int = 5) -> list[dict[str, Any]]:
-        with self._lock:
-            chunks = list(self._chunks)
-        tokens = _tokenize(query)
-        if not chunks or not tokens:
-            return []
-        return self._bm25(chunks, tokens, top_k)
-
-    @staticmethod
-    def _bm25(chunks: list[dict[str, Any]], tokens: list[str], top_k: int) -> list[dict[str, Any]]:
-        avgdl = sum(len(chunk["text"]) for chunk in chunks) / len(chunks)
-        total = len(chunks)
-        tf: dict[int, Counter[str]] = {}
-        df: Counter[str] = Counter()
-        for index, chunk in enumerate(chunks):
-            counts = Counter(_tokenize(chunk["text"]))
-            tf[index] = counts
-            for term in counts:
-                df[term] += 1
-        k1, b = 1.2, 0.75
-        scored: list[tuple[float, dict[str, Any]]] = []
-        for index, chunk in enumerate(chunks):
-            length = len(chunk["text"])
-            score = 0.0
-            for term in tokens:
-                freq = tf[index].get(term, 0)
-                if not freq:
-                    continue
-                idf = math.log(1 + (total - df[term] + 0.5) / (df[term] + 0.5))
-                score += idf * (freq * (k1 + 1)) / (freq + k1 * (1 - b + b * length / avgdl))
-            if score > 0:
-                scored.append((score, chunk))
-        scored.sort(key=lambda pair: pair[0], reverse=True)
-        return [chunk for _, chunk in scored[:top_k]]
 
     # -- status ----------------------------------------------------------------
 

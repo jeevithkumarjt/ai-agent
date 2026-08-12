@@ -8,18 +8,19 @@
 <style>
 :root{
   --primary:#294199; --primary-2:#1E3378; --primary-3:#3B5BDB;
-  --accent:#F26E26; --accent-2:#E85D12;
+  --accent:#C8501B; --accent-2:#A63F0E; --on-accent:#FFFFFF;
   --bg:#F8FAFC; --surface:#FFFFFF; --surface-2:#F1F5F9;
   --text:#0F172A; --muted:#64748B; --line:#E2E8F0;
-  --green:#16A34A; --green-bg:#DCFCE7; --red:#DC2626; --red-bg:#FEE2E2;
-  --amber:#D97706; --amber-bg:#FEF3C7; --blue:#2563EB; --blue-bg:#DBEAFE;
-  --violet:#7C3AED; --violet-bg:#EDE9FE;
+  --green:#15803D; --green-bg:#DCFCE7; --red:#B91C1C; --red-bg:#FEE2E2;
+  --amber:#92400E; --amber-bg:#FEF3C7; --blue:#1D4ED8; --blue-bg:#DBEAFE;
+  --violet:#6D28D9; --violet-bg:#EDE9FE;
   --shadow:0 1px 3px rgba(15,23,42,.06),0 8px 24px rgba(15,23,42,.06);
   --radius:14px; --ease:cubic-bezier(.22,1,.36,1); font-size:15px;
 }
 html[data-theme="dark"]{
   --bg:#0B1120; --surface:#131C31; --surface-2:#1B2740;
   --text:#E6EDF7; --muted:#94A3B8; --line:#24324E;
+  --accent:#FF8C42; --accent-2:#FFA066; --on-accent:#0F172A;
   --green:#4ADE80; --green-bg:#14532D; --red:#F87171; --red-bg:#450A0A;
   --amber:#FBBF24; --amber-bg:#452A0A; --blue:#60A5FA; --blue-bg:#1E3A8A;
   --violet:#A78BFA; --violet-bg:#3B0764;
@@ -45,7 +46,7 @@ label{display:block;font-size:.78rem;font-weight:600;color:var(--muted);margin-b
 .nav a:hover{background:rgba(255,255,255,.08);color:#fff}
 .nav a.active{background:rgba(255,255,255,.14);color:#fff;box-shadow:inset 3px 0 0 var(--accent)}
 .nav a .ic{opacity:.85;flex:none}
-.nav .badge{margin-left:auto;background:var(--accent);color:#fff;font-size:.65rem;font-weight:700;border-radius:20px;padding:.1rem .45rem}
+.nav .badge{margin-left:auto;background:var(--accent);color:var(--on-accent);font-size:.65rem;font-weight:700;border-radius:20px;padding:.1rem .45rem}
 .side-foot{padding:.8rem 1rem;border-top:1px solid rgba(255,255,255,.09);font-size:.72rem;color:rgba(255,255,255,.45);display:flex;align-items:center;gap:.4rem}
 .main{flex:1;min-width:0;display:flex;flex-direction:column}
 .topbar{height:60px;flex:none;display:flex;align-items:center;gap:1rem;padding:0 1.4rem;background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:40}
@@ -98,7 +99,7 @@ label{display:block;font-size:.78rem;font-weight:600;color:var(--muted);margin-b
 .btn:disabled{opacity:.5;cursor:not-allowed}
 .btn-p{background:var(--primary);color:#fff}
 .btn-p:hover{background:var(--primary-2);transform:translateY(-1px)}
-.btn-a{background:var(--accent);color:#fff}
+.btn-a{background:var(--accent);color:var(--on-accent)}
 .btn-a:hover{background:var(--accent-2)}
 .btn-o{background:var(--surface);color:var(--text);border:1px solid var(--line)}
 .btn-o:hover{background:var(--surface-2)}
@@ -196,6 +197,23 @@ svg text{user-select:none}
 .msg-bubble.user .bub{background:var(--blue-bg);color:var(--text)}
 .msg-bubble.assistant .bub{background:var(--surface);border:1px solid var(--line)}
 .kbd{font-size:.72rem;color:var(--muted)}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--primary-3);outline-offset:2px}
+.crumb{display:flex;align-items:center;gap:.45rem;font-size:.74rem;color:var(--muted);line-height:1.2;min-height:1.2em}
+.crumb .sep{opacity:.55}
+.crumb .cur{color:var(--text);font-weight:700}
+.tenant-chip{display:inline-flex;align-items:center;gap:.4rem;height:34px;padding:0 .8rem 0 .65rem;border:1px solid var(--line);border-radius:20px;font-size:.76rem;font-weight:600;color:var(--text);background:var(--surface);white-space:nowrap;max-width:200px}
+.tenant-chip .td{width:8px;height:8px;border-radius:50%;background:var(--green);flex:none}
+.tenant-chip .tn{overflow:hidden;text-overflow:ellipsis}
+.help-sec{margin-bottom:1.05rem}
+.help-sec h4{font-size:.8rem;font-weight:700;margin-bottom:.35rem;color:var(--primary-3)}
+.help-sec p{font-size:.8rem;color:var(--muted);margin-bottom:.3rem;line-height:1.55}
+.sk{position:relative;overflow:hidden;background:var(--surface-2);border-radius:8px;display:inline-block}
+.sk::after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);animation:sk-shine 1.15s ease-in-out infinite}
+html[data-theme="dark"] .sk::after{background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent)}
+@keyframes sk-shine{to{transform:translateX(100%)}}
+.sk-chart{height:190px;width:100%;margin-top:.8rem}
+.sk-rows>div{padding:.7rem .2rem;border-bottom:1px solid var(--line)}
+.sk-rows>div:last-child{border-bottom:none}
 @media(max-width:860px){.sidebar{position:fixed;left:0;top:0;bottom:0;z-index:80;transform:translateX(-105%);transition:transform .3s var(--ease)}.sidebar.mobile-open{transform:none}#menu-btn{display:grid!important}}
 </style>
 </head>
@@ -210,7 +228,7 @@ svg text{user-select:none}
       <div class="field"><label>Email</label><input type="email" id="login-email" required autocomplete="username" placeholder="you@company.com"></div>
       <div class="field"><label>Password</label><input type="password" id="login-pass" required autocomplete="current-password" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;"></div>
       <button class="btn btn-p" type="submit" id="login-btn"><span>Sign in</span></button>
-      <div class="login-error" id="login-error"></div>
+      <div class="login-error" id="login-error" role="alert"></div>
     </form>
   </div>
 </div>
@@ -226,11 +244,13 @@ svg text{user-select:none}
   </aside>
   <div class="main">
     <header class="topbar">
-      <button class="icon-btn" id="menu-btn" title="Menu">&#9776;</button>
-      <div><h1 id="page-title">Overview</h1><div class="sub" id="page-sub"></div></div>
+      <button class="icon-btn" id="menu-btn" title="Menu" aria-label="Open menu">&#9776;</button>
+      <div><h1 id="page-title">Overview</h1><nav class="crumb" id="crumb" aria-label="Breadcrumb"><span>TryMe AI</span><span class="sep">/</span><span class="cur" id="crumb-cur">Overview</span></nav></div>
       <div class="spacer"></div>
-      <button class="icon-btn" id="theme-btn" title="Toggle theme">&#127769;</button>
-      <button class="icon-btn" id="notif-btn" title="Notifications">&#128276;<span class="dot" id="notif-dot" style="display:none"></span></button>
+      <span class="tenant-chip" id="tenant-chip" title="Workspace you are managing" hidden><span class="td"></span><span class="tn" id="tenant-name"></span></span>
+      <button class="icon-btn" id="theme-btn" title="Toggle theme" aria-label="Toggle dark mode">&#127769;</button>
+      <button class="icon-btn" id="help-btn" title="Help" aria-label="Open help">&#10067;</button>
+      <button class="icon-btn" id="notif-btn" title="Notifications" aria-label="Open notifications">&#128276;<span class="dot" id="notif-dot" style="display:none"></span></button>
       <div class="user-chip" id="user-chip" title="Sign out">
         <div class="av" id="user-av">?</div>
         <div><div class="u" id="user-name">&hellip;</div><div class="r" id="user-role">&hellip;</div></div>
@@ -241,10 +261,10 @@ svg text{user-select:none}
 </div>
 
 <div class="drawer-backdrop" id="drawer-backdrop"></div>
-<div class="drawer" id="drawer"><div class="drawer-head"><h3 id="drawer-title">Details</h3><button class="icon-btn" id="drawer-close">&#10005;</button></div><div class="drawer-body" id="drawer-body"></div></div>
+<div class="drawer" id="drawer"><div class="drawer-head"><h3 id="drawer-title">Details</h3><button class="icon-btn" id="drawer-close" aria-label="Close panel">&#10005;</button></div><div class="drawer-body" id="drawer-body"></div></div>
 
 <div class="modal-backdrop" id="modal-backdrop">
-  <div class="modal" id="modal"><div class="modal-head"><h2 id="modal-title"></h2><button class="icon-btn" id="modal-close">&#10005;</button></div><div class="modal-body" id="modal-body"></div><div class="modal-foot" id="modal-foot"></div></div>
+  <div class="modal" id="modal"><div class="modal-head"><h2 id="modal-title"></h2><button class="icon-btn" id="modal-close" aria-label="Close dialog">&#10005;</button></div><div class="modal-body" id="modal-body"></div><div class="modal-foot" id="modal-foot"></div></div>
 </div>
 <div id="toasts"></div>
 
@@ -334,7 +354,8 @@ function route(){
   Array.prototype.forEach.call(pages,p=>p.classList.toggle("active",p.id==="page-"+target));
   Array.prototype.forEach.call($$(".nav a"),a=>a.classList.toggle("active",a.dataset.page===target));
   $("#page-title").textContent=PAGE_TITLES[target];
-  $("#page-sub").textContent=target==="overview"?("Welcome back, "+(me?me.email:"")):(me?me.role_label:"");
+  $("#crumb-cur").textContent=PAGE_TITLES[target];
+  document.title="TryMe Enterprise AI — "+PAGE_TITLES[target];
   render[target]&&render[target]();
 }
 window.addEventListener("hashchange",route);
@@ -399,6 +420,7 @@ $("#theme-btn").addEventListener("click",()=>{ applyTheme((document.documentElem
 $("#user-chip").addEventListener("click",logout);
 $("#menu-btn").addEventListener("click",()=>$("#sidebar").classList.toggle("mobile-open"));
 $("#notif-btn").addEventListener("click",showNotifications);
+$("#help-btn").addEventListener("click",showHelp);
 
 /* ---- shared page helpers ---- */
 function statusBadge(status){
@@ -436,7 +458,7 @@ function contentError(e){ console.error(e); if(e&&e.message)toast("Error","error
 function definePage(id,fn){
   render[id]=async ()=>{
     currentPage=(location.hash.replace(/^#\/?/,"")||"overview").split("?")[0];
-    $("#content").innerHTML='<div class="page'+(currentPage===id?" active":"")+'" id="page-'+id+'"><div class="empty"><span class="spin"></span> Loading&hellip;</div></div>';
+    $("#content").innerHTML='<div class="page'+(currentPage===id?" active":"")+'" id="page-'+id+'">'+pageSkeleton(id)+"</div>";
     try{ await fn(); }catch(e){ contentError(e); }
   };
 }
@@ -446,6 +468,52 @@ function stat(lbl,val,sub,ic,bg,key,page){
 }
 function kindBadge(k){ const m={upload:["Upload","b-blue"],retrain:["Retrain","b-violet"],sync:["Sync","b-amber"],rollback:["Rollback","b-gray"]}; const b=m[k]||[k,"b-gray"]; return '<span class="badge '+b[1]+'">'+b[0]+"</span>"; }
 function confBadge(v){ const p=Math.round((v||0)*100); const c=p>=60?"b-green":p>=35?"b-amber":"b-red"; return '<span class="badge '+c+'">'+p+"%</span>"; }
+
+/* ---- skeleton loaders (match eventual layout) ---- */
+function skLine(w,h,m){ return '<span class="sk" style="width:'+w+';height:'+(h||"12px")+(m?";margin-top:"+m:"")+'"></span>'; }
+function skelStats(n,cols){ let s='<div class="grid cols-'+(cols||4)+'">'; for(let i=0;i<n;i++)s+='<div class="stat">'+skLine("62%","11px")+skLine("58%","24px",".55rem")+skLine("46%","10px",".5rem")+"</div>"; return s+"</div>"; }
+function skelTable(rows,cols){ let h='<div class="tbl-wrap"><table class="tbl"><thead><tr>'; for(let c=0;c<cols;c++)h+='<th>'+skLine("64%","10px")+"</th>"; h+='</tr></thead><tbody>'; for(let r=0;r<rows;r++){ h+="<tr>"; for(let c=0;c<cols;c++)h+='<td>'+skLine((42+(r*7+c*13)%40)+"%","12px")+"</td>"; h+="</tr>"; } return h+"</tbody></table></div>"; }
+function skelCards(n,chart){ let s=""; for(let i=0;i<n;i++)s+='<div class="card"><h3>'+skLine("38%","12px")+"</h3>"+(chart?'<div class="sk sk-chart"></div>':skLine("100%","12px")+'<div style="margin-top:.55rem">'+skLine("82%","12px")+"</div>")+"</div>"; return s; }
+function skelList(n){ let s='<div class="sk-rows">'; for(let i=0;i<n;i++)s+='<div>'+skLine("55%","12px")+'<div style="margin-top:.4rem">'+skLine("88%","10px")+"</div></div>"; return s+"</div>"; }
+function pageSkeleton(id){
+  switch(id){
+    case "overview": return skelStats(4)+'<div class="grid cols-2">'+skelCards(2,true)+"</div>";
+    case "analytics": return skelStats(4)+skelCards(3,true);
+    case "conversations": case "unanswered": case "knowledge": case "audit": case "jobs": return skelTable(8,6);
+    case "upload": return '<div class="grid cols-2">'+skelCards(2,false)+"</div>"+skelCards(1,false);
+    case "users": return skelTable(6,5)+skelList(3);
+    case "settings": return '<div class="grid cols-2">'+skelCards(2,false)+"</div>"+skelCards(1,false);
+    case "backup": return skelCards(3,false);
+    case "health": return skelStats(3,3)+skelCards(1,false);
+    default: return '<div class="card"><h3>'+skLine("38%","12px")+"</h3>"+skelTable(6,4)+"</div>";
+  }
+}
+
+/* ---- live knowledge sync indicator ---- */
+async function refreshKnowledgeStatus(){
+  const lbl=$("#ov-kb-label"), dot=$("#ov-kb-dot"); if(!lbl)return;
+  try{
+    const st=await api("/knowledge/status");
+    const n=(st&&st.source_count)||0, c=(st&&st.chunk_count)||0, err=(st&&st.last_error)||null;
+    const ready=(st&&st.chunk_count!=null&&!err);
+    dot.className="health-dot "+(ready?"hok":"hbad");
+    lbl.style.color=err?"var(--red)":"var(--text)";
+    lbl.textContent=(ready?"Synced":err?"Needs attention":"Not configured")+" — "+n+" source"+(n===1?"":"s")+", "+c+" chunk"+(c===1?"":"s");
+  }catch(e){ dot.className="health-dot hbad"; lbl.style.color="var(--muted)"; lbl.textContent="Knowledge status unavailable"; }
+}
+
+/* ---- help ---- */
+function showHelp(){
+  const sections=[
+    ["Insights","Overview — live KPIs, trends and activity. Analytics — conversations, top queries, funnel and distribution. Conversations — browse full threads and feedback."],
+    ["Knowledge","Unanswered Q&A — review and answer questions to teach the AI. Knowledge — manage documents, versions and rollbacks. Upload & Sync — add files, retrain the index and sync sites."],
+    ["Administration","Users — invite teammates and assign roles. Audit Log — every action with actor and target. Settings & API Keys — retrieval, models, sites and API keys. Backup & Export — download, restore or export the knowledge base."],
+    ["Operations","System Health — component status for database, vector store, LLM and embeddings. Jobs — training and sync progress."]
+  ];
+  const html=sections.map(s=>'<div class="help-sec"><h4>'+esc(s[0])+"</h4><p>"+esc(s[1])+"</p></div>").join("")+
+    '<div class="help-sec"><h4>Notes</h4><p>Data refreshes automatically: health every 30s, notifications every 25s, jobs every 15s, unanswered counts every 60s. Use the theme toggle (&#127769;) for dark mode. Sign out from the user chip in the top-right. Capabilities are filtered by your role — actions you cannot perform are hidden.</p></div>';
+  openDrawer("Help &amp; navigation",html);
+}
 
 /* ---- overview ---- */
 function actItemHtml(a){
@@ -468,6 +536,7 @@ definePage("overview",async ()=>{
   const act=can("audit.view")?await api("/audit?limit=8").catch(()=>({items:[]})):{items:[]};
   const actHtml=(act.items||[]).map(actItemHtml).join("")||'<div class="empty">No activity yet</div>';
   const html='<div class="card" style="padding:.7rem 1rem"><div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">'+quickHtml+'<div class="spacer"></div><span class="kbd">Live &#183; refreshed '+new Date().toLocaleTimeString()+'</span></div></div>'+
+    '<div class="card" style="padding:.6rem 1rem"><div style="display:flex;align-items:center;gap:.55rem;flex-wrap:wrap"><span class="health-dot" id="ov-kb-dot"></span><b id="ov-kb-label" style="font-size:.8rem">Checking knowledge&hellip;</b><div class="spacer"></div><a class="link" href="#/upload" style="margin:0">Manage &rarr;</a></div></div>'+
     '<div class="grid cols-4">'+
     stat("Conversations",fmtNum(ov.conversations),"Today: "+fmtNum(ov.today_conversations),"&#128172;","#DBEAFE","conv","conversations")+
     stat("Messages",fmtNum(ov.messages),fmtNum(ov.assistant_messages)+" assistant replies","&#128172;","#EDE9FE","msg","conversations")+
@@ -485,6 +554,7 @@ definePage("overview",async ()=>{
   setPage("overview",html);
   qa("[data-goto]").forEach(b=>b.addEventListener("click",e=>{ if(b.tagName==="A")return; e.preventDefault(); location.hash="#/"+b.dataset.goto; }));
   const rf=$("#ov-refresh"); if(rf)rf.addEventListener("click",()=>render.overview());
+  refreshKnowledgeStatus();
   svgLineChart($("#ov-chart"),[
     {name:"Conversations",color:"#294199",points:days.map(x=>({x:x.date.slice(5),y:x.conversations}))},
     {name:"Messages",color:"#F26E26",points:days.map(x=>({x:x.date.slice(5),y:x.messages}))}
@@ -516,6 +586,7 @@ async function refreshOverview(){
       const feed=$("#ov-activity");
       if(feed)feed.innerHTML=(act.items||[]).map(actItemHtml).join("")||'<div class="empty">No activity yet</div>';
     }
+    refreshKnowledgeStatus();
   }catch(e){}
 }
 
@@ -530,7 +601,7 @@ definePage("analytics",()=>{
 });
 async function loadAnBody(){
   const el=$("#an-body"); if(!el)return;
-  el.innerHTML='<div class="empty"><span class="spin"></span> Loading&hellip;</div>';
+  el.innerHTML=pageSkeleton("analytics");
   const ds=$("#days-seg"); if(ds)ds.style.display=(S.anSeg==="trends"?"":"none");
   try{
     if(S.anSeg==="trends"){
@@ -873,17 +944,24 @@ definePage("backup",()=>{
   $("#dl-csv").addEventListener("click",()=>downloadFile("/export-conversations","conversations.csv"));
   const rf=$("#restore-file");
   $("#btn-restore").addEventListener("click",()=>rf.click());
-  rf.addEventListener("change",async ()=>{
+  rf.addEventListener("change",()=>{
     if(!rf.files.length)return;
-    const fd=new FormData(); fd.append("file",rf.files[0]);
-    const msg=$("#restore-msg"); msg.textContent="Restoring&hellip;";
-    try{
-      const r=await api("/backup/restore",{method:"POST",body:fd});
-      msg.textContent="Restore started — retraining job "+r.job_id;
-      toast("Restore started","success");
-      if(r.job_id)trackJob(r.job_id);
-    }catch(e){ msg.textContent=""; toast("Restore failed","error",e.message); }
-    rf.value="";
+    const f=rf.files[0];
+    const html='<p style="font-size:.85rem;margin-bottom:.6rem">Restoring <b>'+esc(f.name)+'</b> will <b>replace</b> the current knowledge base — documents, versions, settings, and answered questions. A retraining job runs in the background afterwards.</p><p style="font-size:.82rem;color:var(--muted)">This cannot be undone. Proceed only if this backup is trusted.</p>';
+    openModal("Restore backup?",html,'<button class="btn btn-o" id="rs-cancel">Cancel</button><button class="btn btn-d" id="rs-confirm">Restore &amp; retrain</button>');
+    $("#rs-cancel").addEventListener("click",()=>{ closeModal(); rf.value=""; });
+    $("#rs-confirm").addEventListener("click",async ()=>{
+      const fd=new FormData(); fd.append("file",f);
+      const msg=$("#restore-msg"); if(msg)msg.textContent="Restoring&hellip;";
+      closeModal();
+      try{
+        const r=await api("/backup/restore",{method:"POST",body:fd});
+        if(msg)msg.textContent="Restore started — retraining job "+r.job_id;
+        toast("Restore started","success");
+        if(r.job_id)trackJob(r.job_id);
+      }catch(e){ if(msg)msg.textContent=""; toast("Restore failed","error",e.message); }
+      rf.value="";
+    });
   });
 });
 async function downloadFile(path,filename){
@@ -973,6 +1051,8 @@ function boot(){
   $("#user-name").textContent=me.email;
   $("#user-role").textContent=me.role_label;
   $("#user-av").textContent=(me.email||"?").charAt(0).toUpperCase();
+  const tc=$("#tenant-chip");
+  if(tc&&me.tenant_name){ $("#tenant-name").textContent=me.tenant_name; tc.hidden=false; }
   clearTimers();
   S.ovPoll=0;
   route();

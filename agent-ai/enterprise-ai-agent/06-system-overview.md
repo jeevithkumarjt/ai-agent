@@ -40,7 +40,7 @@ A practical map of the whole system: what it is, how the pieces fit together, wh
 │   admin-ai.html (Admin SPA)     index.html / main.html (Chat UI)                 │
 │   frontend/ (React embeddable widget)                                            │
 │   api-config.js  → window.APP_API_BASE  = https://ai-agent-backend-wnc6.onrender.com
-│   api-credentials.js → auto-login (gitignored)                                   │
+│   no credentials in static files → guest session via POST /v1/auth/guest       │
 └──────────────────────────────────┬───────────────────────────────────────────────┘
                                    │ HTTPS (REST + SSE / WebSocket)
 ┌──────────────────────────────────▼───────────────────────────────────────────────┐
@@ -88,7 +88,6 @@ agent-ai/enterprise-ai-agent/
 ├── index.html                # chat UI — "TryMe AI — Enterprise Assistant"
 ├── main.html                 # chat UI — "TryMe AI — Talk to Your Enterprise AI"
 ├── api-config.js             # window.APP_API_BASE (Pages → backend URL)
-├── api-credentials.example.js# template; copy to api-credentials.js (gitignored)
 ├── docker-compose.yml        # postgres + backend (local dev)
 ├── .env.example              # documented config keys
 └── 0x-*.md                   # design docs: architecture, agent/RAG, data model, API, roadmap
@@ -113,6 +112,7 @@ agent-ai/enterprise-ai-agent/
 |--------|------|---------|
 | POST | `/v1/auth/login` | Login → `access_token` + `refresh_token` |
 | POST | `/v1/auth/refresh` | Rotate token pair (30 min access / 14 day refresh) |
+| POST | `/v1/auth/guest` | Anonymous start-session → viewer-scoped, rate-limited token pair |
 | POST | `/v1/conversations` | Create a conversation |
 | GET | `/v1/conversations/{id}/messages` | Conversation history (paginated) |
 | POST | `/v1/conversations/{id}/messages` | Send a message → **SSE stream** of agent events |
@@ -151,7 +151,7 @@ agent-ai/enterprise-ai-agent/
 | `core/rbac.py` | Role → scope matrix. Roles: `owner` (Super Admin), `admin`, `editor` (Trainer), `viewer`. |
 | `core/anthropic_client.py` | Anthropic Messages API streaming client (custom, no SDK). |
 | `core/openai_compat_client.py` | OpenAI-compatible adapter (used for Groq). |
-| `core/embeddings.py` | Embeddings client; empty key → dev hash fallback. |
+| `core/embeddings.py` | Embeddings client (OpenAI-compatible); hash fallback is dev-only and cannot feed ingestion/retrieval. |
 | `core/rate_limit.py` | Rate-limit middleware seam. |
 
 ### 4.5 Database (Postgres + pgvector)
@@ -195,9 +195,9 @@ agent-ai/enterprise-ai-agent/
 **Config glue:**
 
 - `api-config.js` → `window.APP_API_BASE = "https://ai-agent-backend-wnc6.onrender.com"` — points the static pages at the backend.
-- `api-credentials.js` → auto-login creds for chat pages (gitignored; `api-credentials.example.js` is the committed template).
+- No credentials are shipped in static files. Chat visitors get a viewer-scoped token from `POST /v1/auth/guest`.
 
-**Auth flow in all pages:** `POST /v1/auth/login` → store `at`/`rt` in localStorage → `ensureSession()` restores/refreshes → chat creates a conversation → streams via SSE.
+**Auth flow in chat pages:** `POST /v1/auth/guest` → rate-limited viewer token → `ensureSession()` restores/refreshes → chat creates a conversation → streams via SSE. Real users sign in with `POST /v1/auth/login` to save conversations past the guest message cap. The admin SPA logs in normally with email + password.
 
 ### 5.2 Embeddable widget (`frontend/`, React + Vite)
 
@@ -277,9 +277,8 @@ Supported file types (extractor + CLI now agree): `.txt .md .markdown .rst .text
 
 ## 9. Security notes
 
-- Secrets are env-only; `.env`, `api-credentials.js`, and key files are gitignored.
+- Secrets are env-only; `.env` and key files are gitignored. Static files carry **no credentials**: public chat pages start a session via `POST /v1/auth/guest` (viewer role, rate-limited per IP + per-visitor message cap).
 - Passwords hashed with Argon2; JWT access 30 min + refresh 14 days; RBAC enforced per admin route with scopes resolved from the DB row on every request.
-- ⚠️ **Watch out:** `api-credentials.js` currently holds the admin password in plaintext (gitignored, so it won't be pushed — but anyone who can read the deployed files can see it). Prefer a low-privilege account or token-based login for the chat pages.
 - ⚠️ `.env` contains a live Groq API key locally. It is gitignored — do not commit it.
 
 ---
@@ -287,6 +286,6 @@ Supported file types (extractor + CLI now agree): `.txt .md .markdown .rst .text
 ## 10. Suggested next steps
 
 1. Commit + push the `cli.py` fix, then **Manual Deploy** on Render and press **Sync** in the admin portal → docx pages go live.
-2. Point `EMBEDDINGS_API_KEY` at a real OpenAI-compatible embeddings endpoint for meaningful vector retrieval (dev fallback hashes are meaningless).
-3. Replace the plaintext `api-credentials.js` password with a restricted account or API-key flow.
+2. Set `EMBEDDINGS_API_KEY` to a real OpenAI-compatible embeddings endpoint (OpenAI `text-embedding-3-small`) and re-ingest, so vector retrieval is meaningful.
+3. Rotate the old `BOOTSTRAP_OWNER_PASSWORD` / any account that was previously used by `api-credentials.js` (its plaintext file has been removed).
 4. Add tests for the docx extraction path (now that `python-docx` is required, CI should install `backend[dev]`).

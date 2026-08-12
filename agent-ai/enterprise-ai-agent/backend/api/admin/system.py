@@ -47,13 +47,17 @@ class ApiKeyBody(BaseModel):
 @router.get("/me")
 async def me(
     principal: Annotated[Principal, Depends(require_scope(SCOPE_HEALTH))],
+    session: Annotated[AsyncSession, Depends(get_session)],
 ) -> dict:
     from core.rbac import role_label, role_scopes
+    from db.models import Tenant
+    tenant = await session.get(Tenant, principal.tenant_id)
     return {
         "user_id": str(principal.user_id),
         "email": principal.email,
         "role": principal.role,
         "role_label": role_label(principal.role),
+        "tenant_name": tenant.name if tenant is not None else "",
         "scopes": sorted(role_scopes(principal.role)),
     }
 

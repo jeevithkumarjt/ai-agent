@@ -1,20 +1,23 @@
 """RAG service (02-agent-and-rag-workflow.md).
 
 Chunking: token-aware, target ~500 tokens with ~50 token overlap (documented).
-Retrieval: cosine similarity `embedding <=> :q` against the tenant's chunks only
-(ADR-004); flat scan is fine below ~50k rows (ADR-001). Retrieval runs inside the
-`search_knowledge_base` tool, never silently prepended to context.
+Retrieval: hybrid — Postgres tsvector/ts_rank (lexical, BM25-style, GIN-indexed)
+blended with pgvector cosine similarity (ADR-001) in a single query against the
+tenant's chunks only (ADR-004). `document_chunks` is the single source of truth;
+flat scan + sort is fine below ~50k rows (ADR-001). Retrieval runs inside the
+`search_knowledge_base` tool and in the orchestrator's system-prompt grounding,
+never silently prepended to context beyond that.
 """
 from __future__ import annotations
 
 import re
 import uuid
 
-from core.embeddings import Embedder
+from core.embeddings import Embedder, EmbeddingsError
 from core.logging import get_logger
 from core.settings import settings
 from db.models import DocumentChunk
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = get_logger("services.rag")
@@ -75,7 +78,26 @@ class RagService:
     def __init__(self, embedder: Embedder) -> None:
         self.embedder = embedder
 
+    def _require_real_embeddings(self, *, action: str) -> None:
+        if not self.embedder.real:
+            # The LocalHash fallback is only for local dev/tests — never pretend
+            # its vectors are meaningful semantic retrieval for real data.
+            logger.warning(
+                "embeddings_not_real",
+                action=action,
+                reason="embedder is the dev hash fallback; EMBEDDINGS_API_KEY is not configured",
+            )
+            raise EmbeddingsError(
+                f"Cannot {action}: no real embeddings endpoint configured. "
+                "Set EMBEDDINGS_API_KEY to an OpenAI-compatible endpoint (e.g. "
+                "OpenAI text-embedding-3-small) — hash fallback vectors are meaningless (ADR-007)."
+            )
+
     async def ingest_text(self, session: AsyncSession, *, tenant_id: uuid.UUID, source_id: str, text: str, metadata: dict | None = None) -> int:
+        # Refuse to write hash-fallback vectors into the store: once a real
+        # endpoint is configured, stale hash rows would be cosine-compared
+        # against real embeddings and silently return garbage.
+        self._require_real_embeddings(action="ingest chunks")
         chunks = chunk_text(text)
         if not chunks:
             return 0
@@ -91,15 +113,26 @@ class RagService:
         return len(rows)
 
     async def search(self, session: AsyncSession, *, tenant_id: uuid.UUID, query: str, top_k: int | None = None) -> list[DocumentChunk]:
+        """Hybrid retrieval: lexical (tsvector ts_rank) + vector (cosine) in one query.
+
+        Both signals are computed against the same rows and blended by
+        `retrieval_lexical_weight` / `retrieval_vector_weight`. Stopword-only
+        queries yield an empty tsquery whose ts_rank is 0, degrading cleanly to
+        pure vector search — no special-casing needed. `document_chunks.tsv` is a
+        generated column, so the lexical index can never drift from the text.
+        """
         top_k = top_k or settings.retrieval_top_k
         if top_k < 1:
             return []
+        self._require_real_embeddings(action="run semantic search")
         [query_embedding] = await self.embedder.embed([query])
+        tsquery = func.websearch_to_tsquery("english", query)
+        lexical = func.ts_rank_cd(DocumentChunk.tsv, tsquery) * settings.retrieval_lexical_weight
+        vector = (1 - DocumentChunk.embedding.cosine_distance(query_embedding)) * settings.retrieval_vector_weight
         stmt = (
-            select(DocumentChunk, (DocumentChunk.embedding.cosine_distance(query_embedding)).label("distance"))
+            select(DocumentChunk)
             .where(DocumentChunk.tenant_id == tenant_id)
-            .order_by("distance")
+            .order_by((lexical + vector).desc())
             .limit(top_k)
         )
-        results = (await session.execute(stmt)).all()
-        return [row[0] for row in results]
+        return list((await session.execute(stmt)).scalars())

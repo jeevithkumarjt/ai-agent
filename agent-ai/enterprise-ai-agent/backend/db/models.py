@@ -12,6 +12,7 @@ from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
     Boolean,
     CheckConstraint,
+    Computed,
     DateTime,
     ForeignKey,
     Index,
@@ -20,7 +21,7 @@ from sqlalchemy import (
     UniqueConstraint,
     func,
 )
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR, UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 EMBEDDING_DIM = 1536
@@ -100,6 +101,7 @@ class DocumentChunk(Base):
     __table_args__ = (
         Index("idx_document_chunks_tenant", "tenant_id"),
         Index("idx_document_chunks_source", "tenant_id", "source_id"),
+        Index("idx_document_chunks_tsv", "tsv", postgresql_using="gin"),
     )
 
     id: Mapped[uuid.UUID] = _uuid_pk()
@@ -107,6 +109,13 @@ class DocumentChunk(Base):
     source_id: Mapped[str] = mapped_column(Text, nullable=False)
     chunk_text: Mapped[str] = mapped_column(Text, nullable=False)
     embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIM), nullable=False)
+    # Generated lexical index (BM25-style tsvector) so hybrid search (ts_rank +
+    # cosine similarity) runs in one table — no separate in-memory BM25 to drift.
+    tsv: Mapped[Any] = mapped_column(
+        TSVECTOR,
+        Computed("to_tsvector('english', chunk_text)", persisted=True),
+        nullable=False,
+    )
     chunk_metadata: Mapped[dict[str, Any]] = mapped_column("metadata", JSONB, nullable=False, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 

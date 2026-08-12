@@ -38,36 +38,59 @@ def _create_token(
     role: str,
     token_type: TokenType,
     expires_in: timedelta,
+    is_guest: bool = False,
+    extra: dict[str, str] | None = None,
 ) -> str:
     now = _now()
-    payload = {
+    payload: dict = {
         "sub": str(user_id),
         "tenant_id": str(tenant_id),
         "role": role,
         "type": token_type,
+        "guest": is_guest,
         "iat": now,
         "exp": now + expires_in,
     }
+    if extra:
+        payload.update(extra)
     return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
 
 
-def create_access_token(user_id: uuid.UUID, tenant_id: uuid.UUID, role: str) -> str:
+def create_access_token(
+    user_id: uuid.UUID,
+    tenant_id: uuid.UUID,
+    role: str,
+    *,
+    is_guest: bool = False,
+    extra: dict[str, str] | None = None,
+) -> str:
     return _create_token(
         user_id=user_id,
         tenant_id=tenant_id,
         role=role,
         token_type="access",
-        expires_in=timedelta(minutes=settings.jwt_access_ttl_minutes),
+        expires_in=timedelta(minutes=settings.guest_session_ttl_minutes if is_guest else settings.jwt_access_ttl_minutes),
+        is_guest=is_guest,
+        extra=extra,
     )
 
 
-def create_refresh_token(user_id: uuid.UUID, tenant_id: uuid.UUID, role: str) -> str:
+def create_refresh_token(
+    user_id: uuid.UUID,
+    tenant_id: uuid.UUID,
+    role: str,
+    *,
+    is_guest: bool = False,
+    extra: dict[str, str] | None = None,
+) -> str:
     return _create_token(
         user_id=user_id,
         tenant_id=tenant_id,
         role=role,
         token_type="refresh",
         expires_in=timedelta(days=settings.jwt_refresh_ttl_days),
+        is_guest=is_guest,
+        extra=extra,
     )
 
 

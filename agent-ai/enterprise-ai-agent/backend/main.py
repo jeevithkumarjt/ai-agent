@@ -91,16 +91,16 @@ async def _ensure_admin_tables() -> None:
 
 
 async def _knowledge_refresh_loop(store: KnowledgeStore) -> None:
-    """Refresh documents/ + site crawl at startup, then periodically in background."""
-    await asyncio.to_thread(store.refresh)
+    """Ingest documents/ + site crawl into document_chunks at startup, then periodically."""
+    await store.refresh()
     while True:
         await asyncio.sleep(settings.knowledge_refresh_minutes * 60)
-        await asyncio.to_thread(store.refresh)
+        await store.refresh()
 
 
 async def _auto_sync_loop(app: FastAPI) -> None:
-    """Respect the portal's auto-sync interval (0 = disabled). Refreshes the
-    in-process knowledge store on the shortest enabled interval across tenants."""
+    """Respect the portal's auto-sync interval (0 = disabled). Re-ingests the
+    knowledge store on the shortest enabled interval across tenants."""
     from db.admin_models import AdminSetting
     from db.session import async_session_factory
     from sqlalchemy import select
@@ -114,7 +114,7 @@ async def _auto_sync_loop(app: FastAPI) -> None:
             enabled = []
         shortest = min((value for value in enabled if value > 0), default=0)
         if shortest > 0:
-            await asyncio.to_thread(app.state.knowledge.refresh)
+            await app.state.knowledge.refresh()
             await asyncio.sleep(max(60, shortest * 60))
         else:
             await asyncio.sleep(60)
@@ -133,11 +133,11 @@ def _build_services(app: FastAPI) -> None:
 
     rag = RagService(get_embedder())
     tools: dict[str, BaseTool] = build_tool_map([SearchKnowledgeBaseTool(rag)])
-    knowledge = KnowledgeStore(docs_dir=Path(settings.knowledge_docs_dir))
+    knowledge = KnowledgeStore(docs_dir=Path(settings.knowledge_docs_dir), embedder=rag.embedder)
     portal = PortalService(rag, knowledge)
     app.state.knowledge = knowledge
     app.state.portal = portal
-    app.state.orchestrator = Orchestrator(llm, tools, knowledge=knowledge, portal=portal)
+    app.state.orchestrator = Orchestrator(llm, tools, rag=rag, portal=portal)
 
 
 app = create_app()

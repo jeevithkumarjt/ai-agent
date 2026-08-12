@@ -26,6 +26,12 @@ class Settings(BaseSettings):
     anthropic_max_tokens: int = 2048
     anthropic_version: str = "2023-06-01"
 
+    # --- LLM (Groq / OpenAI-compatible endpoint, used when llm_provider="groq") ---
+    # Provider swap is a config change only: set GROQ_API_KEY (or reuse ANTHROPIC_*).
+    groq_api_key: str = ""
+    groq_base_url: str = "https://api.groq.com/openai/v1"
+    groq_model: str = "llama-3.3-70b-versatile"
+
     # --- Embeddings (must match document_chunks.embedding vector(1536)) ---
     embeddings_api_key: str = ""
     embeddings_base_url: str = "https://api.openai.com/v1"
@@ -33,8 +39,10 @@ class Settings(BaseSettings):
     embeddings_dim: int = 1536
     embeddings_batch_size: int = 64
 
-    # --- Retrieval ---
+    # --- Retrieval (hybrid: Postgres ts_rank + pgvector cosine) ---
     retrieval_top_k: int = 5
+    retrieval_lexical_weight: float = 0.3
+    retrieval_vector_weight: float = 0.7
 
     # --- Knowledge store (documents/ folder + site crawl; stdlib only) ---
     knowledge_docs_dir: str = "documents"
@@ -57,7 +65,9 @@ class Settings(BaseSettings):
     guest_enabled: bool = True
     guest_role: str = "viewer"
     guest_tenant_id: str = ""  # optional; defaults to the first tenant
-    guest_requests_per_minute: int = 20
+    guest_requests_per_minute: int = 20  # per-IP cap on the /v1/auth/guest endpoint
+    guest_message_limit: int = 10  # hard server-side cap per anonymous session; past this, clients gate on sign-in
+    guest_session_ttl_minutes: int = 30  # guest access tokens are short-lived, no refresh issued
 
     # --- Bootstrap (python -m backend.cli seed) ---
     bootstrap_tenant_name: str = "Default"

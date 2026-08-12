@@ -22,12 +22,14 @@ logger = get_logger("core.openai")
 
 class OpenAICompatClient:
     def __init__(self, *, api_key: str | None = None, base_url: str | None = None, model: str | None = None) -> None:
-        self.api_key = api_key or settings.anthropic_api_key
-        self.base_url = base_url or settings.anthropic_base_url
-        self.model = model or settings.anthropic_model
+        # GROQ_* vars take precedence; ANTHROPIC_* are the legacy fallback so
+        # existing deployments keep working after a provider swap.
+        self.api_key = api_key or settings.groq_api_key or settings.anthropic_api_key
+        self.base_url = base_url or settings.groq_base_url or settings.anthropic_base_url
+        self.model = model or settings.groq_model or settings.anthropic_model
         self.timeout = 600
         if not self.api_key:
-            raise AnthropicError("ANTHROPIC_API_KEY is not configured (ADR-007)")
+            raise AnthropicError("GROQ_API_KEY / ANTHROPIC_API_KEY is not configured (ADR-007)")
 
     # -- request plumbing -------------------------------------------------------
 

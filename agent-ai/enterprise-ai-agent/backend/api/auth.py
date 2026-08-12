@@ -34,13 +34,15 @@ logger = get_logger("api.auth")
 router = APIRouter(prefix="/v1/auth", tags=["auth"])
 
 
-async def _token_pair(user: User) -> TokenPair:
-    access = create_access_token(user.id, user.tenant_id, user.role)
-    refresh = create_refresh_token(user.id, user.tenant_id, user.role)
+async def _token_pair(user: User, *, is_guest: bool = False, extra: dict[str, str] | None = None) -> TokenPair:
+    access = create_access_token(user.id, user.tenant_id, user.role, is_guest=is_guest, extra=extra)
+    # Guest sessions get NO refresh token: the demo token is short-lived, scoped,
+    # and re-issued on demand. Nothing stored client-side can outlive the session.
+    refresh = "" if is_guest else create_refresh_token(user.id, user.tenant_id, user.role)
     return TokenPair(
         access_token=access,
         refresh_token=refresh,
-        expires_in=settings.jwt_access_ttl_minutes * 60,
+        expires_in=(settings.guest_session_ttl_minutes if is_guest else settings.jwt_access_ttl_minutes) * 60,
     )
 
 
@@ -97,8 +99,12 @@ async def guest_session(request: Request, session: Annotated[AsyncSession, Depen
     if not settings.guest_enabled:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="guest sessions are disabled")
     user = await _guest_user(session)
+    # sid = per-visitor session id embedded in the signed token. The server uses it
+    # to enforce the anonymous message cap / rate limit without sharing DB rows
+    # between visitors (all guests share one tenant-scoped user account).
+    sid = secrets.token_urlsafe(16)
     logger.info("guest_session_issued", tenant_id=str(user.tenant_id), user_id=str(user.id))
-    return await _token_pair(user)
+    return await _token_pair(user, is_guest=True, extra={"sid": sid})
 
 
 @router.post("/refresh", response_model=TokenPair, status_code=status.HTTP_200_OK)
