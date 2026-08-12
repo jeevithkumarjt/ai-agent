@@ -1291,7 +1291,7 @@
     wrap.appendChild(orb);
     t.appendChild(wrap);
     var txt = el('span', 'aw-think-txt');
-    txt.textContent = 'Retrieving context\u2026';
+    txt.textContent = 'Thinking\u2026';
     t.appendChild(txt);
     b.appendChild(t);
     var o = new Orb(cv, SKY, 46);
@@ -1309,8 +1309,7 @@
     return b;
   }
   function streamInto(ans, text) {
-    ans.innerHTML = '';
-    ans.appendChild(paragraphNode(text));
+    renderMarkdown(ans, text);
   }
   function errorBubble(msg) {
     var b = el('div', 'aw-msg agent');
@@ -1424,19 +1423,140 @@
     requestAnimationFrame(function () { logBgEl.classList.add('is-visible'); });
   }
 
-  /* ---------- answer rendering ---------- */
-  function paragraphNode(text) {
-    var p = el('p');
-    p.setAttribute('style', 'margin:0;font-size:13.5px;line-height:1.55;color:#374151;white-space:pre-wrap;');
-    p.textContent = String(text);
-    return p;
+  /* ---------- answer rendering (markdown-lite) ---------- */
+  function inlineMd(text, node) {
+    var re = /(\*\*[^*]+\*\*|`[^`]+`)/g;
+    var parts = String(text).split(re);
+    for (var i = 0; i < parts.length; i++) {
+      var p = parts[i];
+      if (!p) continue;
+      if (p.charAt(0) === '*' && p.charAt(1) === '*' && p.slice(-2) === '**') {
+        var b = el('strong');
+        b.textContent = p.slice(2, -2);
+        node.appendChild(b);
+      } else if (p.charAt(0) === '`' && p.slice(-1) === '`' && p.length > 2) {
+        var c = el('code');
+        c.textContent = p.slice(1, -1);
+        c.setAttribute('style', 'background:#F3F4F6;padding:1px 4px;border-radius:4px;font-family:Consolas,Menlo,monospace;');
+        node.appendChild(c);
+      } else {
+        node.appendChild(document.createTextNode(p));
+      }
+    }
   }
-
+  function mdBlockStyle(node, level) {
+    node.setAttribute('style', 'margin:' + (level === 1 ? '14px 0 6px' : '10px 0 5px') + ';font-size:' + (level === 1 ? '14.5px' : '13.5px') + ';font-weight:700;line-height:1.45;color:#111827;');
+  }
+  function mdListStyle(list) {
+    list.setAttribute('style', 'margin:0 0 10px;padding-left:20px;');
+  }
+  function mdItemStyle(item) {
+    item.setAttribute('style', 'margin:0 0 4px;font-size:13.5px;line-height:1.6;color:#374151;');
+  }
+  function mdTableStyle(table) {
+    table.setAttribute('style', 'border-collapse:collapse;margin:0 0 10px;width:100%;font-size:12.5px;');
+  }
+  function mdCellStyle(cell, head) {
+    cell.setAttribute('style', 'border:1px solid #E5E7EB;padding:6px 8px;text-align:left;vertical-align:top;' + (head ? 'font-weight:700;color:#111827;background:#F9FAFB;' : 'color:#374151;'));
+  }
+  function mdToNodes(text) {
+    var frag = document.createDocumentFragment();
+    var lines = String(text).replace(/\r\n/g, '\n').split('\n');
+    var i = 0;
+    var para = [];
+    function flushPara() {
+      if (!para.length) return;
+      var p = el('p');
+      p.setAttribute('style', 'margin:0 0 10px;font-size:13.5px;line-height:1.6;color:#374151;white-space:pre-wrap;');
+      inlineMd(para.join('\n'), p);
+      frag.appendChild(p);
+      para = [];
+    }
+    function flushList(items, ordered) {
+      var tag = ordered ? 'ol' : 'ul';
+      var list = el(tag);
+      mdListStyle(list);
+      for (var j = 0; j < items.length; j++) {
+        var li = el('li');
+        mdItemStyle(li);
+        inlineMd(items[j], li);
+        list.appendChild(li);
+      }
+      frag.appendChild(list);
+    }
+    while (i < lines.length) {
+      var line = lines[i];
+      var m;
+      if ((m = line.match(/^(#{1,3})\s+(.*)$/))) {
+        flushPara();
+        var h = el(m[1].length === 1 ? 'h3' : m[1].length === 2 ? 'h4' : 'h5');
+        mdBlockStyle(h, m[1].length);
+        inlineMd(m[2], h);
+        frag.appendChild(h);
+        i++;
+      } else if (/^\s*[-*+]\s+/.test(line)) {
+        flushPara();
+        var items = [];
+        while (i < lines.length && /^\s*[-*+]\s+/.test(lines[i])) {
+          items.push(lines[i].replace(/^\s*[-*+]\s+/, ''));
+          i++;
+        }
+        flushList(items, false);
+      } else if (/^\s*\d+[.)]\s+/.test(line)) {
+        flushPara();
+        var oitems = [];
+        while (i < lines.length && /^\s*\d+[.)]\s+/.test(lines[i])) {
+          oitems.push(lines[i].replace(/^\s*\d+[.)]\s+/, ''));
+          i++;
+        }
+        flushList(oitems, true);
+      } else if (/^\s*\|/.test(line)) {
+        flushPara();
+        var tbl = [];
+        while (i < lines.length && /^\s*\|/.test(lines[i])) { tbl.push(lines[i].trim()); i++; }
+        frag.appendChild(mdTable(tbl));
+      } else if (!line.trim()) {
+        flushPara();
+        i++;
+      } else {
+        para.push(line);
+        i++;
+      }
+    }
+    flushPara();
+    return frag;
+  }
+  function mdTable(rows) {
+    var parsed = [];
+    for (var r = 0; r < rows.length; r++) {
+      var cells = rows[r].replace(/^\|/, '').replace(/\|$/, '').split('|');
+      var clean = [];
+      for (var c = 0; c < cells.length; c++) clean.push(cells[c].trim());
+      if (r === 1 && clean.length && clean.every(function (x) { return /^:?-{2,}:?$/.test(x); })) continue;
+      parsed.push(clean);
+    }
+    var table = el('table');
+    mdTableStyle(table);
+    for (var i = 0; i < parsed.length; i++) {
+      var tr = el('tr');
+      for (var j = 0; j < parsed[i].length; j++) {
+        var cell = el(i === 0 ? 'th' : 'td');
+        mdCellStyle(cell, i === 0);
+        inlineMd(parsed[i][j], cell);
+        tr.appendChild(cell);
+      }
+      table.appendChild(tr);
+    }
+    return table;
+  }
+  function renderMarkdown(ans, text) {
+    ans.innerHTML = '';
+    ans.appendChild(mdToNodes(text));
+  }
   function renderAnswer() {
     if (!answer) return;
     var ans = answer.bubble.querySelector('.aw-ans');
-    ans.innerHTML = '';
-    ans.appendChild(paragraphNode(answer.text));
+    renderMarkdown(ans, answer.text);
     scrollLog();
   }
 
