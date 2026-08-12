@@ -13,6 +13,9 @@ WORKDIR /app
 COPY backend/ ./backend/
 RUN pip install --no-cache-dir "./backend"
 
+# Database DDL used by the alembic 0001 migration (database/schema.sql).
+COPY database/ ./database/
+
 # Knowledge base sources (documents/ + site crawl).
 COPY documents/ ./documents/
 
