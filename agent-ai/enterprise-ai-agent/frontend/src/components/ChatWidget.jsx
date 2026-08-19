@@ -4,7 +4,7 @@ import { login, refresh, createConversation, fetchHistory, ApiError } from '../l
 import { streamViaWebSocket, streamViaSse } from '../lib/stream.js'
 import './styles.css'
 
-const WELCOME = 'Ask about product, pricing and policies'
+const WELCOME = ''  // Empty - user disabled welcome message
 
 function formatTime(ts) {
   try {
@@ -250,7 +250,7 @@ export default function ChatWidget({ apiBase, tenantId, initialToken, onAuthNeed
         )}
       </header>
       <div className="chat-scroll" ref={scrollRef}>
-        {messages.length === 0 && <div className="chat-welcome">{WELCOME}</div>}
+        {messages.length === 0 && WELCOME && <div className="chat-welcome">{WELCOME}</div>}
         {messages.map((m, i) => (
           <MessageBubble key={i} msg={m} />
         ))}
