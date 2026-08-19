@@ -6,8 +6,9 @@ from logging.config import fileConfig
 
 from alembic import context
 from core.settings import settings
+from db.admin_models import AdminBase
 from db.models import Base
-from sqlalchemy import pool
+from sqlalchemy import MetaData, pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
@@ -17,7 +18,9 @@ if config.config_file_name is not None:
 
 config.set_main_option("sqlalchemy.url", settings.database_url.replace("%", "%%"))
 
-target_metadata = Base.metadata
+target_metadata = MetaData()
+target_metadata.add_metadata(Base.metadata)
+target_metadata.add_metadata(AdminBase.metadata)
 
 
 def run_migrations_offline() -> None:

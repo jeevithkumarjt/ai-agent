@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import re
 import uuid
+from typing import Optional
 
 from core.embeddings import Embedder, EmbeddingsError
 from core.logging import get_logger
@@ -112,7 +113,7 @@ class RagService:
         logger.info("ingest_done", source_id=source_id, chunks=len(rows))
         return len(rows)
 
-    async def search(self, session: AsyncSession, *, tenant_id: uuid.UUID, query: str, top_k: int | None = None) -> list[DocumentChunk]:
+    async def search(self, session: AsyncSession, *, tenant_id: uuid.UUID, query: str, top_k: int | None = None, *, lexical_only: bool = False) -> list[DocumentChunk]:
         """Hybrid retrieval: lexical (tsvector ts_rank) + vector (cosine) in one query.
 
         Both signals are computed against the same rows and blended by
@@ -120,14 +121,26 @@ class RagService:
         queries yield an empty tsquery whose ts_rank is 0, degrading cleanly to
         pure vector search — no special-casing needed. `document_chunks.tsv` is a
         generated column, so the lexical index can never drift from the text.
+
+        If `lexical_only=True` is passed (e.g. when no real embeddings endpoint
+        is configured), only the lexical/BM25 signal is used.
         """
         top_k = top_k or settings.retrieval_top_k
         if top_k < 1:
             return []
-        self._require_real_embeddings(action="run semantic search")
+        if not lexical_only:
+            self._require_real_embeddings(action="run semantic search")
         [query_embedding] = await self.embedder.embed([query])
         tsquery = func.websearch_to_tsquery("english", query)
         lexical = func.ts_rank_cd(DocumentChunk.tsv, tsquery) * settings.retrieval_lexical_weight
+        if lexical_only:
+            stmt = (
+                select(DocumentChunk)
+                .where(DocumentChunk.tenant_id == tenant_id)
+                .order_by(lexical.desc())
+                .limit(top_k)
+            )
+            return list((await session.execute(stmt)).scalars())
         vector = (1 - DocumentChunk.embedding.cosine_distance(query_embedding)) * settings.retrieval_vector_weight
         stmt = (
             select(DocumentChunk)

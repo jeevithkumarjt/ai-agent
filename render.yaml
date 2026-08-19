@@ -24,8 +24,14 @@ databases:
     databaseName: agentai
     user: agentai
     region: oregon
+  - name: ai-agent-db-staging
+    plan: free            # Staging Postgres - separate from production
+    databaseName: agentai_staging
+    user: agentai_staging
+    region: oregon
 
 services:
+  # --- Production ---
   - type: web
     name: ai-agent-backend
     runtime: docker
@@ -81,3 +87,57 @@ services:
     envVars:
       - key: PING_URL
         value: https://ai-agent-backend-wnc6.onrender.com
+
+  # --- Staging (separate DB + separate service) ---
+  - type: web
+    name: ai-agent-backend-staging
+    runtime: docker
+    plan: free            # Staging on free tier to start; bump to starter for real use
+    region: oregon
+    rootDir: agent-ai/enterprise-ai-agent
+    dockerfilePath: backend/Dockerfile
+    healthCheckPath: /v1/health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ai-agent-db-staging
+          property: connectionString
+      - key: APP_ENV
+        value: staging
+      - key: DEBUG
+        value: "true"
+      - key: CORS_ORIGINS
+        value: "http://localhost:5173,http://127.0.0.1:5173"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: LLM_PROVIDER
+        value: groq
+      - key: ANTHROPIC_BASE_URL
+        value: https://api.groq.com/openai/v1
+      - key: ANTHROPIC_MODEL
+        value: llama-3.3-70b-versatile
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: EMBEDDINGS_BASE_URL
+        value: https://api.openai.com/v1
+      - key: EMBEDDINGS_MODEL
+        value: text-embedding-3-small
+      - key: EMBEDDINGS_API_KEY
+        sync: false
+      - key: BOOTSTRAP_OWNER_EMAIL
+        sync: false
+      - key: BOOTSTRAP_OWNER_PASSWORD
+        sync: false
+
+  # Staging keep-alive: same pattern as production keepalive
+  - type: cron
+    name: ai-agent-keepalive-staging
+    runtime: docker
+    plan: free
+    region: oregon
+    rootDir: agent-ai/enterprise-ai-agent
+    dockerfilePath: keepalive/Dockerfile
+    schedule: "*/10 * * * *"
+    envVars:
+      - key: PING_URL
+        value: https://ai-agent-backend-staging-render-url.onrender.com

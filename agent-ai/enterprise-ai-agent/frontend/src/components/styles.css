@@ -39,6 +39,22 @@
 .chat-dot.streaming { background: #f59e0b; animation: pulse 1s infinite; }
 .chat-dot.login { background: #ef4444; }
 
+.stat-pills {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pill-response-time { color: #f59e0b; }
+.pill-uptime { color: #10b981; }
+
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
@@ -155,4 +171,12 @@
 .login-error { color: #dc2626; font-size: 13px; }
 
 .login-hint { margin-top: 14px; color: #64748b; font-size: 12px; }
+.knowledge-indicator {
+  font-size: 12px;
+  color: #64748b;
+  margin-left: 12px;
+}
+.knowledge-indicator span {
+  white-space: nowrap;
+}
 .login-hint code { background: #f1f5f9; border-radius: 3px; padding: 0 3px; }

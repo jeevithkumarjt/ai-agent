@@ -197,6 +197,21 @@ class AdminSetting(AdminBase):
     )
 
 
+class UsageMetric(AdminBase):
+    __tablename__ = "usage_metrics"
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "date", name="uq_usage_metrics_tenant_date"),
+        Index("idx_usage_metrics_tenant_date", "tenant_id", "date"),
+    )
+
+    id: Mapped[uuid.UUID] = _pk()
+    tenant_id: Mapped[uuid.UUID] = _tenant()
+    date: Mapped[date] = mapped_column(nullable=False)
+    messages_sent: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    seats: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    kb_size_mb: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+
+
 class TrainJob(AdminBase):
     __tablename__ = "train_jobs"
     __table_args__ = (Index("idx_train_tenant", "tenant_id"),)
@@ -237,4 +252,5 @@ __all__ = [
     "AdminSetting",
     "TrainJob",
     "MessageFeedback",
+    "UsageMetric",
 ]

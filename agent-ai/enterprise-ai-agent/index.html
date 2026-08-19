@@ -399,7 +399,7 @@
   content: ""; position: absolute; left: 2px; top: 7px; width: 6px; height: 6px; border-radius: 2px;
   background: linear-gradient(135deg, var(--primary-3), var(--primary));
 }
-.aw-sec ul li.num::before { content: counter(n); counter-increment: n; background: none; color: var(--accent); font-size: 11px; font-weight: 700; top: 2px; }
+.aw-sec ul li.num::before { content: counter(n); counter-increment: n; background: none; color: var(--accent); font-size: 11px; font-weight: 700; top: 2px; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
 .aw-sec ol { margin: 6px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
 .aw-sec ol li { font-size: 13px; line-height: 1.5; color: var(--gray-700); }
 
@@ -884,7 +884,7 @@
   function hintOff() { hintEl.classList.add('is-off'); }
 
   function statusLabel(s) {
-    var m = { connecting: 'Connecting', thinking: 'Thinking', listening: 'Listening', speaking: 'Speaking', error: 'Error', ended: 'Ready' };
+    var m = { connecting: 'Connecting', reconnecting: 'Reconnecting', thinking: 'Thinking', listening: 'Listening', speaking: 'Speaking', error: 'Error', ended: 'Ready' };
     return m[s] || 'Ready';
   }
   function setStatus(s) { statusEl.setAttribute('data-state', s); statusText.textContent = statusLabel(s); }
@@ -1315,6 +1315,7 @@
     log.appendChild(b);
     scrollLog();
 
+    // Inline SSE with consistent rate-limit handling (matching shared lib pattern at frontend/src/lib/stream.js)
     fetch(API + '/v1/conversations/' + conversationId + '/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },

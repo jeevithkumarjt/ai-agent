@@ -1,6 +1,69 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@tryvium/ui'
+import { Skeleton } from '@tryvium/ui'
 
 export default function DashboardPage() {
+  const [loading, setLoading] = React.useState(true)
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 2000)
+    return () => clearTimeout(timer)
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid gap-6 md:grid-cols-3">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle>
+                <Skeleton width="80%" height="14px" radius="sm" />
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Skeleton width="50%" height="18px" radius="sm" />
+              <Skeleton width="30%" height="14px" radius="sm" />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle>
+                <Skeleton width="80%" height="14px" radius="sm" />
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Skeleton width="50%" height="18px" radius="sm" />
+              <Skeleton width="30%" height="14px" radius="sm" />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle>
+                <Skeleton width="80%" height="14px" radius="sm" />
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Skeleton width="50%" height="18px" radius="sm" />
+              <Skeleton width="30%" height="14px" radius="sm" />
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              <Skeleton width="100%" height="20px" radius="md" />
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Skeleton width="100%" height="12px" radius="sm" />
+            <Skeleton width="60%" height="12px" radius="sm" />
+            <Skeleton width="40%" height="12px" radius="sm" />
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid gap-6 md:grid-cols-3">

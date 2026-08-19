@@ -4,7 +4,7 @@ import { login, refresh, createConversation, fetchHistory, ApiError } from '../l
 import { streamViaWebSocket, streamViaSse } from '../lib/stream.js'
 import './styles.css'
 
-const WELCOME = 'Hi — I can answer questions from your organization\'s knowledge base.'
+const WELCOME = 'Ask about product, pricing and policies'
 
 function formatTime(ts) {
   try {
@@ -14,11 +14,18 @@ function formatTime(ts) {
   }
 }
 
+function formatMs(ms) {
+  if (ms === null || ms === undefined) return '--ms'
+  return `${ms}ms`
+}
+
 export default function ChatWidget({ apiBase, tenantId, initialToken, onAuthNeeded }) {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [status, setStatus] = useState(initialToken ? 'ready' : 'login')
   const [busy, setBusy] = useState(false)
+  const [health, setHealth] = useState(null)
+  const [knowledgeStatus, setKnowledgeStatus] = useState(null)
   const conversationIdRef = useRef(null)
   const streamCancelRef = useRef(null)
 
@@ -44,23 +51,37 @@ export default function ChatWidget({ apiBase, tenantId, initialToken, onAuthNeed
 
   useEffect(() => {
     if (initialToken) setTokens({ access_token: initialToken, refresh_token: null, expires_in: 0 })
+    // Fetch health data on mount (for stat pills)
+    async function fetchHealth() {
+      try {
+        const res = await fetch(`${apiBase}/v1/health`)
+        if (!res.ok) throw new Error('health check failed')
+        const data = await res.json()
+        setHealth(data)
+      } catch (err) {
+        logger.warning('health_fetch_failed', err)
+      }
+    }
+    fetchHealth()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialToken])
+  }, [apiBase, initialToken])
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-  }, [messages])
-
-  const handleLogin = async (email, password) => {
-    try {
-      const tokens = await login(apiBase, email, password)
-      setTokens(tokens)
-      setStatus('ready')
-    } catch (err) {
-      return err instanceof ApiError ? err.message : 'login failed'
+    // Fetch knowledge status for sync indicator
+    async function fetchKnowledgeStatus() {
+      try {
+        const res = await fetch(`${apiBase}/v1/knowledge/status`)
+        if (!res.ok) throw new Error('knowledge status failed')
+        const data = await res.json()
+        setKnowledgeStatus(data)
+      } catch (err) {
+        console.warning('knowledge_status_fetch_failed', err)
+      }
     }
-    return null
-  }
+    fetchKnowledgeStatus()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [apiBase])
 
   const tryReauth = useCallback(async () => {
     const rt = getRefreshToken()
@@ -208,6 +229,25 @@ export default function ChatWidget({ apiBase, tenantId, initialToken, onAuthNeed
       <header className="chat-header">
         <span className="chat-title">AI Assistant</span>
         <span className={`chat-dot ${status}`} title={status} />
+        {health && (
+          <div className="stat-pills">
+            <span className="stat pill-response-time">
+              <span>{formatMs(health.response_time_ms)}</span>
+            </span>
+            <span className="stat pill-uptime">
+              <span>{health.uptime_seconds}s uptime</span>
+            </span>
+          </div>
+        )}
+        {knowledgeStatus && (
+          <div className="knowledge-indicator">
+            <span>
+              {knowledgeStatus.source_count > 0 && (
+                `Knowledge: Synced (${knowledgeStatus.source_count} sources, ${knowledgeStatus.chunk_count} chunks)`
+              )}
+            </span>
+          </div>
+        )}
       </header>
       <div className="chat-scroll" ref={scrollRef}>
         {messages.length === 0 && <div className="chat-welcome">{WELCOME}</div>}
@@ -224,7 +264,7 @@ export default function ChatWidget({ apiBase, tenantId, initialToken, onAuthNeed
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && send(input)}
-          placeholder="Ask about your knowledge base…"
+          placeholder="Ask about product, pricing and policies"
           disabled={busy}
         />
         <button className="chat-send" onClick={() => send(input)} disabled={busy || !input.trim()}>

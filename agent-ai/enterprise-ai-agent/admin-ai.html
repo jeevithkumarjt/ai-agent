@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TryMe Enterprise AI — Admin Portal</title>
-<script src="api-config.js"></script>
+<script src="api-config.js?v={{VERSION}}"></script>
 <style>
 :root{
   --primary:#294199; --primary-2:#1E3378; --primary-3:#3B5BDB;
@@ -247,7 +247,7 @@ html[data-theme="dark"] .sk::after{background:linear-gradient(90deg,transparent,
       <button class="icon-btn" id="menu-btn" title="Menu" aria-label="Open menu">&#9776;</button>
       <div><h1 id="page-title">Overview</h1><nav class="crumb" id="crumb" aria-label="Breadcrumb"><span>TryMe AI</span><span class="sep">/</span><span class="cur" id="crumb-cur">Overview</span></nav></div>
       <div class="spacer"></div>
-      <span class="tenant-chip" id="tenant-chip" title="Workspace you are managing" hidden><span class="td"></span><span class="tn" id="tenant-name"></span></span>
+      <span class="tenant-chip" id="tenant-chip" title="Workspace you are managing"><span class="td"></span><span class="tn" id="tenant-name">Default</span></span>
       <button class="icon-btn" id="theme-btn" title="Toggle theme" aria-label="Toggle dark mode">&#127769;</button>
       <button class="icon-btn" id="help-btn" title="Help" aria-label="Open help">&#10067;</button>
       <button class="icon-btn" id="notif-btn" title="Notifications" aria-label="Open notifications">&#128276;<span class="dot" id="notif-dot" style="display:none"></span></button>
@@ -291,6 +291,12 @@ async function api(path,opts){
   const headers=Object.assign({Authorization:"Bearer "+store.get("at")},opts.headers||{});
   if(opts.body&&!(opts.body instanceof FormData)&&!headers["Content-Type"])headers["Content-Type"]="application/json";
   let res=await fetch(API+path,Object.assign({},opts,{headers}));
+  if(res.status===429){
+    const retryAfter=res.headers.get("Retry-After");
+    var msg='You are rate limited. ';
+    msg+=retryAfter ? 'Please wait ' + retryAfter + ' seconds before retrying.' : 'Please slow down and try again.';
+    throw new Error(msg);
+  }
   if(res.status===401&&!opts._retry){
     try{ const at=await refreshToken(); headers.Authorization="Bearer "+at; res=await fetch(API+path,Object.assign({},opts,{headers,_retry:true})); }
     catch(e){ logout(); throw new Error("Session expired"); }
@@ -523,7 +529,7 @@ function actItemHtml(a){
 }
 definePage("overview",async ()=>{
   const [ov,tr]=await Promise.all([api("/overview"),api("/analytics/trends?days=7").catch(()=>({days:[]}))]);
-  const rt=ov.avg_response_time_ms>=1000?(ov.avg_response_time_ms/1000).toFixed(1)+"s":ov.avg_response_time_ms+"ms";
+const rt=ov.avg_response_time_ms>=1000?(ov.avg_response_time_ms/1000).toFixed(1)+"s":ov.avg_response_time_ms+"ms";
   const days=tr.days||[];
   const quick=[];
   if(can("knowledge.write"))quick.push('<button class="btn btn-o btn-sm" data-goto="upload">Upload knowledge</button>');
@@ -531,7 +537,7 @@ definePage("overview",async ()=>{
   if(can("knowledge.train"))quick.push('<button class="btn btn-o btn-sm" data-goto="jobs">View jobs</button>');
   if(can("analytics.view"))quick.push('<button class="btn btn-o btn-sm" data-goto="analytics">Analytics</button>');
   if(can("users.view"))quick.push('<button class="btn btn-o btn-sm" data-goto="users">Users</button>');
-  if(can("backup.manage"))quick.push('<button class="btn btn-o btn-sm" data-goto="backup">Backup &amp; export</button>');
+  if(can("backup.manage"))quick.push('<button class="btn btn-o btn-sm" data-goto="backup">Backup & export</button>');
   const quickHtml=quick.length?'<button class="btn btn-p btn-sm" id="ov-refresh" title="Refresh dashboard">&#8635;&nbsp;Refresh</button>'+quick.join(""):'<span class="kbd">No quick actions for your role</span>';
   const act=can("audit.view")?await api("/audit?limit=8").catch(()=>({items:[]})):{items:[]};
   const actHtml=(act.items||[]).map(actItemHtml).join("")||'<div class="empty">No activity yet</div>';
@@ -1052,7 +1058,7 @@ function boot(){
   $("#user-role").textContent=me.role_label;
   $("#user-av").textContent=(me.email||"?").charAt(0).toUpperCase();
   const tc=$("#tenant-chip");
-  if(tc&&me.tenant_name){ $("#tenant-name").textContent=me.tenant_name; tc.hidden=false; }
+  if(tc){ $("#tenant-name").textContent=me.tenant_name||"Default"; tc.hidden=false; }
   clearTimers();
   S.ovPoll=0;
   route();

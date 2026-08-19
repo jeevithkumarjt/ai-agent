@@ -1,14 +1,21 @@
 {
   "name": "enterprise-ai-agent-widget",
-  "private": true,
   "version": "1.0.0",
-  "type": "module",
   "description": "Embeddable AI chat widget — Web Component built with React + Vite (library mode, ADR-003)",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "changelog": "git-changelogger",
+    "release": "npmpublish --access public"
   },
+  "keywords": ["ai", "agent", "chat", "widget", "rag"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jeevithkumarjt/ai-agent.git"
+  },
+  "license": "MIT",
+  "type": "module",
   "dependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

@@ -25,6 +25,13 @@ export async function apiRequest(apiBase, path, { method = 'GET', body, token } 
   }
   if (!res.ok) {
     let detail = `HTTP ${res.status}`
+    // Rate limit feedback
+    if (res.status === 429) {
+      const retryAfter = res.headers.get('Retry-After')
+      detail = retryAfter
+        ? `You are rate limited. Please wait ${retryAfter} seconds before retrying.`
+        : 'You are rate limited. Please slow down and try again.'
+    }
     try {
       const data = await res.json()
       if (data?.detail) detail = typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail)

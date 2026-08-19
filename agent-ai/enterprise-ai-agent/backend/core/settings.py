@@ -59,6 +59,16 @@ class Settings(BaseSettings):
     jwt_access_ttl_minutes: int = 30
     jwt_refresh_ttl_days: int = 14
 
+    # --- SSO / Identity Provider (ADR-022) ---
+    sso_provider: str = "jwt"  # "jwt" | "saml" | "oidc"
+    sso_entity_id: str = ""      # SAML entity ID / OIDC issuer URL
+    sso_client_id: str = ""      # OIDC client ID
+    sso_client_secret: str = ""  # OIDC client secret
+    sso_metadata_url: str = ""   # SAML metadata URL
+
+    # --- Stripe billing (ADR-021) ---
+    stripe_api_key: str = ""
+
     # --- Anonymous guest sessions (public demo/chat pages) ---
     # Issues viewer-scoped, rate-limited tokens with NO credentials on disk.
     # Enable only when anonymous chat is intentional (public landing/demo).

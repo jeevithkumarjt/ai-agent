@@ -1,6 +1,14 @@
 """Admin knowledge management routes: browse, upload, edit, delete, versions,
-rollback, manual docs, retrain/sync, jobs, status."""
-from __future__ import annotations
+rollback, manual docs, retrain/sync, jobs, status.
+
+IMPORTANT — Seed docs vs real tenant ingestion:
+- `documents/doc/*.docx` committed to repo = demo content for the Tryvium tenant only
+- Real customers upload their knowledge base through the admin portal → DB/object storage
+- The admin portal upload path (POST /knowledge/upload, handled by portal_service.prepare_uploads)
+  is the actual production route for customer docs
+- Multi-tenant SaaS should NEVER require a code commit to onboard a customer's content
+- Future contributors: never add customer KB files to repo; always use the admin upload API
+"""
 
 import uuid
 from typing import Annotated

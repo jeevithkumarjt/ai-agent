@@ -76,6 +76,22 @@ CREATE INDEX IF NOT EXISTS idx_document_chunks_tenant ON document_chunks (tenant
 CREATE INDEX IF NOT EXISTS idx_document_chunks_source ON document_chunks (tenant_id, source_id);
 CREATE INDEX IF NOT EXISTS idx_document_chunks_tsv ON document_chunks USING GIN (tsv);
 
+-- ---------------------------------------------------------------------------
+-- Usage metering (billing & tier enforcement, ADR-021)
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS usage_metrics (
+    id            uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    tenant_id     uuid NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    date          date NOT NULL,
+    messages_sent integer NOT NULL DEFAULT 0,
+    seats         integer NOT NULL DEFAULT 0,
+    kb_size_mb    numeric NOT NULL DEFAULT 0,
+    UNIQUE (tenant_id, date)
+);
+
+-- Index for daily reports across tenants
+CREATE INDEX IF NOT EXISTS idx_usage_metrics_tenant_date ON usage_metrics (tenant_id, date);
+
 -- ivfflat index on embedding: intentionally SKIPPED for MVP row counts — flat scan is
 -- fine under ~50k rows (ADR-001). Enable when row count justifies it:
 -- CREATE INDEX idx_document_chunks_embedding ON document_chunks

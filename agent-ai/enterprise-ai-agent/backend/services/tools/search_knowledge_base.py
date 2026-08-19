@@ -30,8 +30,9 @@ class SearchKnowledgeBaseInput(BaseModel):
 class SearchKnowledgeBaseTool(BaseTool):
     name = "search_knowledge_base"
     description = (
-        "Search the organization's knowledge base using semantic (vector) retrieval. "
-        "Use this whenever the answer may live in internal documents, policies, or FAQ."
+        "Search the organization's knowledge base. Uses hybrid lexical (BM25/tsvector) + "
+        "vector (cosine) retrieval when an embeddings endpoint is configured; otherwise "
+        "falls back to lexical-only BM25 search against the Postgres tsvector index."
     )
     input_schema = SearchKnowledgeBaseInput
 
@@ -44,23 +45,17 @@ class SearchKnowledgeBaseTool(BaseTool):
         if not query:
             return ToolResult(content="Error: `query` must be non-empty.")
 
-        if not settings.embeddings_api_key:
-            # The LocalHash fallback is only for local dev/tests — never pretend
-            # its results are real semantic retrieval for a customer-facing answer.
-            logger.warning(
-                "tool_search_no_embeddings",
-                reason="EMBEDDINGS_API_KEY not configured; vector retrieval is not meaningful",
-            )
-            return ToolResult(
-                content=(
-                    "No real embeddings endpoint is configured, so semantic search is disabled. "
-                    "Answer only from the knowledge already provided in the system prompt, and "
-                    "if it does not contain the answer, say so plainly."
-                ),
-                sources=[],
+        use_lexical_only = not settings.embeddings_api_key
+        if use_lexical_only:
+            logger.info(
+                "tool_search_lexical_only",
+                reason="EMBEDDINGS_API_KEY not configured; using BM25 lexical search only",
             )
 
-        chunks = await self.rag.search(session, tenant_id=tenant_id, query=query, top_k=validated.top_k)
+        chunks = await self.rag.search(
+            session, tenant_id=tenant_id, query=query, top_k=validated.top_k,
+            lexical_only=use_lexical_only,
+        )
         if not chunks:
             return ToolResult(content="No relevant documents found in the knowledge base.")
 

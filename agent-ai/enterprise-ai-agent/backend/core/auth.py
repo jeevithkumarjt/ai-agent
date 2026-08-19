@@ -1,6 +1,9 @@
-"""JWT auth (ADR-005): stateless tokens carrying tenant_id, user_id, exp.
+"""JWT auth (ADR-005) + identity-provider abstraction (ADR-022).
 
-Access tokens are short-lived; refresh tokens renew the pair. Both are HS256 JWTs.
+Stateless tokens carrying tenant_id, user_id, exp. Both access and refresh
+tokens are HS256 JWTs. The ``IdentityProvider`` abstraction (see
+``core.identity_provider``) allows plugging in SAML or OIDC without
+rewriting this module.
 """
 from __future__ import annotations
 
@@ -10,9 +13,9 @@ from typing import Literal
 
 import jwt
 
-from core.settings import settings
+from core.identity_provider import IdentityProvider, get_provider, TokenType
 
-TokenType = Literal["access", "refresh"]
+from core.settings import settings
 
 
 class AuthError(Exception):

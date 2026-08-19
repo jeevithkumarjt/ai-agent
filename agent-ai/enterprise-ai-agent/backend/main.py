@@ -12,14 +12,14 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 
-from api import auth, conversations, health, knowledge
+from api import auth, billing, conversations, health, knowledge
 from api.admin import admin_router
+from api.tenant import router as tenant_router
 from core.anthropic_client import AnthropicClient, AnthropicError
 from core.embeddings import get_embedder
 from core.logging import get_logger, setup_logging
 from core.rate_limit import RateLimitMiddleware
 from core.settings import settings
-from db.admin_models import AdminBase
 from db.session import engine
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -52,7 +52,6 @@ def create_app() -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        await _ensure_admin_tables()
         _build_services(app)
         logger.info("app_started", env=settings.app_env, model=settings.anthropic_model)
         knowledge_task = asyncio.create_task(_knowledge_refresh_loop(app.state.knowledge))
@@ -77,17 +76,12 @@ def create_app() -> FastAPI:
 
     app.include_router(health.router)
     app.include_router(auth.router)
+    app.include_router(billing.router)
+    app.include_router(tenant_router)
     app.include_router(conversations.router)
     app.include_router(knowledge.router)
     app.include_router(admin_router)
     return app
-
-
-async def _ensure_admin_tables() -> None:
-    """Create admin-portal tables (dedicated registry) without touching the
-    alembic-managed core schema."""
-    async with engine.begin() as conn:
-        await conn.run_sync(AdminBase.metadata.create_all)
 
 
 async def _knowledge_refresh_loop(store: KnowledgeStore) -> None:
