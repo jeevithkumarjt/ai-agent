@@ -4,7 +4,7 @@ import { login, refresh, createConversation, fetchHistory, ApiError } from '../l
 import { streamViaWebSocket, streamViaSse } from '../lib/stream.js'
 import './styles.css'
 
-const WELCOME = ''  // Empty - user disabled welcome message
+const WELCOME = 'ask your doubts'
 
 function formatTime(ts) {
   try {
