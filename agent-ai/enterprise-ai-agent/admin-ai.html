@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TryMe Enterprise AI — Admin Portal</title>
+<title>KB AI Admin — Admin Portal</title>
 <script src="api-config.js?v={{VERSION}}"></script>
 <style>
 :root{
@@ -221,7 +221,7 @@ html[data-theme="dark"] .sk::after{background:linear-gradient(90deg,transparent,
 
 <div id="login">
   <div class="login-card">
-    <div class="logo">TryMe</div>
+    <div class="logo">KB AI Agent</div>
     <h1>Admin Portal</h1>
     <p>Enterprise AI Knowledge &amp; Operations Console</p>
     <form id="login-form">
@@ -236,8 +236,8 @@ html[data-theme="dark"] .sk::after{background:linear-gradient(90deg,transparent,
 <div id="app">
   <aside class="sidebar" id="sidebar">
     <div class="brand">
-      <div class="logo">TryMe</div>
-      <div><div class="t">TryMe AI Admin</div><div class="s">Enterprise Console</div></div>
+<div class="logo">KB AI</div>
+      <div><div class="t">KB AI Admin</div><div class="s">Enterprise Console</div></div>
     </div>
     <nav class="nav" id="nav"></nav>
     <div class="side-foot"><span class="spin" style="width:10px;height:10px"></span> <span id="health-foot">checking&hellip;</span></div>
@@ -245,7 +245,7 @@ html[data-theme="dark"] .sk::after{background:linear-gradient(90deg,transparent,
   <div class="main">
     <header class="topbar">
       <button class="icon-btn" id="menu-btn" title="Menu" aria-label="Open menu">&#9776;</button>
-      <div><h1 id="page-title">Overview</h1><nav class="crumb" id="crumb" aria-label="Breadcrumb"><span>TryMe AI</span><span class="sep">/</span><span class="cur" id="crumb-cur">Overview</span></nav></div>
+      <div><h1 id="page-title">Overview</h1><nav class="crumb" id="crumb" aria-label="Breadcrumb"><span>KB AI Admin</span><span class="sep">/</span><span class="cur" id="crumb-cur">Overview</span></nav></div>
       <div class="spacer"></div>
       <span class="tenant-chip" id="tenant-chip" title="Workspace you are managing"><span class="td"></span><span class="tn" id="tenant-name">Default</span></span>
       <button class="icon-btn" id="theme-btn" title="Toggle theme" aria-label="Toggle dark mode">&#127769;</button>
@@ -361,7 +361,7 @@ function route(){
   Array.prototype.forEach.call($$(".nav a"),a=>a.classList.toggle("active",a.dataset.page===target));
   $("#page-title").textContent=PAGE_TITLES[target];
   $("#crumb-cur").textContent=PAGE_TITLES[target];
-  document.title="TryMe Enterprise AI — "+PAGE_TITLES[target];
+  document.title="KB AI Agent Enterprise AI — "+PAGE_TITLES[target];
   render[target]&&render[target]();
 }
 window.addEventListener("hashchange",route);
