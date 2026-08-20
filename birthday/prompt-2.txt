@@ -1,0 +1,1496 @@
+# COMPLETE CINEMATIC BIRTHDAY SCENE SYSTEM
+
+## IMPORTANT
+
+The birthday experience must NOT be limited to 15 fixed scenes.
+
+Build a **modular scene library** containing all core birthday-surprise experiences plus additional premium scenes.
+
+The admin can choose which scenes to use, reorder them, configure them, duplicate them and disable them.
+
+The final experience may contain:
+
+* 10 scenes
+* 15 scenes
+* 20 scenes
+* 30 scenes
+* or more
+
+depending on the creator's configuration.
+
+The scene engine must support unlimited extensibility.
+
+---
+
+# 1. EXPERIENCE PRELOADER
+
+Before the actual experience begins:
+
+Display:
+
+> “Preparing something special for you…”
+
+Use:
+
+* animated percentage
+* soft glow
+* floating particles
+* subtle background motion
+* elegant typography
+
+Do not display a generic loading spinner.
+
+The preloader should feel like the beginning of the story.
+
+Once critical assets are ready:
+
+Transition into the opening scene.
+
+---
+
+# 2. MYSTERY OPENING
+
+Initial screen should create curiosity.
+
+Display:
+
+> “Someone has prepared a little surprise for you…”
+
+Then:
+
+> “Are you ready?”
+
+CTA:
+
+**Open Your Surprise ✨**
+
+Use:
+
+* subtle cursor interaction
+* button glow
+* magnetic movement
+* soft particle response
+* background breathing animation
+
+Do not reveal the birthday immediately.
+
+---
+
+# 3. ENVELOPE / LOVE LETTER REVEAL
+
+Display a premium envelope.
+
+The envelope should:
+
+* float
+* react to cursor
+* react to touch
+* have realistic depth
+* have subtle lighting
+* have shadow
+* have a wax-seal-style element
+
+Interaction:
+
+```text
+Tap
+↓
+Envelope reacts
+↓
+Seal breaks
+↓
+Flap opens
+↓
+Letter rises
+↓
+Camera moves closer
+↓
+Background blurs
+↓
+Message reveals
+```
+
+The user should feel like they are physically opening a gift.
+
+---
+
+# 4. SECRET MESSAGE INSIDE THE ENVELOPE
+
+After opening:
+
+Do not immediately show a giant birthday message.
+
+Reveal:
+
+> “I have something to tell you…”
+
+Pause.
+
+Then:
+
+> “Something I've wanted you to know…”
+
+Pause.
+
+Then continue into the birthday reveal.
+
+---
+
+# 5. NAME REVEAL
+
+Reveal the recipient's name dramatically.
+
+Example:
+
+> “For someone very special…”
+
+Pause.
+
+Then:
+
+> “SHRISHTI”
+
+Use:
+
+* letter-by-letter reveal
+* glow
+* blur
+* light sweep
+* particles
+* soft camera zoom
+
+The name must feel like the **first major reveal**.
+
+---
+
+# 6. BIRTHDAY REVEAL
+
+Display:
+
+> “Happy Birthday”
+
+Then:
+
+> “[NAME] ❤️”
+
+Then:
+
+> “Today is your day.”
+
+Use cinematic typography.
+
+Do not rush this moment.
+
+---
+
+# 7. AGE / BIRTHDAY COUNTDOWN SCENE
+
+Optional configurable scene.
+
+Admin can enable:
+
+> “Today you officially turn…”
+
+or:
+
+> “Another beautiful year begins…”
+
+Admin controls whether age is displayed.
+
+Never force age display.
+
+---
+
+# 8. BIRTHDAY CAKE REVEAL
+
+Start with darkness.
+
+Introduce:
+
+* spotlight
+* cake
+* candles
+* glow
+* subtle smoke
+
+Text:
+
+> “Make a wish…”
+
+Allow candle interaction.
+
+Each candle responds individually.
+
+After all candles are extinguished:
+
+* room lights up
+* confetti
+* particles
+* music swell
+* camera movement
+
+Then:
+
+> “I hope every wish you make finds its way to you.”
+
+---
+
+# 9. CANDLE BLOW INTERACTION
+
+Support multiple interaction modes.
+
+### Tap Mode
+
+User taps each flame.
+
+### Swipe Mode
+
+User swipes across candles.
+
+### Microphone Mode
+
+If browser/device permissions allow:
+
+Use microphone input to detect blowing.
+
+If microphone access is denied:
+
+Automatically fall back to tap mode.
+
+Never let microphone permission failure break the scene.
+
+---
+
+# 10. BALLOON FIELD
+
+Introduce floating balloons.
+
+Different balloon behaviors:
+
+* slow floating
+* rotation
+* depth movement
+* parallax
+* cursor attraction
+* touch movement
+
+Each balloon can contain a secret.
+
+Example:
+
+> “One thing I love about you…”
+
+Tap balloon.
+
+Balloon pops.
+
+Message appears.
+
+---
+
+# 11. SECRET BALLOONS
+
+Allow admin to create unlimited balloon messages.
+
+Each balloon supports:
+
+* text
+* image
+* quote
+* memory
+* emoji
+* date
+
+The admin controls:
+
+* balloon color
+* size
+* position
+* animation
+* message
+* reveal style
+
+---
+
+# 12. MEMORY INTRODUCTION
+
+Before showing photos, create anticipation.
+
+Display:
+
+> “But birthdays aren't only about today…”
+
+Pause.
+
+> “They're about everything that made you…”
+
+Pause.
+
+> “…you.”
+
+Then transition into memories.
+
+---
+
+# 13. MEMORY GALLERY
+
+Never use a boring grid.
+
+Support multiple layouts:
+
+* Polaroid
+* Scrapbook
+* Film strip
+* Floating photos
+* Masonry
+* Stacked photos
+* Horizontal gallery
+* Full-screen cinematic gallery
+
+Admin chooses layout.
+
+---
+
+# 14. PHOTO REVEAL
+
+Each photo can have:
+
+* caption
+* date
+* location
+* description
+* custom quote
+
+Animation:
+
+```text
+Photo appears
+↓
+Slow movement
+↓
+Focus
+↓
+Caption appears
+↓
+Photo interaction
+↓
+Next memory
+```
+
+---
+
+# 15. PHOTO POLAROID STACK
+
+Create a stack of photographs.
+
+User can:
+
+* swipe
+* drag
+* tap
+* rotate
+
+Each photo reveals another memory.
+
+Use realistic card movement.
+
+---
+
+# 16. MEMORY FILM STRIP
+
+Create a cinematic horizontal film-strip experience.
+
+Photos slide like frames from a movie.
+
+Add:
+
+* film grain
+* subtle sound
+* frame numbers
+* dates
+
+Optional.
+
+---
+
+# 17. MEMORY TIMELINE
+
+Admin can create unlimited timeline events.
+
+Each event:
+
+* date
+* title
+* description
+* image
+* optional video
+
+Example:
+
+> “The day we met…”
+
+↓
+
+> “That random conversation…”
+
+↓
+
+> “That unforgettable day…”
+
+↓
+
+> “And all the moments after…”
+
+Use cinematic scroll choreography.
+
+---
+
+# 18. MEMORY MAP
+
+Optional premium scene.
+
+If appropriate, admin can enter meaningful places.
+
+Example:
+
+```text
+Place 1
+Place 2
+Place 3
+Place 4
+```
+
+Display an artistic map.
+
+Each location reveals:
+
+* photo
+* memory
+* date
+* message
+
+Do not require precise personal addresses.
+
+---
+
+# 19. “THINGS I LOVE ABOUT YOU”
+
+Create individual cards.
+
+Examples:
+
+> Your smile.
+
+> Your laugh.
+
+> Your kindness.
+
+> Your strength.
+
+> Your little habits.
+
+> Your beautiful heart.
+
+> Your craziness.
+
+> Your presence.
+
+Each should have different micro-animation.
+
+---
+
+# 20. COMPLIMENT MACHINE
+
+Optional interactive scene.
+
+Display:
+
+> “Pick one…”
+
+Several floating cards.
+
+User chooses one.
+
+Reveal:
+
+> “You are…”
+
+Examples:
+
+* Beautiful
+* Strong
+* Kind
+* Irreplaceable
+* Extraordinary
+* Loved
+* Special
+
+Admin controls all values.
+
+---
+
+# 21. HEART INTERACTION
+
+Display a glowing heart.
+
+User touches/clicks.
+
+Heart responds with:
+
+* pulse
+* glow
+* particles
+* heartbeat sound
+
+Then reveal a message.
+
+---
+
+# 22. HEARTBEAT SCENE
+
+Optional advanced scene.
+
+Create a subtle heartbeat animation.
+
+A glowing line/pulse moves across the screen.
+
+Then:
+
+> “Some people become memories…”
+
+Pause.
+
+> “Some become a part of your heart.”
+
+---
+
+# 23. SECRET DOOR
+
+Optional surprise scene.
+
+Display a mysterious door.
+
+Text:
+
+> “There's still one more thing…”
+
+User opens the door.
+
+Behind it is another memory/message.
+
+This can randomly reveal:
+
+* photo
+* video
+* letter
+* quote
+* surprise message
+
+---
+
+# 24. SCRATCH CARD
+
+Optional interactive scene.
+
+Create a digital scratch card.
+
+User rubs the screen.
+
+Underneath:
+
+> “You are loved more than you know.”
+
+Support touch and mouse.
+
+Do not make it feel like gambling.
+
+It should feel like a playful reveal.
+
+---
+
+# 25. HIDDEN MESSAGE
+
+Create a scene where the user discovers hidden text.
+
+Example:
+
+Background contains subtle glowing particles.
+
+User moves cursor/touch.
+
+Hidden words become visible.
+
+Final message:
+
+> “You make life brighter.”
+
+---
+
+# 26. PUZZLE MEMORY
+
+Optional.
+
+Admin uploads a photo.
+
+The image becomes a simple puzzle.
+
+User assembles it.
+
+When completed:
+
+Photo becomes full-screen.
+
+Then:
+
+> “Remember this?”
+
+This should be optional because not every recipient wants a puzzle.
+
+---
+
+# 27. VIDEO MESSAGE
+
+Admin can upload a personal video.
+
+Before playback:
+
+> “I couldn't put everything into words…”
+
+Then:
+
+**Play Message**
+
+After video:
+
+smooth transition back into the story.
+
+Support:
+
+* MP4
+* WebM
+* poster image
+* captions
+* mute
+
+---
+
+# 28. VOICE MESSAGE
+
+Admin can upload a personal voice recording.
+
+Display:
+
+> “Close your eyes for a moment…”
+
+Then audio plays.
+
+Create a beautiful waveform visualization.
+
+Admin can upload:
+
+* MP3
+* WAV
+* OGG
+
+---
+
+# 29. HANDWRITTEN LETTER
+
+Create a realistic handwritten letter.
+
+Reveal:
+
+* paper
+* handwriting
+* signature
+* date
+
+Use:
+
+* writing animation
+* ink reveal
+* paper texture
+* subtle shadows
+
+Admin controls the complete letter.
+
+---
+
+# 30. PHOTO + LETTER COMBINATION
+
+Show:
+
+Photo on one side.
+
+Letter on the other.
+
+On mobile:
+
+Photo first.
+
+Then letter.
+
+Use cinematic transition.
+
+---
+
+# 31. PHOTO MONTAGE
+
+Create a movie-like montage.
+
+Photos:
+
+* zoom
+* pan
+* dissolve
+* crossfade
+* light transition
+
+Use optional background music.
+
+---
+
+# 32. FAVORITE SONG SCENE
+
+Admin selects/upload music.
+
+Display:
+
+> “This one reminded me of you…”
+
+Then music begins.
+
+Create:
+
+* waveform
+* lyrics-style visual treatment if user supplies text
+* subtle photo transitions
+
+Do not automatically reproduce copyrighted lyrics.
+
+---
+
+# 33. QUOTE SCENE
+
+Large cinematic typography.
+
+Example:
+
+> “Some moments become memories.”
+
+Then:
+
+> “Some people become home.”
+
+Use typography as the primary visual.
+
+Minimal animation.
+
+---
+
+# 34. COUNTDOWN TO SURPRISE
+
+Optional.
+
+Display:
+
+> “3”
+
+> “2”
+
+> “1”
+
+Then reveal:
+
+* photo
+* video
+* message
+* gift
+* fireworks
+
+Use only when appropriate.
+
+---
+
+# 35. SECRET GIFT BOX
+
+Display a premium gift box.
+
+Interaction:
+
+```text
+Hover
+↓
+Shake
+↓
+Glow
+↓
+Open
+↓
+Light burst
+↓
+Particles
+↓
+Message
+```
+
+Admin can choose what appears inside.
+
+---
+
+# 36. LOVE CAPSULE
+
+Optional scene.
+
+Display:
+
+> “A little capsule of memories…”
+
+Inside:
+
+* photos
+* messages
+* dates
+* quotes
+
+User opens capsules individually.
+
+---
+
+# 37. FUTURE LETTER
+
+Optional emotional scene.
+
+Display:
+
+> “A message for the future…”
+
+Admin writes a message.
+
+Example:
+
+> “When you read this again one year from now…”
+
+This creates a time-capsule feeling.
+
+---
+
+# 38. WISH JAR
+
+Display a beautiful jar.
+
+Admin preloads wishes.
+
+User taps the jar.
+
+A random wish appears.
+
+Examples:
+
+> “I hope you travel somewhere you've always dreamed of.”
+
+> “I hope you laugh more this year.”
+
+> “I hope this year surprises you beautifully.”
+
+---
+
+# 39. WISHES FOR THE YEAR
+
+Create a full-screen sequence.
+
+Reveal:
+
+* happiness
+* health
+* success
+* love
+* peace
+* adventures
+* beautiful memories
+
+Admin controls categories.
+
+---
+
+# 40. CONSTELLATION SCENE
+
+Premium optional scene.
+
+Create a night sky.
+
+Stars slowly appear.
+
+Stars connect into a constellation.
+
+The constellation reveals:
+
+* heart
+* initial
+* birthday number
+* custom symbol
+
+Then:
+
+> “[NAME], this little universe is yours.”
+
+---
+
+# 41. NIGHT SKY SCENE
+
+Create:
+
+* stars
+* moon
+* subtle clouds
+* particles
+* glowing text
+
+Use slow movement.
+
+This scene should create emotional breathing room.
+
+---
+
+# 42. FLOWER / PETAL SCENE
+
+Optional romantic scene.
+
+Flowers/petals slowly appear.
+
+Each petal can reveal:
+
+* compliment
+* memory
+* message
+
+Do not overuse.
+
+---
+
+# 43. POLAROID WALL
+
+Create a wall of memories.
+
+Initially:
+
+* photos are scattered
+
+Then:
+
+* photos arrange themselves
+
+into a beautiful composition.
+
+The final arrangement forms:
+
+* heart
+* initials
+* birthday number
+* custom shape
+
+This can become one of the major visual highlights.
+
+---
+
+# 44. PHOTO COLLAGE REVEAL
+
+Admin uploads multiple images.
+
+The engine creates an animated collage.
+
+Photos enter from different directions.
+
+Eventually they form a complete image/shape.
+
+Then the screen reveals:
+
+> “All these little moments…”
+
+> “…made this beautiful story.”
+
+---
+
+# 45. FINAL EMOTIONAL LETTER
+
+This should be different from the earlier letter.
+
+The first letter introduces the story.
+
+The final letter closes it.
+
+Keep the final letter slower.
+
+Use:
+
+* dark background
+* subtle glow
+* minimal animation
+* elegant typography
+
+---
+
+# 46. FINAL MESSAGE
+
+Reveal:
+
+> “Happy Birthday, [NAME] ❤️”
+
+Then:
+
+> “May this year bring you…”
+
+Reveal:
+
+* happiness
+* peace
+* beautiful surprises
+* unforgettable memories
+* dreams coming true
+
+Final:
+
+> “You deserve every beautiful thing coming your way.”
+
+Pause.
+
+---
+
+# 47. FIREWORKS
+
+Create a cinematic fireworks scene.
+
+Fireworks should be:
+
+* smooth
+* lightweight
+* varied
+* non-repetitive
+
+Use Canvas where appropriate.
+
+Do not create thousands of expensive DOM elements.
+
+---
+
+# 48. CONFETTI
+
+Use a centralized particle system.
+
+Support:
+
+* confetti
+* hearts
+* stars
+* petals
+* sparkles
+
+Particle density should adapt to device performance.
+
+Mobile should use fewer particles.
+
+---
+
+# 49. FINAL CELEBRATION
+
+Combine:
+
+* fireworks
+* confetti
+* balloons
+* glowing particles
+* music
+* final typography
+
+Do not activate everything at exactly the same time.
+
+Choreograph the sequence.
+
+Example:
+
+```text
+Message
+↓
+Pause
+↓
+First fireworks
+↓
+Second fireworks
+↓
+Confetti
+↓
+Balloons
+↓
+Music swell
+↓
+Final message
+```
+
+---
+
+# 50. REPLAY
+
+Final controls:
+
+**Replay Experience**
+
+**Share Surprise**
+
+Optional:
+
+**Experience Again**
+
+Replay must reset the entire state cleanly.
+
+No page reload required.
+
+---
+
+# 51. ADMIN SCENE LIBRARY
+
+Admin should see:
+
+```text
+CORE
+├── Intro
+├── Envelope
+├── Birthday Reveal
+├── Cake
+├── Balloons
+├── Gallery
+├── Timeline
+├── Love Cards
+├── Letter
+├── Gift
+└── Celebration
+
+INTERACTIVE
+├── Scratch Card
+├── Puzzle
+├── Secret Door
+├── Hidden Message
+├── Wish Jar
+├── Compliment
+└── Countdown
+
+EMOTIONAL
+├── Heart
+├── Heartbeat
+├── Voice Message
+├── Video Message
+├── Future Letter
+└── Quote
+
+CINEMATIC
+├── Photo Montage
+├── Film Strip
+├── Polaroid Wall
+├── Photo Collage
+├── Night Sky
+├── Constellation
+└── Flower/Petal
+
+CELEBRATION
+├── Fireworks
+├── Confetti
+├── Balloons
+└── Final Celebration
+```
+
+---
+
+# 52. ADMIN CUSTOMIZATION
+
+Every scene must expose appropriate configuration.
+
+Admin controls:
+
+* text
+* images
+* videos
+* audio
+* colors
+* typography
+* animation
+* transition
+* duration
+* delay
+* interaction type
+* background
+* particle style
+* particle density
+* scene order
+* enable/disable
+
+Do not expose technical complexity unnecessarily.
+
+Use simple visual controls.
+
+---
+
+# 53. SCENE TEMPLATES
+
+Admin should be able to save a configured scene as a reusable template.
+
+Example:
+
+```text
+Romantic Envelope
+Dreamy Memory Gallery
+Luxury Cake
+Midnight Letter
+Cinematic Photo Montage
+```
+
+Then reuse it in another birthday experience.
+
+---
+
+# 54. EXPERIENCE TEMPLATES
+
+Allow complete experiences to be duplicated.
+
+Example:
+
+```text
+Experience A
+↓
+Duplicate
+↓
+Experience B
+↓
+Change recipient
+↓
+Replace photos
+↓
+Change message
+↓
+Publish
+```
+
+Do not duplicate media unnecessarily.
+
+Reuse media references where possible.
+
+---
+
+# 55. PERSONALIZATION
+
+Every experience supports variables:
+
+```text
+[NAME]
+[SENDER]
+[AGE]
+[BIRTHDAY]
+[DATE]
+[CUSTOM_MESSAGE]
+```
+
+Example:
+
+> “Happy Birthday, [NAME] ❤️”
+
+The admin should not need to edit code.
+
+---
+
+# 56. EMOTIONAL PACING ENGINE
+
+This is an important addition.
+
+Each scene can have an emotional intensity value:
+
+```text
+0 = calm
+1 = warm
+2 = curious
+3 = happy
+4 = nostalgic
+5 = emotional
+6 = celebration
+```
+
+The scene engine uses this to control:
+
+* animation speed
+* particle density
+* music intensity
+* lighting
+* transition speed
+* typography scale
+
+Do not make every scene equally intense.
+
+The experience should have emotional peaks and breathing spaces.
+
+---
+
+# 57. CINEMATIC CAMERA SYSTEM
+
+For selected scenes create a virtual camera.
+
+Camera controls:
+
+* zoom
+* pan
+* rotation
+* depth
+* parallax
+
+Use CSS transforms where possible.
+
+Use WebGL only when genuinely necessary.
+
+Avoid unnecessary 3D complexity.
+
+---
+
+# 58. ADAPTIVE EFFECT ENGINE
+
+Effects should automatically adapt based on:
+
+* device
+* screen size
+* reduced-motion preference
+* performance capability
+
+Example:
+
+High-end desktop:
+
+* full particles
+* parallax
+* advanced effects
+
+Mobile:
+
+* simplified particles
+* reduced blur
+* reduced simultaneous animation
+
+Low-performance device:
+
+* minimal effects
+
+The experience should remain beautiful.
+
+---
+
+# 59. AUDIO EMOTIONAL SYNC
+
+Where possible, synchronize:
+
+* scene transitions
+* music volume
+* sound effects
+* fireworks
+* reveal moments
+
+Example:
+
+```text
+music quiet
+↓
+letter reveal
+↓
+music rises
+↓
+name reveal
+↓
+music pause
+↓
+cake scene
+↓
+celebration
+```
+
+Never make audio synchronization a hard dependency.
+
+If audio fails, visuals continue.
+
+---
+
+# 60. FINAL EXPERIENCE QUALITY
+
+The final product must NOT feel like:
+
+> “15 HTML sections with animations.”
+
+It must feel like:
+
+> **one continuous story.**
+
+The user should not know where one technical component ends and another begins.
+
+Every scene should naturally lead into the next.
+
+The transitions should feel intentional.
+
+The animations should feel choreographed.
+
+The typography should breathe.
+
+The photos should feel emotionally important.
+
+The final celebration should feel earned.
+
+---
+
+# 61. DO NOT COPY THE REFERENCE WEBSITE
+
+Use the supplied BuildNectic experience as **inspiration for interaction and emotional storytelling only**.
+
+Do not copy:
+
+* source code
+* proprietary assets
+* exact implementation
+* exact text
+* branding
+* proprietary graphics
+* proprietary animations
+
+Create an original implementation with a substantially more extensible architecture.
+
+---
+
+# 62. FINAL SCENE ENGINE REQUIREMENT
+
+The scene engine must support all of the above scenes without requiring changes to the core navigation system.
+
+Adding a new scene should require:
+
+```text
+New Scene Component
++
+Scene Configuration
++
+Scene Registry Entry
+```
+
+not a rewrite of the entire application.
+
+---
+
+# 63. FINAL GOAL
+
+Build an experience that makes the recipient feel:
+
+> “This isn't just a birthday wish.”
+
+> “This is a memory.”
+
+> “Someone actually created this for me.”
+
+> “I feel special.”
+
+> “I feel loved.”
+
+> “I feel blessed.”
+
+> “I will remember this.”
+
+That emotional response is the primary product requirement.
+
+Everything else — code, database, animations, dashboard, media management and architecture — exists to make that experience possible.

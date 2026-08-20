@@ -1,0 +1,832 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cinematic Birthday Experience - Scene 01</title>
+  <meta name="description" "A premium cinematic birthday surprise experience">
+  
+  <!-- Design Tokens - centralized CSS variables -->
+  <style>
+    :root {
+      /* Colors */
+      --color-background: #0a0e20;
+      --color-surface: #1a2038;
+      --color-primary: #e94a5f;
+      --color-text: #e8f0f8;
+      --color-muted: #5a7a8e;
+      --color-accent: #ff6b6b;
+      
+      /* Typography */
+      --font-primary: system-ui, -apple-system, "Segoe UI", sans-serif;
+      --font-size-base: 1rem;
+      --font-size-large: 1.4rem;
+      
+      /* Spacing */
+      --space-xs: 4px;
+      --space-sm: 8px;
+      --space-md: 16px;
+      --space-lg: 24px;
+      --space-xl: 32px;
+      
+      /* Borders & Radii */
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 20px;
+      
+      /* Shadows */
+      --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.4);
+      --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.5);
+      
+      /* Motion */
+      --motion-fast: 200ms;
+      --motion-normal: 500ms;
+      --motion-slow: 1000ms;
+      --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+      --ease-cinematic: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Reduced motion tokens */
+    @media (prefers-reduced-motion: reduce) {
+      :root {
+        --motion-fast: 0ms;
+        --motion-normal: 0ms;
+        --motion-slow: 0ms;
+      }
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    html {
+      scroll-behavior: smooth;
+    }
+    
+    body {
+      font-family: var(--font-primary);
+      background: var(--color-background);
+      color: var(--color-text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+    
+    /* ============ PRELOADER SCENE ============ */
+    .preloader-scene {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0a0e20 0%, #1a2038 50%, #0d1425 100%);
+      color: #e8f0f8;
+      overflow: hidden;
+      transition: opacity var(--motion-slow) ease-out;
+    }
+    
+    .preloader-scene.hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
+    
+    #preloader-canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+    }
+    
+    #preloader-text {
+      font-family: var(--font-primary);
+      font-size: var(--font-size-large);
+      color: #8ab4c8;
+      letter-spacing: 1px;
+      text-align: center;
+      user-select: none;
+      margin-bottom: var(--space-lg);
+      transition: opacity var(--motion-normal) ease-out;
+    }
+    
+    .preloader-scene.hidden #preloader-text {
+      opacity: 0;
+    }
+    
+    #preloader-glow {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #e94a5f 0%, transparent 70%);
+      margin-bottom: var(--space-lg);
+      filter: blur(12px);
+      animation: glow-breathe var(--motion-slow) ease-in-out infinite;
+      transition: transform var(--motion-normal) ease-out;
+    }
+    
+    @keyframes glow-breathe {
+      0%, 100% { transform: scale(1) }
+      50% { transform: scale(1.05) }
+    }
+    
+    /* Reduced motion: stop glow animation */
+    @media (prefers-reduced-motion: reduce) {
+      #preloader-glow {
+        animation: none;
+        transform: none;
+      }
+    }
+    
+    /* ============ MAIN CONTENT ============ */
+    .scene-container {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    
+    /* ============ NAVIGATION BUTTONS (subtle) ============ */
+    .nav-btn {
+      position: fixed;
+      z-index: 10000;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #e8f0f8;
+      text-decoration: none;
+      backdrop-filter: blur(10px);
+      transition: all var(--motion-normal) ease;
+      cursor: pointer;
+    }
+    
+    .nav-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.1);
+    }
+    
+    .nav-btn:focus {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+    
+    .nav-prev { top: 24px; left: 24px; }
+    .nav-next { top: 24px; right: 24px; }
+    
+    /* ============ SHARE BUTTON ============ */
+    .share-btn {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--color-primary);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-lg);
+      padding: var(--space-md) var(--space-lg);
+      font-size: var(--font-size-base);
+      font-weight: 600;
+      text-decoration: none;
+      backdrop-filter: blur(10px);
+      transition: background var(--motion-normal) ease;
+      cursor: pointer;
+      z-index: 10000;
+    }
+    
+    .share-btn:hover {
+      background: #f06e7e;
+    }
+    
+    .share-btn:focus {
+      outline: 2px solid #fff;
+      outline-offset: 2px;
+    }
+    
+    /* ============ MOBILE MENU BUTTON ============ */
+    .mobile-toggle {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: var(--radius-md);
+      padding: var(--space-sm);
+      color: #e8f0f8;
+      text-decoration: none;
+      backdrop-filter: blur(10px);
+      z-index: 10000;
+      display: none;
+    }
+    
+    @media (max-width: 480px) {
+      .mobile-toggle { display: block; }
+    }
+    
+    /* ============ ACCESSIBILITY ============ */
+    .skip-link {
+      position: absolute;
+      left: -999px;
+      top: auto;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      background: #fff;
+      z-index: 100;
+    }
+    
+    .skip-link:focus {
+      left: 20px;
+      top: 20px;
+      width: auto;
+      height: auto;
+      padding: 10px;
+      background: var(--color-primary);
+    }
+    
+    /* ============ SCENE TRANSITIONS ============ */
+    .scene-enter {
+      animation: sceneEnter var(--motion-normal) var(--ease-smooth) forwards;
+    }
+    
+    .scene-exit {
+      animation: sceneExit var(--motion-normal) var(--ease-smooth) forwards;
+    }
+    
+    @keyframes sceneEnter {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes sceneExit {
+      from { opacity: 1; transform: translateY(0); }
+      to { opacity: 0; transform: translateY(-20px); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Skip link for keyboard navigation -->
+  <a class="skip-link" href="#main-content">Skip to main experience</a>
+  
+  <!-- Preloader Scene - SCENE 01 -->
+  <div id="preloader-scene" class="preloader-scene" role="status" aria-label="Birthday experience preloader">
+    <canvas id="preloader-canvas"></canvas>
+    <div id="preloader-text">Preparing something special for you...</div>
+    <div id="preloader-glow"></div>
+  </div>
+  
+  <!-- Main content area -->
+  <main id="main-content" class="scene-container">
+    <!-- Scene content will be rendered here by the Scene Engine -->
+    <div id="scene-container" style="min-height: 100vh; position: relative; z-index: 1;">
+      <!-- Scenes will be rendered here -->
+    </div>
+  </main>
+  
+  <!-- Navigation buttons -->
+  <a class="nav-btn nav-prev" href="#" aria-label="Previous scene">←</a>
+  <a class="nav-btn nav-next" href="#" aria-label="Next scene">→</a>
+  
+  <!-- Share button -->
+  <a class="share-btn" id="share-btn" href="#" aria-label="Share this surprise">
+    Share This Surprise
+  </a>
+  
+  <!-- Mobile menu toggle -->
+  <a class="mobile-toggle" href="#" aria-label="Menu">☰</a>
+  
+  <script>
+    // ============ SCENE ENGINE ============
+    
+    // Scene state machine
+    const SceneState = {
+      IDLE: 'idle',
+      ENTERING: 'entering',
+      ACTIVE: 'active',
+      INTERACTING: 'interacting',
+      EXITING: 'exiting',
+      COMPLETED: 'completed'
+    };
+    
+    // Scene types
+    const SceneType = {
+      PRELOADER: 'preloader',
+      MYSTERY: 'mystery',
+      ENVELOPE: 'envelope',
+      NAME_REVEAL: 'name-reveal',
+      BIRTHDAY_REVEAL: 'birthday-reveal',
+      CAKE: 'cake',
+      BALLOONS: 'balloons',
+      GALLERY: 'gallery',
+      TIMELINE: 'timeline',
+      LOVE_CARDS: 'love-cards',
+      HEART: 'heart',
+      LETTER: 'letter',
+      MONTAGE: 'montage',
+      AUDIO: 'audio',
+      SURPRISE: 'surprise',
+      GIFT: 'gift',
+      FUTURE_WISH: 'future-wish',
+      FINAL_MESSAGE: 'final-message',
+      CELEBRATION: 'celebration',
+      REPLAY: 'replay',
+      SHARE: 'share'
+    };
+    
+    // Emotional intensity levels
+    const EmotionalIntensity = {
+      CALM: 0,
+      WARM: 1,
+      CURIOUS: 2,
+      HAPPY: 3,
+      NOSTALGIC: 4,
+      EMOTIONAL: 5,
+      CELEBRATION: 6
+    };
+    
+    // ============ SCENE ENGINE CLASS ============
+    
+    class SceneEngine {
+      constructor(config = {}) {
+        this.config = {
+          startScene: 'preloader',
+          reducedMotion: false,
+          preloadNext: true,
+          maxConcurrentTransitions: 1,
+          transitionTimeout: 5000,
+          ...config
+        };
+        this.reducedMotion = this.config.reducedMotion || false;
+        this.scenes = new Map();
+        this.currentScene = null;
+        this.isTransitioning = false;
+        this.pendingScenes = [];
+      }
+      
+      get reducedMotion() { return this._reducedMotion; }
+      set reducedMotion(val) { this._reducedMotion = val; }
+      
+      register(scene) {
+        this.scenes.set(scene.id, scene);
+      }
+      
+      async transitionTo(sceneId, options = {}) {
+        if (this.isTransitioning) {
+          console.warn('Transition already in progress, ignoring request');
+          return;
+        }
+        
+        if (!this.scenes.has(sceneId)) {
+          console.error(`Scene ${sceneId} not registered`);
+          return;
+        }
+        
+        const targetScene = this.scenes.get(sceneId);
+        
+        if (this.currentScene?.id === sceneId && !options.replace) {
+          return;
+        }
+        
+        this.isTransitioning = true;
+        
+        try {
+          // Exit current scene
+          if (this.currentScene && this.currentScene.exit) {
+            await this.currentScene.exit();
+          }
+          
+          // Preload target scene assets
+          if (targetScene.config && targetScene.config.requiresAssets) {
+            await this.preloadAssets(targetScene.config.requiresAssets);
+          }
+          
+          // Enter target scene
+          if (targetScene.enter) {
+            await targetScene.enter();
+          }
+          
+          // Update state
+          const previousScene = this.currentScene;
+          this.currentScene = targetScene;
+          
+          // Dispatch event
+          const event = new CustomEvent('scene-change', {
+            detail: { scene: targetScene, previousScene }
+          });
+          document.dispatchEvent(event);
+          
+        } catch (error) {
+          console.error('Scene transition failed:', error);
+          this.dispatchEvent('transition-error', { error });
+        } finally {
+          this.isTransitioning = false;
+          
+          // Preload next scene if configured
+          if (this.config.preloadNext && this.currentScene) {
+            this.preloadNextScene();
+          }
+        }
+      }
+      
+      preloadAssets(assetIds) {
+        return new Promise(resolve => {
+          let loaded = 0;
+          const total = assetIds.length;
+          
+          if (total === 0) {
+            resolve();
+            return;
+          }
+          
+          assetIds.forEach((id, i) => {
+            // Simulate asset loading
+            setTimeout(() => {
+              loaded++;
+              if (loaded === total) resolve();
+            }, Math.random() * 1000 + 500);
+          });
+        });
+      }
+      
+      preloadNextScene() {
+        // Find next scene in order
+        const sceneIds = Array.from(this.scenes.keys());
+        const currentIndex = sceneIds.indexOf(this.currentScene?.id || '');
+        if (currentIndex >= 0 && currentIndex < sceneIds.length - 1) {
+          const nextId = sceneIds[currentIndex + 1];
+          this.preloadAssets(this.scenes.get(nextId)?.config?.requiresAssets || []).catch(console.error);
+        }
+      }
+      
+      dispatchEvent(type, detail) {
+        const event = new CustomEvent(type, { detail });
+        document.dispatchEvent(event);
+      }
+      
+      // Check reduced motion
+      checkReducedMotion() {
+        const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+        if (mq.matches) {
+          this.reducedMotion = true;
+        }
+        mq.addListener((m) => this.reducedMotion = m.matches);
+      }
+    }
+    
+    // ============ INSTANTIATE ENGINE ============
+    
+    const sceneEngine = new SceneEngine({
+      startScene: 'preloader',
+      reducedMotion: false,
+      preloadNext: true
+    });
+    
+    // Check reduced motion preference
+    sceneEngine.checkReducedMotion();
+    
+    // ============ SCENE 01: PRELOADER ============
+    
+    // Preloader scene configuration
+    const preloaderScene = {
+      id: 'preloader',
+      type: SceneType.PRELOADER,
+      config: {
+        id: 'preloader',
+        type: SceneType.PRELOADER,
+        order: 1,
+        enabled: true,
+        emotionalIntensity: EmotionalIntensity.CALM,
+        title: 'Preparing something special for you...',
+        subtitle: undefined,
+        content: undefined,
+        transitionIn: {
+          type: 'fade',
+          duration: 1200,
+          delay: 0,
+          easing: 'ease-out',
+          direction: 'center'
+        },
+        animation: {
+          entry: {
+            type: 'cinematic-reveal',
+            duration: 1500,
+            delay: 200,
+            easing: 'cubic-bezier(0.4, 0, 0.2, 1)'
+          },
+          content: {
+            type: 'fade',
+            duration: 800,
+            delay: 500,
+            easing: 'ease-out'
+          }
+        },
+        audio: {
+          track: undefined,
+          volume: 0.3,
+          loop: false,
+          fadeIn: 0,
+          respectAutoplayRestrictions: true
+        },
+        reducedMotion: false,
+        requiresAssets: [
+          'logo-symbol',
+          'background-gradient',
+          'particle-sprite',
+          'glow-effect'
+        ],
+        fallbackContent: undefined,
+        accessibility: {
+          ariaLabel: 'Birthday experience preloader',
+          keyboardNavigate: false,
+          focusable: false,
+          role: 'status'
+        },
+        performanceRequirements: {
+          maxParticleCount: 30,
+          fpsTarget: 60,
+          memoryLimit: 50
+        },
+        completionCondition: {
+          type: 'asset-load',
+          minLoadProgress: 0.8,
+          timeThreshold: 3000
+        }
+      },
+      
+      // Scene state
+      state: {
+        id: 'preloader',
+        type: SceneType.PRELOADER,
+        isActive: false,
+        isEntering: false,
+        isInteracting: false,
+        isExiting: false,
+        isCompleted: false,
+        progress: 0,
+        interactionCount: 0,
+        assetLoadProgress: 0,
+        error: undefined
+      },
+      
+      // Enter the preloader scene
+      enter: async function() {
+        return new Promise((resolve) => {
+          // Initialize canvas
+          const canvas = document.getElementById('preloader-canvas');
+          const ctx = canvas.getContext('2d');
+          const canvasWidth = window.innerWidth;
+          const canvasHeight = window.innerHeight;
+          
+          canvas.width = canvasWidth;
+          canvas.height = canvasHeight;
+          
+          // Set total assets for progress tracking
+          preloaderScene.config.totalAssets = preloaderScene.config.requiresAssets?.length || 4;
+          
+          // Initialize particles
+          const particles = [];
+          const particleCount = Math.min(20, Math.floor(canvasWidth / 50));
+          
+          for (let i = 0; i < particleCount; i++) {
+            particles.push({
+              x: Math.random() * canvasWidth,
+              y: Math.random() * canvasHeight,
+              vx: (Math.random() - 0.5) * 0.5,
+              vy: (Math.random() - 0.5) * 0.5,
+              radius: 1 + Math.random() * 2,
+              opacity: 0.3 + Math.random() * 0.3,
+              hue: 200 + Math.random() * 30
+            });
+          }
+          
+          // Track asset loading
+          let assetLoadCount = 0;
+          const totalAssets = preloaderScene.config.requiresAssets?.length || 4;
+          
+          // Simulate asset loading
+          setTimeout(() => {
+            assetLoadCount = totalAssets;
+            
+            // Start animation loop
+            let animationFrame = null;
+            let lastTimestamp = 0;
+            let glowProgress = 0;
+            let textOpacity = 0;
+            
+            function animate(timestamp) {
+              const delta = timestamp - lastTimestamp;
+              lastTimestamp = timestamp;
+              
+              // Update glow progress
+              glowProgress += delta * 0.001;
+              if (glowProgress > 1) glowProgress -= 1;
+              
+              // Update text opacity with breathing effect
+              textOpacity = 0.5 + 0.5 * Math.sin(glowProgress * Math.PI * 2);
+              
+              // Clear canvas
+              ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+              
+              // Draw particles
+              particles.forEach(p => {
+                p.x += p.vx * delta * 0.016;
+                p.y += p.vy * delta * 0.016;
+                
+                // Wrap around edges
+                if (p.x < 0) p.x = canvasWidth;
+                if (p.x > canvasWidth) p.x = 0;
+                if (p.y < 0) p.y = canvasHeight;
+                if (p.y > canvasHeight) p.y = 0;
+                
+                ctx.save();
+                ctx.globalAlpha = p.opacity * textOpacity;
+                ctx.fillStyle = `hsl(${p.hue}, 60%, 50%)`;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+              });
+              
+              // Update glow element
+              const glowEl = document.getElementById('preloader-glow');
+              if (glowEl) {
+                glowEl.style.boxShadow = `0 0 30px rgba(233, 74, 95, ${0.5 + 0.5 * Math.sin(glowProgress * Math.PI)})`;
+              }
+              
+              // Update text opacity
+              const textEl = document.getElementById('preloader-text');
+              if (textEl) {
+                textEl.style.opacity = textOpacity;
+              }
+              
+              animationFrame = requestAnimationFrame(animate);
+            }
+            
+            // Start animation
+            lastTimestamp = performance.now();
+            animationFrame = requestAnimationFrame(animate);
+            
+            // After 3 seconds or when assets loaded, transition
+            setTimeout(() => {
+              if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+              }
+              
+              // Hide preloader
+              const preloaderEl = document.getElementById('preloader-scene');
+              if (preloaderEl) {
+                preloaderEl.classList.add('hidden');
+              }
+              
+              // Resolve the enter promise
+              resolve();
+            }, 3000);
+          }, 500); // Initial delay
+        });
+      },
+      
+      // Exit the preloader scene
+      exit: async function() {
+        return new Promise((resolve) => {
+          // Fade out elements
+          const preloaderEl = document.getElementById('preloader-scene');
+          if (preloaderEl) {
+            preloaderEl.style.transition = 'opacity 800ms ease-out';
+            preloaderEl.style.opacity = '0';
+          }
+          
+          setTimeout(() => {
+            resolve();
+          }, 800);
+        });
+      },
+      
+      // Cleanup
+      cleanup: function() {
+        if (animationFrame) {
+          cancelAnimationFrame(animationFrame);
+        }
+        const canvas = document.getElementById('preloader-canvas');
+        if (canvas && canvas.parentNode) {
+          canvas.parentNode.removeChild(canvas);
+        }
+        const preloaderEl = document.getElementById('preloader-scene');
+        if (preloaderEl && preloaderEl.parentNode) {
+          preloaderEl.parentNode.removeChild(preloaderEl);
+        }
+      }
+    };
+    
+    // Register the preloader scene
+    sceneEngine.register(preloaderScene);
+    
+    // ============ START THE EXPERIENCE ============
+    
+    // Start with the preloader scene
+    sceneEngine.transitionTo('preloader').then(() => {
+      console.log('Experience started - Scene 01 (Preloader) complete');
+      console.log('Current scene:', sceneEngine.currentScene?.type);
+    }).catch((error) => {
+      console.error('Failed to start experience:', error);
+    });
+    
+    // ============ EVENT LISTENERS ============
+    
+    // Share button
+    const shareBtn = document.getElementById('share-btn');
+    if (shareBtn) {
+      shareBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (navigator.share) {
+          navigator.share({
+            title: 'Cinematic Birthday Surprise',
+            text: 'Check out this beautiful birthday experience!',
+            url: window.location.href
+          }).then(() => {
+            console.log('Shared successfully');
+          }).catch(() => {
+            navigator.clipboard.writeText(window.location.href);
+            alert('Link copied to clipboard!');
+          });
+        } else {
+          navigator.clipboard.writeText(window.location.href);
+          alert('Link copied to clipboard!');
+        }
+      });
+    }
+    
+    // Navigation buttons
+    const navBtns = document.querySelectorAll('.nav-btn');
+    navBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        // Navigation will be implemented when scenes are added
+        console.log('Navigation button clicked:', btn.getAttribute('aria-label'));
+      });
+    });
+    
+    // Window resize handling
+    window.addEventListener('resize', () => {
+      const canvas = document.getElementById('preloader-canvas');
+      if (canvas) {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+    });
+    
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        // Could be used for replay or closing modals
+      }
+      if (e.key === ' ') {
+        e.preventDefault();
+        // Advance to next scene when implemented
+        console.log('Space pressed - advancing scene');
+      }
+    });
+    
+    // ============ ACCESSIBILITY ANNOUNCEMENTS ============
+    
+    // Annore preloader completion
+    const preloaderEl = document.getElementById('preloader-scene');
+    if (preloaderEl) {
+      const mutationObserver = new MutationObserver(() => {
+        if (preloaderEl.classList.contains('hidden')) {
+          // Announce that the preloader has completed
+          const announcement = document.createElement('div');
+          announcement.setAttribute('role', 'status');
+          announcement.style.position = 'absolute';
+          announcement.style.left = '-999px';
+          announcement.style.top = 'auto';
+          announcement.style.width = '1px';
+          announcement.style.height = '1px';
+          announcement.style.overflow = 'hidden';
+          announcement.style.clip = 'rect(0 0 0 0)';
+          announcement.textContent = 'The birthday experience is now loading. Enjoy your surprise!';
+          document.body.appendChild(announcement);
+          setTimeout(() => announcement.remove(), 1000);
+          mutationObserver.disconnect();
+        }
+      });
+      
+      mutationObserver.observe(preloaderEl, { attributes: true });
+    }
+  </script>
+  
+  <!-- ============ AUDIO PRELOAD ============ -->
+  <!-- Audio tracks would be preloaded here in production -->
+  
+  <!-- ============ FAVICON ============ -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="apple-touch-icon" href="/touch-icon.png">
+</body>
+</html>

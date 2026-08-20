@@ -1,0 +1,2142 @@
+# MASTER BUILD PROMPT
+
+## Production-Ready Raw-Code Personalized Birthday Experience Platform
+
+---
+
+# 1. ROLE
+
+Act as a **Principal Full-Stack Architect, Senior Next.js Engineer, React Engineer, TypeScript Engineer, UI/UX Director, Motion Designer, Creative Director, Animation Engineer, Backend Architect, Database Architect, Performance Engineer, Accessibility Engineer, Security Engineer and QA Engineer with 15+ years of production experience.**
+
+You are responsible for designing and implementing a complete production-ready personalized birthday experience platform from scratch.
+
+Do not create a generic birthday template.
+
+Do not create a simple landing page.
+
+Do not create a WordPress/CMS/Elementor-style website.
+
+Do not use a page builder.
+
+Do not hard-code each birthday experience individually.
+
+Build a reusable **cinematic birthday experience engine** controlled through a custom admin dashboard.
+
+---
+
+# 2. PRODUCT VISION
+
+Build a website that feels like an **interactive cinematic birthday surprise**.
+
+The recipient should feel:
+
+> “Someone created this entire experience just for me.”
+
+The emotional journey should be:
+
+**Curiosity → Mystery → Anticipation → Surprise → Happiness → Nostalgia → Appreciation → Feeling Special → Feeling Blessed → Emotional Climax → Celebration**
+
+The experience should feel:
+
+* Premium
+* Elegant
+* Emotional
+* Warm
+* Romantic
+* Magical
+* Cinematic
+* Personal
+* Sophisticated
+* Feminine-friendly
+* Beautiful
+* Memorable
+
+Avoid:
+
+* Cheap birthday-template aesthetics
+* Childish UI
+* Generic gradients
+* Excessive emojis
+* Repetitive animations
+* Random effects
+* Abrupt transitions
+* Static sections
+* Ordinary card layouts
+* Poor mobile design
+
+---
+
+# 3. IMPORTANT DESIGN REQUIREMENT
+
+Think from the perspective of a girl receiving this birthday surprise.
+
+When she opens the URL, she should immediately feel:
+
+> “What is this?”
+
+Then:
+
+> “Wait… is this for me?”
+
+Then:
+
+> “Oh my God, this is beautiful.”
+
+Then:
+
+> “They remembered all these moments.”
+
+Then:
+
+> “I feel so special.”
+
+Finally:
+
+> “I feel genuinely blessed.”
+
+Design every scene and transition around this emotional progression.
+
+Do not reveal everything immediately.
+
+Use:
+
+* suspense
+* anticipation
+* controlled reveals
+* pauses
+* visual breathing space
+* cinematic pacing
+* subtle sound
+* beautiful typography
+* soft lighting
+* progressive storytelling
+
+---
+
+# 4. TECHNOLOGY
+
+Use raw modern production code.
+
+## Frontend
+
+* Next.js
+* React
+* TypeScript
+* CSS Modules
+* Plain CSS
+* Framer Motion where useful
+* Web Animations API where appropriate
+* Canvas for advanced particle effects
+* Web Audio API for audio interaction
+
+## Backend
+
+* Node.js
+* TypeScript
+* REST API
+* PostgreSQL
+* Secure authentication
+* File/media storage
+
+Do not introduce unnecessary frameworks.
+
+Do not use a UI template.
+
+Do not use a page builder.
+
+Do not depend on external CDNs for core functionality.
+
+Keep the architecture clean and maintainable.
+
+---
+
+# 5. HIGH-LEVEL ARCHITECTURE
+
+Build the platform around this architecture:
+
+```text
+                    ADMIN DASHBOARD
+                           │
+                           ▼
+                  EXPERIENCE BUILDER
+                           │
+             ┌─────────────┼─────────────┐
+             ▼             ▼             ▼
+          Content        Media        Scenes
+             │             │             │
+             └─────────────┼─────────────┘
+                           ▼
+                     BACKEND API
+                           │
+                    ┌──────┴──────┐
+                    ▼             ▼
+                PostgreSQL     Media Storage
+                    │             │
+                    └──────┬──────┘
+                           ▼
+                   EXPERIENCE ENGINE
+                           │
+       ┌───────────────────┼───────────────────┐
+       ▼                   ▼                   ▼
+ Scene Engine        Animation Engine     Audio Engine
+       │                   │                   │
+       └───────────────────┼───────────────────┘
+                           ▼
+                  PUBLIC BIRTHDAY URL
+```
+
+---
+
+# 6. TWO COMPLETELY DIFFERENT EXPERIENCES
+
+## ADMIN
+
+Professional SaaS-style interface.
+
+## PUBLIC
+
+Cinematic emotional experience.
+
+Never mix these designs.
+
+The public birthday experience must never look like an admin application.
+
+---
+
+# 7. ADMIN DASHBOARD
+
+Create a complete custom admin dashboard.
+
+Routes:
+
+```text
+/admin
+/admin/login
+/admin/dashboard
+/admin/experiences
+/admin/experiences/new
+/admin/experiences/[id]
+/admin/experiences/[id]/scenes
+/admin/experiences/[id]/media
+/admin/experiences/[id]/preview
+/admin/media
+/admin/themes
+/admin/analytics
+/admin/settings
+```
+
+Dashboard should include:
+
+* Overview
+* Experiences
+* Drafts
+* Published experiences
+* Media library
+* Scene builder
+* Theme manager
+* Preview
+* Analytics
+* Settings
+
+---
+
+# 8. EXPERIENCE CREATION
+
+Admin can create a birthday experience.
+
+Fields:
+
+* Recipient name
+* Sender name
+* Birthday date
+* Experience title
+* URL slug
+* Unique public token
+* Cover image
+* Theme
+* Music
+* Status
+
+Status:
+
+```text
+draft
+published
+archived
+```
+
+Generate a unique public URL.
+
+Example:
+
+```text
+/birthday/shrishti/x7k92p
+```
+
+---
+
+# 9. MEDIA MANAGEMENT
+
+Admin must be able to upload:
+
+### Images
+
+* JPG
+* JPEG
+* PNG
+* WebP
+* AVIF
+
+### Video
+
+* MP4
+* WebM
+
+### Audio
+
+* MP3
+* WAV
+* OGG
+
+Upload functionality must support:
+
+* Drag and drop
+* Multiple files
+* Upload progress
+* Preview
+* Delete
+* Rename
+* Search
+* Filter
+* Assign to scenes
+
+Store metadata:
+
+```text
+id
+filename
+mimeType
+size
+width
+height
+duration
+storagePath
+thumbnailPath
+createdAt
+```
+
+Validate all uploads.
+
+Never trust file extensions.
+
+Validate actual MIME types.
+
+---
+
+# 10. AUTOMATIC IMAGE OPTIMIZATION
+
+When admin uploads an image:
+
+Automatically generate optimized versions.
+
+Example:
+
+```text
+original
+thumbnail
+small
+medium
+large
+webp
+avif
+```
+
+Do not send huge original files to the public experience.
+
+Prevent large images from causing:
+
+* slow loading
+* layout shifts
+* mobile memory problems
+
+---
+
+# 11. SCENE BUILDER
+
+Create a drag-and-drop scene builder.
+
+Default scenes:
+
+```text
+01 Mystery Introduction
+02 Envelope Reveal
+03 Birthday Reveal
+04 Birthday Cake
+05 Balloon Interaction
+06 Memory Gallery
+07 Memory Timeline
+08 Things I Love About You
+09 Heart Reveal
+10 Personal Letter
+11 Cinematic Photo Montage
+12 Music Moment
+13 Gift Reveal
+14 Final Emotional Message
+15 Celebration
+```
+
+Admin can:
+
+* Add
+* Remove
+* Duplicate
+* Disable
+* Enable
+* Reorder
+
+scenes.
+
+Do not hard-code the order.
+
+Order comes from the database.
+
+---
+
+# 12. SCENE ENGINE
+
+Every scene is a reusable React component.
+
+Example:
+
+```text
+MysteryScene
+EnvelopeScene
+BirthdayRevealScene
+CakeScene
+BalloonScene
+MemoryGalleryScene
+TimelineScene
+LoveCardsScene
+HeartScene
+LetterScene
+PhotoMontageScene
+MusicScene
+GiftScene
+FinalMessageScene
+CelebrationScene
+```
+
+The code controls behavior.
+
+The database controls content/configuration.
+
+Never store raw HTML as the scene definition.
+
+---
+
+# 13. SCENE DATA MODEL
+
+Each scene should support:
+
+```text
+id
+experienceId
+type
+order
+enabled
+title
+subtitle
+content
+assets
+animationConfig
+transitionConfig
+interactionConfig
+themeConfig
+timingConfig
+createdAt
+updatedAt
+```
+
+The architecture must support adding new scene types later.
+
+---
+
+# 14. SCENE 01 — MYSTERY INTRODUCTION
+
+Create a minimal cinematic opening.
+
+Background:
+
+* dark gradient
+* subtle particles
+* soft glow
+* ambient movement
+* light grain
+
+Reveal:
+
+> “Someone has prepared a little surprise for you…”
+
+Pause.
+
+Then:
+
+> “But first…”
+
+Pause.
+
+Then:
+
+> “Are you ready?”
+
+CTA:
+
+**Open Your Surprise**
+
+Interaction:
+
+* magnetic hover
+* soft glow
+* scale
+* ripple
+* particle response
+
+When clicked:
+
+* lock input
+* begin transition
+* transition into Scene 02
+
+Never allow double-triggering.
+
+---
+
+# 15. SCENE 02 — ENVELOPE REVEAL
+
+Display a premium envelope.
+
+Envelope:
+
+* realistic depth
+* soft shadow
+* subtle floating
+* pointer response
+* touch response
+* soft lighting
+
+Click:
+
+1. Envelope moves forward.
+2. Seal breaks.
+3. Flap opens.
+4. Letter emerges.
+5. Camera subtly zooms.
+6. Background blurs.
+7. Letter becomes dominant.
+8. Text appears progressively.
+
+Use spring-based animation.
+
+Do not make it mechanical.
+
+---
+
+# 16. SCENE 03 — BIRTHDAY REVEAL
+
+Create the first major emotional reveal.
+
+Show:
+
+> “Happy Birthday”
+
+Then reveal recipient name.
+
+Example:
+
+> “SHRISHTI”
+
+Use:
+
+* letter reveal
+* blur-to-focus
+* light sweep
+* particles
+* glow
+* subtle camera movement
+
+Then:
+
+> “Today is all about you.”
+
+Pause before continuing.
+
+---
+
+# 17. SCENE 04 — CAKE
+
+Introduce the cake slowly.
+
+Start with darkness.
+
+Then:
+
+* spotlight
+* cake silhouette
+* cake reveal
+* candle animation
+* realistic candle flicker
+
+Message:
+
+> “Make a wish…”
+
+Allow the user to interact with candles.
+
+Each candle must respond independently.
+
+After all candles are extinguished:
+
+* short silence/pause
+* lights increase
+* confetti
+* particles
+* music enhancement
+* emotional message
+
+Example:
+
+> “May every wish you make today find its way to you.”
+
+---
+
+# 18. SCENE 05 — BALLOONS
+
+Introduce balloons gradually.
+
+Balloons should:
+
+* float naturally
+* rotate subtly
+* move at different speeds
+* respond to cursor
+* respond to touch
+
+Each balloon can contain:
+
+* compliment
+* memory
+* quote
+* message
+* date
+
+Clicking a balloon:
+
+```text
+balloon interaction
+→ balloon pop/reveal
+→ content appears
+→ particle burst
+→ continue
+```
+
+---
+
+# 19. SCENE 06 — MEMORY GALLERY
+
+This must be visually extraordinary.
+
+Never create a simple image grid.
+
+Use:
+
+* Polaroids
+* floating photos
+* scrapbook
+* film strips
+* overlapping images
+* cinematic cards
+* full-screen photo reveals
+
+Admin-uploaded images must appear dynamically.
+
+Each memory supports:
+
+```text
+image
+caption
+date
+description
+```
+
+Interaction:
+
+```text
+photo enters
+→ settles
+→ subtle parallax
+→ hover/touch
+→ expands
+→ caption reveals
+```
+
+When expanded:
+
+Use a blurred version of the image as the background.
+
+---
+
+# 20. SCENE 07 — MEMORY TIMELINE
+
+Create an emotional timeline.
+
+Example:
+
+> “It started here…”
+
+↓
+
+> “Then came this…”
+
+↓
+
+> “And somehow…”
+
+↓
+
+> “We collected all these memories.”
+
+Admin can add unlimited timeline items.
+
+Each item supports:
+
+* date
+* title
+* description
+* image
+
+Use scroll-driven cinematic transitions.
+
+Do not make it look like a normal corporate timeline.
+
+---
+
+# 21. SCENE 08 — THINGS I LOVE ABOUT YOU
+
+Create individual emotional cards.
+
+Examples:
+
+* Your smile
+* Your kindness
+* Your laugh
+* Your strength
+* Your little habits
+* Your beautiful heart
+* Your craziness
+* Your presence
+
+Every card should use a different micro-animation.
+
+Do not repeat the exact same animation.
+
+---
+
+# 22. SCENE 09 — HEART REVEAL
+
+Create a glowing interactive heart.
+
+Interaction:
+
+* heartbeat
+* glow
+* particles
+* floating hearts
+* light burst
+
+Reveal:
+
+> “Some people enter our lives…”
+
+Pause.
+
+> “And somehow make everything a little brighter.”
+
+Pause.
+
+> “You are one of those people.”
+
+---
+
+# 23. SCENE 10 — PERSONAL LETTER
+
+Create a cinematic handwritten letter.
+
+Admin controls:
+
+* heading
+* paragraphs
+* signature
+* photo
+* background
+* handwriting style
+
+Reveal text progressively.
+
+Use:
+
+* writing animation
+* line reveal
+* cursor
+* paper texture
+* soft lighting
+
+Allow:
+
+**Read Letter**
+
+interaction.
+
+---
+
+# 24. SCENE 11 — CINEMATIC PHOTO MONTAGE
+
+Use selected admin-uploaded images.
+
+Create a cinematic slideshow.
+
+Each photo:
+
+* slowly zooms
+* pans
+* rotates slightly
+* transitions into next image
+
+Text:
+
+> “Some moments don't need words.”
+
+Then:
+
+> “They simply become memories.”
+
+---
+
+# 25. SCENE 12 — MUSIC
+
+Admin can upload custom background music.
+
+Create a centralized audio manager.
+
+Features:
+
+* play
+* pause
+* mute
+* volume
+* background music
+* scene-specific audio
+* sound effects
+
+Do not rely on autoplay.
+
+Initialize audio after user interaction.
+
+If audio fails, the experience must continue.
+
+---
+
+# 26. SCENE 13 — GIFT REVEAL
+
+Display a premium gift box.
+
+Interaction:
+
+* shake
+* glow
+* anticipation
+* open
+* light burst
+* particles
+
+Reveal:
+
+> “If today reminds you of anything…”
+
+Then:
+
+> “I hope it reminds you how loved you are.”
+
+Then:
+
+> “Happy Birthday ❤️”
+
+---
+
+# 27. SCENE 14 — FINAL EMOTIONAL MESSAGE
+
+Slow the experience down.
+
+Darken the background.
+
+Reveal:
+
+> “Happy Birthday, [NAME]”
+
+Then:
+
+> “May this year bring you…”
+
+Reveal one at a time:
+
+* beautiful surprises
+* genuine happiness
+* unforgettable memories
+* people who truly value you
+* dreams that come true
+
+Final:
+
+> “You deserve all of it.”
+
+Pause.
+
+Then:
+
+> “Always remember that.”
+
+---
+
+# 28. SCENE 15 — CELEBRATION
+
+Create the final celebration.
+
+Effects:
+
+* fireworks
+* confetti
+* balloons
+* particles
+* light rays
+* soft glow
+
+Display:
+
+> “Happy Birthday ❤️”
+
+Optional:
+
+> “Made especially for you.”
+
+Buttons:
+
+**Replay Experience**
+
+**Share This Surprise**
+
+---
+
+# 29. ANIMATION ENGINE
+
+Do not scatter animation logic throughout the project.
+
+Create:
+
+```text
+AnimationEngine
+TransitionEngine
+InteractionEngine
+SceneEngine
+AudioEngine
+Preloader
+```
+
+Centralize animation configuration.
+
+Supported animations:
+
+```text
+fade
+slide
+scale
+blur
+zoom
+rotate
+parallax
+floating
+maskReveal
+clipReveal
+lightSweep
+typewriter
+letterReveal
+particleReveal
+cinematicReveal
+```
+
+Each animation must support:
+
+```text
+duration
+delay
+easing
+direction
+stagger
+repeat
+reducedMotion
+```
+
+---
+
+# 30. TRANSITION ENGINE
+
+Create specialized transitions.
+
+Support:
+
+```text
+fade
+crossfade
+blur
+zoom
+circleReveal
+curtainReveal
+lightSweep
+particleDissolve
+photoMorph
+maskReveal
+cinematicCrossfade
+```
+
+Do not use the same transition for every scene.
+
+Transitions should match the emotional context.
+
+---
+
+# 31. SCENE STATE MACHINE
+
+Create a reliable scene state machine.
+
+States:
+
+```text
+idle
+entering
+active
+interacting
+exiting
+transitioning
+completed
+error
+```
+
+Never allow multiple scene transitions simultaneously.
+
+Example logic:
+
+```text
+if isTransitioning:
+    ignore navigation
+```
+
+This prevents:
+
+* skipped scenes
+* duplicate transitions
+* overlapping animations
+* race conditions
+
+---
+
+# 32. PRELOADING SYSTEM
+
+Do not load the entire experience at once.
+
+Load:
+
+```text
+current scene
++
+next scene
+```
+
+Before transitioning:
+
+1. Verify next scene.
+2. Preload required assets.
+3. Verify assets.
+4. Start exit animation.
+5. Transition.
+6. Enter next scene.
+7. Release old resources.
+
+Initial loader:
+
+> “Preparing something special…”
+
+Use an elegant progress indicator.
+
+Never show a generic spinning loader.
+
+---
+
+# 33. FAILURE RESILIENCE
+
+If an image fails:
+
+Use fallback.
+
+If audio fails:
+
+Continue without audio.
+
+If animation fails:
+
+Continue using fallback transition.
+
+If scene data is incomplete:
+
+Use safe defaults.
+
+Never show:
+
+* stack traces
+* blank screens
+* React error messages
+* broken layouts
+* raw JSON
+* technical errors
+
+The experience must continue.
+
+---
+
+# 34. MOBILE-FIRST EXPERIENCE
+
+Mobile is the primary target.
+
+Support:
+
+```text
+360
+375
+390
+412
+430
+```
+
+Do not simply shrink desktop.
+
+Create separate mobile compositions where necessary.
+
+Use:
+
+* tap
+* swipe
+* drag
+* touch
+* long press where appropriate
+
+Disable custom cursor on mobile.
+
+Minimum touch target:
+
+44 × 44 px.
+
+Prevent:
+
+* horizontal overflow
+* viewport jumps
+* clipped text
+* broken images
+* excessive particles
+* accidental page scrolling
+
+---
+
+# 35. DESKTOP EXPERIENCE
+
+Desktop can include:
+
+* custom cursor
+* mouse parallax
+* magnetic buttons
+* image tilt
+* advanced particle interaction
+* larger compositions
+* cinematic camera movement
+
+Keep performance at 60fps.
+
+---
+
+# 36. CURSOR
+
+Create a premium custom cursor on desktop.
+
+States:
+
+```text
+default
+interactive
+open
+view
+drag
+music
+```
+
+Examples:
+
+Photo hover:
+
+> View Memory
+
+Envelope:
+
+> Open
+
+Gift:
+
+> Open Gift
+
+Never interfere with accessibility.
+
+---
+
+# 37. MICRO-INTERACTIONS
+
+Use subtle premium effects:
+
+* cursor glow
+* magnetic buttons
+* glass reflection
+* light leaks
+* floating dust
+* particles
+* soft grain
+* parallax
+* text shimmer
+* glowing borders
+* heartbeat
+* petals
+* stars
+* image tilt
+
+Use restraint.
+
+The goal is:
+
+**luxury, not visual overload.**
+
+---
+
+# 38. ADMIN SCENE EDITOR
+
+Every scene should have an editor.
+
+Editor sections:
+
+## Content
+
+* Heading
+* Subtitle
+* Paragraph
+* Quote
+* Button
+* Caption
+* Signature
+
+## Assets
+
+* Background
+* Images
+* Videos
+* Audio
+
+## Animation
+
+* Entry
+* Content
+* Interaction
+* Exit
+
+## Transition
+
+* Previous → Current
+* Current → Next
+
+## Timing
+
+* Delay
+* Duration
+* Stagger
+* Auto advance
+
+## Theme
+
+* Background
+* Text
+* Accent
+* Glow
+* Typography
+
+---
+
+# 39. LIVE PREVIEW
+
+Admin preview must use the exact same scene engine used by the public website.
+
+Support:
+
+```text
+Desktop
+Tablet
+Mobile
+```
+
+Preview:
+
+* Current scene
+* Complete experience
+* Animations
+* Transitions
+* Audio
+* Uploaded assets
+
+Do NOT create a fake preview implementation.
+
+---
+
+# 40. DRAFT / PUBLISH SYSTEM
+
+Admin workflow:
+
+```text
+Create
+↓
+Edit
+↓
+Upload
+↓
+Configure
+↓
+Preview
+↓
+Validate
+↓
+Publish
+```
+
+Public users must only receive published configuration.
+
+Draft changes must never leak into production.
+
+---
+
+# 41. PUBLISH VALIDATION
+
+Before publishing, automatically check:
+
+* missing images
+* broken assets
+* missing required content
+* invalid scene type
+* duplicate scene order
+* invalid animation
+* invalid transition
+* unsupported media
+* missing required configuration
+
+Prevent publication if critical errors exist.
+
+---
+
+# 42. DATABASE
+
+Create normalized tables/entities:
+
+```text
+users
+experiences
+experience_versions
+scenes
+scene_contents
+media_assets
+scene_assets
+memories
+timeline_items
+animation_configs
+transition_configs
+themes
+audio_tracks
+experience_settings
+analytics_events
+```
+
+Use foreign keys.
+
+Use indexes where required.
+
+Use migrations.
+
+Never store everything as one giant JSON object.
+
+Use JSON only for flexible configuration where appropriate.
+
+---
+
+# 43. SECURITY
+
+Admin:
+
+* secure login
+* hashed passwords
+* session security
+* authorization
+* rate limiting
+* input validation
+
+Uploads:
+
+* MIME validation
+* file size validation
+* filename sanitization
+* storage isolation
+* malicious file prevention
+
+Public URLs:
+
+* unguessable tokens
+* published content only
+
+Never expose:
+
+* database credentials
+* storage credentials
+* private API keys
+
+---
+
+# 44. FRONTEND ARCHITECTURE
+
+Use:
+
+```text
+app/
+components/
+hooks/
+lib/
+services/
+types/
+config/
+styles/
+```
+
+Birthday:
+
+```text
+components/birthday/
+├── engine/
+├── scenes/
+├── animations/
+├── transitions/
+├── effects/
+├── interactions/
+└── audio/
+```
+
+Admin:
+
+```text
+components/admin/
+├── dashboard/
+├── experiences/
+├── scene-builder/
+├── scene-editor/
+├── media-library/
+├── preview/
+└── settings/
+```
+
+---
+
+# 45. CSS ARCHITECTURE
+
+Do NOT create one giant CSS file.
+
+Use:
+
+```text
+styles/
+├── globals.css
+├── tokens.css
+│
+├── birthday/
+│   ├── intro.css
+│   ├── envelope.css
+│   ├── reveal.css
+│   ├── cake.css
+│   ├── balloons.css
+│   ├── gallery.css
+│   ├── timeline.css
+│   ├── love-cards.css
+│   ├── heart.css
+│   ├── letter.css
+│   ├── montage.css
+│   ├── gift.css
+│   ├── final.css
+│   └── celebration.css
+│
+└── admin/
+    ├── dashboard.css
+    ├── editor.css
+    ├── media.css
+    └── preview.css
+```
+
+Every scene should have isolated styling.
+
+Avoid global CSS conflicts.
+
+---
+
+# 46. DESIGN TOKENS
+
+Create centralized tokens:
+
+```text
+colors
+typography
+spacing
+radius
+shadows
+z-index
+motion
+breakpoints
+```
+
+Example:
+
+```css
+--color-primary
+--color-secondary
+--color-background
+--color-surface
+--color-text
+--color-muted
+
+--motion-fast
+--motion-normal
+--motion-slow
+
+--ease-smooth
+--ease-spring
+--ease-cinematic
+```
+
+Do not hard-code random values throughout components.
+
+---
+
+# 47. PERFORMANCE
+
+Target:
+
+```text
+Lighthouse Performance: 90+
+LCP: < 2.5s
+CLS: < 0.1
+```
+
+Optimize:
+
+* image loading
+* animation rendering
+* JavaScript bundles
+* scene code splitting
+* dynamic imports
+* asset preloading
+* memory usage
+
+Prefer GPU-friendly properties:
+
+```text
+transform
+opacity
+filter
+```
+
+Avoid unnecessary layout animation.
+
+---
+
+# 48. MEMORY MANAGEMENT
+
+When a scene is destroyed:
+
+Clean up:
+
+```text
+timeouts
+intervals
+event listeners
+requestAnimationFrame
+IntersectionObserver
+ResizeObserver
+audio
+video
+canvas
+subscriptions
+```
+
+Prevent memory leaks.
+
+---
+
+# 49. ACCESSIBILITY
+
+Support:
+
+* keyboard navigation
+* semantic HTML
+* focus management
+* accessible buttons
+* screen readers
+* reduced motion
+* adequate contrast
+
+Respect:
+
+```text
+prefers-reduced-motion
+```
+
+When enabled:
+
+Reduce:
+
+* particles
+* parallax
+* camera movement
+* complex transitions
+
+but preserve the story.
+
+---
+
+# 50. ANALYTICS
+
+Track:
+
+```text
+experience_open
+scene_view
+scene_complete
+interaction
+experience_complete
+replay
+share
+```
+
+Dashboard metrics:
+
+* views
+* unique visitors
+* completion rate
+* average duration
+* most viewed scene
+* drop-off scene
+* device type
+
+Do not collect unnecessary personal data.
+
+---
+
+# 51. TESTING
+
+Test:
+
+### Browsers
+
+* Chrome
+* Firefox
+* Edge
+* Safari
+
+### Mobile
+
+* iOS Safari
+* Android Chrome
+
+### Conditions
+
+* slow network
+* missing image
+* missing audio
+* invalid media
+* rapid clicking
+* double clicking
+* fast navigation
+* refresh
+* deep URL
+* browser back
+* orientation change
+
+---
+
+# 52. ANIMATION TESTING
+
+Every animation must be checked for:
+
+* frame drops
+* flickering
+* layout shifts
+* z-index problems
+* overflow
+* duplicate animation
+* cancellation bugs
+* mobile performance
+* interaction conflicts
+
+Target smooth 60fps wherever practical.
+
+---
+
+# 53. NO-GLITCH REQUIREMENT
+
+This is a strict requirement.
+
+The application must prevent:
+
+* hydration mismatch
+* race conditions
+* duplicate transitions
+* stale state
+* broken scene state
+* image layout shifts
+* audio initialization failures
+* animation conflicts
+* mobile viewport problems
+* memory leaks
+* abandoned timers
+* multiple event listeners
+* double-click scene skipping
+
+Use proper:
+
+* cleanup
+* cancellation
+* locking
+* state machines
+* error boundaries
+* loading states
+* fallbacks
+
+---
+
+# 54. PUBLIC EXPERIENCE RULE
+
+The public page must contain NO unnecessary UI.
+
+No:
+
+* navbar
+* footer
+* admin controls
+* CMS labels
+* technical information
+* unnecessary menus
+
+Only the experience.
+
+Optional minimal controls:
+
+* mute
+* progress
+* replay
+* share
+
+These should remain visually subtle.
+
+---
+
+# 55. SCENE NAVIGATION
+
+Primary navigation should be experiential rather than conventional.
+
+Prefer:
+
+```text
+interaction
+→ reveal
+→ transition
+→ next scene
+```
+
+instead of:
+
+```text
+Next
+Next
+Next
+Next
+```
+
+However, provide accessibility-safe navigation where appropriate.
+
+Never trap the user.
+
+---
+
+# 56. SHARING
+
+Create a share action.
+
+Support browser share API where available.
+
+Fallback:
+
+* copy URL
+
+Share URL:
+
+```text
+/birthday/[slug]/[token]
+```
+
+Never expose internal database IDs.
+
+---
+
+# 57. REPLAY
+
+At the end provide:
+
+**Replay Experience**
+
+Replay should reset:
+
+```text
+scene state
+animation state
+audio state
+interaction state
+progress
+```
+
+without requiring a full page reload.
+
+---
+
+# 58. FUTURE EXTENSIBILITY
+
+The system must allow future scenes such as:
+
+```text
+QuestionScene
+QuizScene
+VoiceMessageScene
+VideoMessageScene
+ScratchCardScene
+FortuneScene
+WishScene
+MemoryPuzzleScene
+PhotoCollageScene
+CountdownScene
+VirtualFireworksScene
+SecretMessageScene
+```
+
+without rewriting the core engine.
+
+---
+
+# 59. DEVELOPMENT PROCESS
+
+Do NOT generate the entire project blindly in one step.
+
+Build in controlled phases.
+
+## PHASE 1
+
+Architecture.
+
+## PHASE 2
+
+Database.
+
+## PHASE 3
+
+Backend API.
+
+## PHASE 4
+
+Authentication.
+
+## PHASE 5
+
+Experience engine.
+
+## PHASE 6
+
+Animation engine.
+
+## PHASE 7
+
+Transition engine.
+
+## PHASE 8
+
+Scene 01–05.
+
+## PHASE 9
+
+Scene 06–10.
+
+## PHASE 10
+
+Scene 11–15.
+
+## PHASE 11
+
+Admin dashboard.
+
+## PHASE 12
+
+Media upload.
+
+## PHASE 13
+
+Scene builder.
+
+## PHASE 14
+
+Live preview.
+
+## PHASE 15
+
+Publishing.
+
+## PHASE 16
+
+Performance.
+
+## PHASE 17
+
+Accessibility.
+
+## PHASE 18
+
+Security.
+
+## PHASE 19
+
+Testing.
+
+## PHASE 20
+
+Production hardening.
+
+After each phase:
+
+1. Run the application.
+2. Check TypeScript.
+3. Check linting.
+4. Check build.
+5. Check runtime.
+6. Check responsive behavior.
+7. Fix all errors.
+8. Only then continue.
+
+Never knowingly carry broken code into the next phase.
+
+---
+
+# 60. CODING RULES
+
+Write production-quality code.
+
+Use:
+
+* strict TypeScript
+* reusable components
+* meaningful names
+* small components
+* clear interfaces
+* centralized configuration
+* error handling
+* validation
+* proper loading states
+* proper empty states
+
+Avoid:
+
+* `any`
+* duplicated code
+* giant components
+* giant CSS files
+* magic numbers
+* hard-coded content
+* hard-coded scene order
+* hard-coded image paths
+* global animation hacks
+* unnecessary dependencies
+
+---
+
+# 61. FINAL PRODUCT STANDARD
+
+The finished application must feel like:
+
+**A luxury digital birthday experience platform.**
+
+Not:
+
+**A birthday HTML template.**
+
+The recipient should feel emotionally connected to the experience.
+
+Every scene must have:
+
+* purpose
+* storytelling
+* interaction
+* animation
+* transition
+* responsive behavior
+* fallback
+* accessibility
+* performance consideration
+
+---
+
+# 62. FINAL ACCEPTANCE CRITERIA
+
+The application is complete only when:
+
+* Admin can log in.
+* Admin can create an experience.
+* Admin can upload images.
+* Admin can upload audio.
+* Admin can upload video.
+* Admin can edit every scene.
+* Admin can reorder scenes.
+* Admin can enable/disable scenes.
+* Admin can configure animations.
+* Admin can configure transitions.
+* Admin can preview the experience.
+* Admin can save drafts.
+* Admin can publish.
+* Public URL works independently.
+* Uploaded images appear in the correct scenes.
+* Uploaded text appears correctly.
+* Uploaded audio works.
+* All 15 scenes work.
+* Scene transitions are smooth.
+* Mobile experience is excellent.
+* Desktop experience is excellent.
+* Rapid clicks cannot break the experience.
+* Failed assets cannot break the experience.
+* Refresh does not create corrupted state.
+* No hydration errors.
+* No console errors.
+* No TypeScript errors.
+* No broken routes.
+* No layout overflow.
+* No major animation glitches.
+* No obvious performance problems.
+* Accessibility requirements are satisfied.
+* Security requirements are satisfied.
+
+---
+
+# 63. MOST IMPORTANT CREATIVE INSTRUCTION
+
+Do not treat the scenes as separate webpages.
+
+Treat them as chapters of one emotional movie.
+
+The user should feel:
+
+```text
+I wonder what this is...
+        ↓
+Oh...
+        ↓
+Wait...
+        ↓
+This is for me?
+        ↓
+Wow...
+        ↓
+These are our memories...
+        ↓
+I remember this...
+        ↓
+This is so thoughtful...
+        ↓
+I feel special...
+        ↓
+I feel loved...
+        ↓
+I feel blessed...
+        ↓
+Happy Birthday ❤️
+```
+
+Every transition must move the emotional story forward.
+
+Every animation must have purpose.
+
+Every interaction must feel intentional.
+
+Every uploaded photo must feel like part of the story.
+
+Every message must have breathing room.
+
+Do not rush.
+
+Do not overload.
+
+Do not make everything move simultaneously.
+
+Use **silence, pauses, anticipation, reveal, movement and stillness** as part of the design.
+
+The final experience should feel like someone spent hours creating a beautiful surprise specifically for the recipient.
+
+---
+
+# 64. STARTING INSTRUCTION
+
+Before writing large amounts of code:
+
+1. Analyze the complete requirements.
+2. Create the final architecture.
+3. Create the database schema.
+4. Create the folder structure.
+5. Define TypeScript interfaces.
+6. Define scene contracts.
+7. Define animation contracts.
+8. Define transition contracts.
+9. Define API contracts.
+10. Define admin/public boundaries.
+11. Define media lifecycle.
+12. Define publishing lifecycle.
+13. Identify possible race conditions.
+14. Identify performance risks.
+15. Identify mobile risks.
+16. Identify accessibility risks.
+17. Then begin implementation.
+
+Do not skip architectural planning.
+
+Do not simplify the requirements without permission.
+
+Do not omit scenes.
+
+Do not replace the custom scene engine with a generic page builder.
+
+Do not generate placeholder architecture and call it production-ready.
+
+Build the system from scratch with clean, scalable, maintainable raw code.
+
+**The final result must be an extraordinary, smooth, emotional, cinematic and production-ready personalized birthday experience platform.**
