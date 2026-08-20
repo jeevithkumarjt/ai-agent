@@ -54,7 +54,7 @@ def create_app() -> FastAPI:
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         _build_services(app)
         logger.info("app_started", env=settings.app_env, model=settings.anthropic_model)
-        knowledge_task = asyncio.create_task(_knowledge_refresh_loop(app.state.knowledge))
+        knowledge_task = asyncio.create_task(_safe_refresh(app.state.knowledge))
         sync_task = asyncio.create_task(_auto_sync_loop(app))
         yield
         knowledge_task.cancel()
@@ -84,12 +84,16 @@ def create_app() -> FastAPI:
     return app
 
 
-async def _knowledge_refresh_loop(store: KnowledgeStore) -> None:
-    """Ingest documents/ + site crawl into document_chunks at startup, then periodically."""
+async def _safe_refresh(store: KnowledgeStore) -> None:
+    """First refresh after 30s delay; then periodic per knowledge_refresh_minutes."""
+    await asyncio.sleep(30)
     await store.refresh()
     while True:
         await asyncio.sleep(settings.knowledge_refresh_minutes * 60)
-        await store.refresh()
+        try:
+            await store.refresh()
+        except Exception:
+            logger.exception("knowledge_refresh_error")
 
 
 async def _auto_sync_loop(app: FastAPI) -> None:
