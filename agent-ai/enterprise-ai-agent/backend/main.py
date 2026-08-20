@@ -109,9 +109,12 @@ async def _init_app(app: FastAPI) -> None:
 
 
 async def _safe_refresh(store: KnowledgeStore) -> None:
-    """First refresh after 30s delay; then periodic per knowledge_refresh_minutes."""
-    await asyncio.sleep(30)
-    await store.refresh()
+    """First refresh after 5 min delay; then periodic per knowledge_refresh_minutes."""
+    await asyncio.sleep(300)
+    try:
+        await store.refresh()
+    except Exception:
+        logger.exception("knowledge_refresh_error")
     while True:
         await asyncio.sleep(settings.knowledge_refresh_minutes * 60)
         try:
