@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import secrets
 import uuid
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 from core.auth import (
@@ -30,9 +30,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 import time
-import uuid as uuid_mod
 
-from api.schemas import LoginRequest, RefreshRequest, TokenPair
+from api.schemas import LoginRequest, RefreshRequest, TokenPair, WsTicketRequest
 
 logger = get_logger("api.auth")
 
@@ -65,7 +64,7 @@ async def login(body: LoginRequest, session: Annotated[AsyncSession, Depends(get
     db_session = SessionModel(
         user_id=user.id,
         sid=sid,
-        expires_at=datetime.now(settings.timezone) + settings.jwt_refresh_ttl_days * timedelta(days=1),
+        expires_at=datetime.now(UTC) + settings.jwt_refresh_ttl_days * timedelta(days=1),
     )
     session.add(db_session)
     await session.commit()
@@ -88,7 +87,7 @@ async def refresh(body: RefreshRequest, session: Annotated[AsyncSession, Depends
             select(SessionModel).where(SessionModel.sid == sid, SessionModel.user_id == user.id)
         )
         stored_session = result.scalar_one_or_none()
-        if stored_session is None or stored_session.expires_at < datetime.now(settings.timezone):
+        if stored_session is None or stored_session.expires_at < datetime.now(UTC):
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="session revoked or expired")
     return await _token_pair(user)
 
@@ -143,23 +142,18 @@ async def ws_ticket(body: WsTicketRequest, session: Annotated[AsyncSession, Depe
     """
     # Decode the access token to get user info
     try:
-        payload = jwt.decode(
-            body.access_token,
-            settings.jwt_secret,
-            algorithms=[settings.jwt_algorithm],
-            options={"verify_exp": True},
-        )
-    except jwt.InvalidTokenError:
+        payload = decode_token(body.access_token, expected="access")
+    except (InvalidToken, ExpiredToken):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid access token")
     
-    user_id = uuid_mod.UUID(payload["sub"])
+    user_id = uuid.UUID(payload["sub"])
     user = await session.get(User, user_id)
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="user no longer exists")
     
     # Generate a one-time ticket
     ticket = secrets.token_urlsafe(32)
-    expires_at = datetime.now(settings.timezone) + timedelta(seconds=30)  # 30-second validity
+    expires_at = datetime.now(UTC) + timedelta(seconds=30)  # 30-second validity
     
     # Store the ticket tied to the user and mark as used after first consumption
     # We use a simple approach: store ticket with user_id and a consumed flag
