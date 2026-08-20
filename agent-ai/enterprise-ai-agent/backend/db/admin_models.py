@@ -10,7 +10,7 @@ Roles follow the existing ``users.role`` constraint:
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import date as DateType, datetime
 from typing import Any
 
 from pgvector.sqlalchemy import Vector  # noqa: F401  (ensures Vector type is registered)
@@ -206,7 +206,7 @@ class UsageMetric(AdminBase):
 
     id: Mapped[uuid.UUID] = _pk()
     tenant_id: Mapped[uuid.UUID] = _tenant()
-    date: Mapped[date] = mapped_column(nullable=False)
+    date: Mapped[DateType] = mapped_column(nullable=False)
     messages_sent: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     seats: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     kb_size_mb: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)

@@ -200,7 +200,7 @@ class Orchestrator:
                 yield {"type": "text_delta", "text": GUARDRAIL_ANSWER}
         except Exception as exc:
             logger.error("orchestration_failed", error=str(exc), exc_info=True)
-            yield {"type": "error", "message": "agent processing failed"}
+            yield {"type": "error", "message": f"agent processing failed: {exc}"}
             await session.rollback()
             return
 

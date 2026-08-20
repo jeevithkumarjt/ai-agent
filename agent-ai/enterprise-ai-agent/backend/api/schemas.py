@@ -1,9 +1,77 @@
-"""Schemas for billing and usage metering routes (ADR-021)."""
-
+"""Pydantic request/response schemas — mirror api/openapi.yaml exactly."""
 from __future__ import annotations
 
-from typing import Optional
-from pydantic import BaseModel, Field
+import uuid
+from datetime import datetime
+from typing import Any, Literal, Optional
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
+
+Role = Literal["owner", "admin", "editor", "viewer"]
+
+
+# --- Core schemas (auth, conversations, health) ---
+
+
+class Health(BaseModel):
+    status: str
+    provider: str | None = None
+    model: str | None = None
+    embeddings: bool = False
+    embeddings_model: str | None = None
+    uptime_seconds: int = 0
+    response_time_ms: int | None = None
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=1)
+
+
+class RefreshRequest(BaseModel):
+    refresh_token: str = Field(min_length=1)
+
+
+class TokenPair(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    expires_in: int
+
+
+class Conversation(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    tenant_id: uuid.UUID
+    user_id: uuid.UUID
+    created_at: datetime
+
+
+class MessageRequest(BaseModel):
+    content: str = Field(min_length=1, max_length=8000)
+
+
+class MessageOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    conversation_id: uuid.UUID
+    tenant_id: uuid.UUID
+    role: Literal["user", "assistant", "tool"]
+    content: str
+    tool_calls: dict[str, Any] | list[Any] | None = None
+    created_at: datetime
+
+
+class MessagePage(BaseModel):
+    items: list[MessageOut]
+    total: int
+    limit: int
+    offset: int
+
+
+# --- Billing schemas (ADR-021) ---
 
 
 class BillingCustomerRequest(BaseModel):
@@ -43,7 +111,7 @@ class BillingLimitsResponse(BaseModel):
     """Response for limit check."""
     tenant_id: str
     allowed: bool
-    reason: Optional[str] = None  # None if allowed, error message if not
+    reason: Optional[str] = None
 
 
 class BillingUsageResponse(BaseModel):
@@ -54,12 +122,15 @@ class BillingUsageResponse(BaseModel):
     day: str = Field(..., description="Date in YYYY-MM-DD format")
 
 
+# --- WebSocket ticket (ADR-005) ---
+
+
 class WsTicketRequest(BaseModel):
     """Request to issue a short-lived WebSocket ticket."""
     access_token: str = Field(..., description="Valid JWT access token")
 
 
-# --- Tenant signup / management schemas (ADR-024) ---
+# --- Tenant signup / management (ADR-024) ---
 
 
 class TenantSignupRequest(BaseModel):

@@ -21,7 +21,9 @@ import abc
 import base64
 import uuid
 from datetime import UTC, datetime, timedelta
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Literal, Optional, Tuple
+
+TokenType = Literal["access", "refresh"]
 
 import urllib.parse
 

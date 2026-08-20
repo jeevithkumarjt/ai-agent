@@ -112,7 +112,7 @@ class RagService:
         logger.info("ingest_done", source_id=source_id, chunks=len(rows))
         return len(rows)
 
-    async def search(self, session: AsyncSession, *, tenant_id: uuid.UUID, query: str, top_k: int | None = None, *, lexical_only: bool = False) -> list[DocumentChunk]:
+    async def search(self, session: AsyncSession, *, tenant_id: uuid.UUID, query: str, top_k: int | None = None, lexical_only: bool = False) -> list[DocumentChunk]:
         """Hybrid retrieval: lexical (tsvector ts_rank) + vector (cosine) in one query.
 
         Both signals are computed against the same rows and blended by
@@ -130,8 +130,9 @@ class RagService:
         if not lexical_only and not self.embedder.real:
             logger.info("rag_fallback_lexical", reason="embedder is not real; falling back to lexical-only search")
             lexical_only = True
+        query_embedding = None
         if not lexical_only:
-        [query_embedding] = await self.embedder.embed([query])
+            [query_embedding] = await self.embedder.embed([query])
         tsquery = func.websearch_to_tsquery("english", query)
         lexical = func.ts_rank_cd(DocumentChunk.tsv, tsquery) * settings.retrieval_lexical_weight
         if lexical_only:

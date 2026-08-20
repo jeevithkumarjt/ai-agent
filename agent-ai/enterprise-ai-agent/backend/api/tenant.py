@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Any, Dict
+from typing import Annotated, Any, Dict
 
 from core.auth import create_access_token, create_refresh_token
 from core.logging import get_logger
@@ -32,7 +32,7 @@ logger = get_logger("api.tenant")
 router = APIRouter(prefix="/v1/tenants", tags=["tenants"])
 
 
-@router.post("/signup", response_model=TenantSignupResponse, status_code=status.HTTP_201_OK)
+@router.post("/signup", response_model=TenantSignupResponse, status_code=status.HTTP_201_CREATED)
 async def signup(body: TenantSignupRequest, session: Annotated[AsyncSession, Depends(get_session)]) -> TenantSignupResponse:
     """Self-serve: create a new tenant, first admin user, and issue token pair.
 
