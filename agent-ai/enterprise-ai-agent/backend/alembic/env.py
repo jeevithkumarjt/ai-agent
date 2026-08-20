@@ -6,9 +6,8 @@ from logging.config import fileConfig
 
 from alembic import context
 from core.settings import settings
-from db.admin_models import AdminBase
 from db.models import Base
-from sqlalchemy import MetaData, pool
+from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
@@ -18,9 +17,9 @@ if config.config_file_name is not None:
 
 config.set_main_option("sqlalchemy.url", settings.database_url.replace("%", "%%"))
 
-target_metadata = MetaData()
-target_metadata.add_metadata(Base.metadata)
-target_metadata.add_metadata(AdminBase.metadata)
+# Both core and admin models share the same Base.metadata since AdminBase
+# inherits from the core Base class (db.models.Base).
+target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
