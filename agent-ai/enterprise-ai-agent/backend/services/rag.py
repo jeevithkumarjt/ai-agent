@@ -95,10 +95,9 @@ class RagService:
             )
 
     async def ingest_text(self, session: AsyncSession, *, tenant_id: uuid.UUID, source_id: str, text: str, metadata: dict | None = None) -> int:
-        # Refuse to write hash-fallback vectors into the store: once a real
-        # endpoint is configured, stale hash rows would be cosine-compared
-        # against real embeddings and silently return garbage.
-        self._require_real_embeddings(action="ingest chunks")
+        if not self.embedder.real:
+            logger.info("ingest_skipped", source_id=source_id, reason="embedder is not real; vector ingestion skipped")
+            return 0
         chunks = chunk_text(text)
         if not chunks:
             return 0
@@ -128,8 +127,10 @@ class RagService:
         top_k = top_k or settings.retrieval_top_k
         if top_k < 1:
             return []
+        if not lexical_only and not self.embedder.real:
+            logger.info("rag_fallback_lexical", reason="embedder is not real; falling back to lexical-only search")
+            lexical_only = True
         if not lexical_only:
-            self._require_real_embeddings(action="run semantic search")
         [query_embedding] = await self.embedder.embed([query])
         tsquery = func.websearch_to_tsquery("english", query)
         lexical = func.ts_rank_cd(DocumentChunk.tsv, tsquery) * settings.retrieval_lexical_weight

@@ -259,13 +259,11 @@ class KnowledgeStore:
         if not chunks:
             return 0
         if not self.embedder.real:
-            # Never write dev-hash vectors into the store: once a real endpoint is
-            # configured they would be cosine-compared against real embeddings.
-            logger.warning(
+            logger.info(
                 "knowledge_persist_skip",
-                reason="embedder is the dev hash fallback; set EMBEDDINGS_API_KEY",
+                reason="embedder is not real; vector ingestion skipped (lexical search still works)",
             )
-            raise RuntimeError("no real embeddings endpoint configured (EMBEDDINGS_API_KEY unset)")
+            return 0
 
         tenant_id = await self._default_tenant_id()
         if tenant_id is None:
