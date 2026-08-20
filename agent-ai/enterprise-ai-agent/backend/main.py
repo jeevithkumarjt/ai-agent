@@ -52,17 +52,11 @@ def create_app() -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        await _ensure_tables()
-        _build_services(app)
-        logger.info("app_started", env=settings.app_env, model=settings.anthropic_model)
-        knowledge_task = asyncio.create_task(_safe_refresh(app.state.knowledge))
-        sync_task = asyncio.create_task(_auto_sync_loop(app))
+        init_task = asyncio.create_task(_init_app(app))
         yield
-        knowledge_task.cancel()
-        sync_task.cancel()
+        init_task.cancel()
         with suppress(asyncio.CancelledError):
-            await knowledge_task
-            await sync_task
+            await init_task
 
     app = FastAPI(title="Enterprise AI Agent", version="1.0.0", lifespan=lifespan)
 
@@ -95,6 +89,23 @@ async def _ensure_tables() -> None:
         logger.info("db_tables_ready")
     except Exception as exc:
         logger.warning("db_table_creation_skipped", error=str(exc))
+
+
+async def _init_app(app: FastAPI) -> None:
+    """Deferred initialization: DB tables, services, then background loops."""
+    await _ensure_tables()
+    _build_services(app)
+    logger.info("app_started", env=settings.app_env, model=settings.anthropic_model)
+    knowledge_task = asyncio.create_task(_safe_refresh(app.state.knowledge))
+    sync_task = asyncio.create_task(_auto_sync_loop(app))
+    try:
+        await asyncio.gather(knowledge_task, sync_task)
+    finally:
+        knowledge_task.cancel()
+        sync_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await knowledge_task
+            await sync_task
 
 
 async def _safe_refresh(store: KnowledgeStore) -> None:
