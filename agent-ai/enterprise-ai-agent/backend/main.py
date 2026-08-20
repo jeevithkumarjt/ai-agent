@@ -52,6 +52,7 @@ def create_app() -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        await _ensure_tables()
         _build_services(app)
         logger.info("app_started", env=settings.app_env, model=settings.anthropic_model)
         knowledge_task = asyncio.create_task(_safe_refresh(app.state.knowledge))
@@ -82,6 +83,18 @@ def create_app() -> FastAPI:
     app.include_router(knowledge.router)
     app.include_router(admin_router)
     return app
+
+
+async def _ensure_tables() -> None:
+    """Create tables if they don't exist. Timeout after 30s so startup isn't blocked."""
+    from db.models import Base
+    try:
+        async with asyncio.timeout(30):
+            async with engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+        logger.info("db_tables_ready")
+    except Exception as exc:
+        logger.warning("db_table_creation_skipped", error=str(exc))
 
 
 async def _safe_refresh(store: KnowledgeStore) -> None:
