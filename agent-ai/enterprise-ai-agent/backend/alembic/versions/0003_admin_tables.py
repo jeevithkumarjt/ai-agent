@@ -17,7 +17,9 @@ from alembic import op
 from sqlalchemy import (
     BigInteger,
     Boolean,
+    Column,
     DateTime,
+    Float,
     ForeignKey,
     Index,
     Integer,
@@ -26,6 +28,11 @@ from sqlalchemy import (
     func,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
+
+revision = "0003"
+down_revision = "0002"
+branch_labels = None
+depends_on = None
 
 
 def upgrade() -> None:

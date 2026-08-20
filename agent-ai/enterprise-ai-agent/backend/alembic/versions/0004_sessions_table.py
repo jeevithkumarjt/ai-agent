@@ -11,6 +11,7 @@ import uuid
 
 from alembic import op
 from sqlalchemy import (
+    Column,
     DateTime,
     ForeignKey,
     Index,
@@ -18,7 +19,11 @@ from sqlalchemy import (
     UUID,
 )
 from sqlalchemy.dialects import postgresql
-from sqlalchemy.schema import CreateTable
+
+revision = "0004"
+down_revision = "0003"
+branch_labels = None
+depends_on = None
 
 
 def upgrade() -> None:
