@@ -67,6 +67,8 @@ services:
         value: text-embedding-3-small
       - key: EMBEDDINGS_API_KEY
         sync: false
+      - key: AGENT_MAX_TOOL_ITERATIONS
+        value: "5"
       - key: BOOTSTRAP_OWNER_EMAIL
         sync: false
       - key: BOOTSTRAP_OWNER_PASSWORD
@@ -124,6 +126,8 @@ services:
         value: text-embedding-3-small
       - key: EMBEDDINGS_API_KEY
         sync: false
+      - key: AGENT_MAX_TOOL_ITERATIONS
+        value: "5"
       - key: BOOTSTRAP_OWNER_EMAIL
         sync: false
       - key: BOOTSTRAP_OWNER_PASSWORD

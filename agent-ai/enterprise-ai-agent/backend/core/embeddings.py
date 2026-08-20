@@ -99,11 +99,9 @@ def get_embedder() -> Embedder:
     if settings.embeddings_api_key:
         logger.info("embeddings_provider", provider="openai", model=settings.embeddings_model, dim=settings.embeddings_dim)
         return OpenAIEmbeddings(api_key=settings.embeddings_api_key)
-    if settings.app_env == "development":
-        logger.warning(
-            "embeddings_provider",
-            provider="local_hash_fallback",
-            reason="no EMBEDDINGS_API_KEY configured; retrieval quality is meaningless in dev",
-        )
-        return LocalHashEmbeddings()
-    raise EmbeddingsError("EMBEDDINGS_API_KEY is not configured (ADR-007)")
+    logger.warning(
+        "embeddings_provider",
+        provider="local_hash_fallback",
+        reason="no EMBEDDINGS_API_KEY configured; vector search disabled, falling back to lexical-only RAG",
+    )
+    return LocalHashEmbeddings()

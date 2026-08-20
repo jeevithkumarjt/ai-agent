@@ -19,7 +19,7 @@ export async function fetchWsTicket(apiBase) {
     const data = await res.json()
     return data.ticket || null
   } catch (err) {
-    console.warning('ws_ticket_failed', err)
+    console.warn('ws_ticket_failed', err)
     return null
   }
 }

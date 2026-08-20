@@ -34,12 +34,11 @@ async def health() -> Health:
     provider = settings.llm_provider or "unknown"
     model = settings.groq_model or settings.anthropic_model or "unknown"
     embeddings_ok = bool(settings.embeddings_api_key)
+    llm_configured = bool(settings.anthropic_api_key or settings.groq_api_key)
 
-    # Compute qualitative flags
-    # LLM is considered "healthy" if provider is configured and embeddings are available
-    # In a production deployment, this would ping actual API endpoints;
-    # here we infer from configuration being present.
-    status = "ok" if (provider and embeddings_ok) else "degraded"
+    # LLM is the critical dependency — "ok" when the LLM provider is configured.
+    # Embeddings being missing degrades to lexical-only RAG but does not break chat.
+    status = "ok" if llm_configured else "degraded"
 
     return Health(
         status=status,

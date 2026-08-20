@@ -34,7 +34,7 @@ class AiAgentWidget extends HTMLElement {
       this._token = data.access_token
       return this._token
     } catch (err) {
-      console.warning('guest_token_fetch_failed', err)
+      console.warn('guest_token_fetch_failed', err)
       return null
     }
   }
