@@ -26,6 +26,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     func,
+    inspect,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 
@@ -36,6 +37,17 @@ depends_on = None
 
 
 def upgrade() -> None:
+    conn = op.get_bind()
+    inspector = inspect(conn)
+    existing = set(inspector.get_table_names())
+    tables_to_create = [
+        "admin_documents", "admin_document_versions", "unanswered_questions",
+        "answer_metrics", "audit_logs", "notifications", "admin_settings",
+        "train_jobs", "message_feedback",
+    ]
+    if all(t in existing for t in tables_to_create):
+        return
+
     # --- admin_documents ---
     op.create_table(
         "admin_documents",

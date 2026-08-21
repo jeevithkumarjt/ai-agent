@@ -17,6 +17,7 @@ from sqlalchemy import (
     Index,
     String,
     UUID,
+    inspect,
 )
 from sqlalchemy.dialects import postgresql
 
@@ -27,6 +28,10 @@ depends_on = None
 
 
 def upgrade() -> None:
+    conn = op.get_bind()
+    inspector = inspect(conn)
+    if "sessions" in inspector.get_table_names():
+        return
     op.create_table(
         "sessions",
         Column("id", postgresql.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4),
