@@ -28,6 +28,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from services.tools.base import BaseTool, record_tool_call
 
+# Throttle: only 1 LLM request at a time to avoid Groq rate limits.
+_llm_semaphore = asyncio.Semaphore(1)
+
 logger = get_logger("services.orchestrator")
 
 SYSTEM_PROMPT = """You are a helpful, knowledgeable AI assistant. You answer every question the user asks — always provide a useful, complete response.
@@ -110,11 +113,13 @@ class Orchestrator:
         try:
             # Single LLM call with tools disabled for reliability.
             # Tool calls cause extra API requests which trigger rate limits on free tiers.
-            turn, deltas = await self._run_turn(
-                system=system,
-                messages=messages,
-                tools=None,
-            )
+            # _llm_semaphore ensures only one LLM call runs at a time across all requests.
+            async with _llm_semaphore:
+                turn, deltas = await self._run_turn(
+                    system=system,
+                    messages=messages,
+                    tools=None,
+                )
             for delta in deltas:
                 answer_parts.append(delta)
                 yield {"type": "text_delta", "text": delta}
