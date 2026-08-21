@@ -9,9 +9,7 @@ import uuid
 from typing import Annotated
 
 from core.auth import InvalidToken, decode_token
-from core.guest_limits import allow_guest_rate, record_guest_send
 from core.logging import get_logger
-from core.settings import settings
 from db.models import Conversation as ConversationModel
 from db.models import Message
 from db.session import async_session_factory, get_session
@@ -49,26 +47,6 @@ async def _get_owned_conversation(session: AsyncSession, conversation_id: uuid.U
 
 async def _orchestrator(request: Request) -> Orchestrator:
     return request.app.state.orchestrator
-
-
-def _enforce_guest_limits(principal: Principal) -> None:
-    """Rate-limit and cap anonymous demo sessions (server-side, per visitor).
-
-    Called on message-send paths (SSE POST + WebSocket) before any LLM work so
-    the client receives a clean 403/429 instead of a half-open stream.
-    """
-    if not principal.is_guest or not principal.session_id:
-        return
-    if not allow_guest_rate(principal.tenant_id, principal.session_id):
-        raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail="guest_rate_limited",
-        )
-    if record_guest_send(principal.tenant_id, principal.session_id) > settings.guest_message_limit:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="guest_message_limit_reached",
-        )
 
 
 @router.post("", response_model=Conversation, status_code=status.HTTP_201_CREATED)
@@ -120,7 +98,6 @@ async def send_message(
     session: Annotated[AsyncSession, Depends(get_session)],
 ):
     await _get_owned_conversation(session, conversation_id, principal.tenant_id)
-    _enforce_guest_limits(principal)
     orchestrator: Orchestrator = await _orchestrator(request)
 
     async def events():
@@ -141,13 +118,7 @@ async def conversation_ws(websocket: WebSocket, conversation_id: uuid.UUID):
     token = websocket.query_params.get("token", "")
     try:
         payload = decode_token(token, expected="access")
-        principal = Principal(
-            user_id=uuid.UUID(payload["sub"]),
-            tenant_id=uuid.UUID(payload["tenant_id"]),
-            role=payload.get("role", "viewer"),
-            is_guest=bool(payload.get("guest", False)),
-            session_id=payload.get("sid"),
-        )
+        principal = Principal(user_id=uuid.UUID(payload["sub"]), tenant_id=uuid.UUID(payload["tenant_id"]), role=payload.get("role", "viewer"))
     except (InvalidToken, ValueError):
         await websocket.close(code=4401)
         return
@@ -165,12 +136,6 @@ async def conversation_ws(websocket: WebSocket, conversation_id: uuid.UUID):
         try:
             while True:
                 message = await websocket.receive_text()
-                try:
-                    _enforce_guest_limits(principal)
-                except HTTPException as exc:
-                    await websocket.send_json({"type": "error", "message": exc.detail})
-                    await websocket.close(code=4403)
-                    return
                 async for event in orchestrator.stream_reply(
                     session=session,
                     tenant_id=principal.tenant_id,

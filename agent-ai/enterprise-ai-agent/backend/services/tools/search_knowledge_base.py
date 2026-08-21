@@ -9,15 +9,12 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-from core.logging import get_logger
 from core.settings import settings
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from services.rag import RagService
 from services.tools.base import BaseTool, ToolResult
-
-logger = get_logger("services.tools.search_knowledge_base")
 
 MAX_RESULT_CHARS = 12000
 
@@ -30,9 +27,8 @@ class SearchKnowledgeBaseInput(BaseModel):
 class SearchKnowledgeBaseTool(BaseTool):
     name = "search_knowledge_base"
     description = (
-        "Search the organization's knowledge base. Uses hybrid lexical (BM25/tsvector) + "
-        "vector (cosine) retrieval when an embeddings endpoint is configured; otherwise "
-        "falls back to lexical-only BM25 search against the Postgres tsvector index."
+        "Search the organization's knowledge base using semantic (vector) retrieval. "
+        "Use this whenever the answer may live in internal documents, policies, or FAQ."
     )
     input_schema = SearchKnowledgeBaseInput
 
@@ -45,17 +41,7 @@ class SearchKnowledgeBaseTool(BaseTool):
         if not query:
             return ToolResult(content="Error: `query` must be non-empty.")
 
-        use_lexical_only = not settings.embeddings_api_key
-        if use_lexical_only:
-            logger.info(
-                "tool_search_lexical_only",
-                reason="EMBEDDINGS_API_KEY not configured; using BM25 lexical search only",
-            )
-
-        chunks = await self.rag.search(
-            session, tenant_id=tenant_id, query=query, top_k=validated.top_k,
-            lexical_only=use_lexical_only,
-        )
+        chunks = await self.rag.search(session, tenant_id=tenant_id, query=query, top_k=validated.top_k)
         if not chunks:
             return ToolResult(content="No relevant documents found in the knowledge base.")
 

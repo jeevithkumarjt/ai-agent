@@ -1,24 +1,20 @@
 """RAG service (02-agent-and-rag-workflow.md).
 
 Chunking: token-aware, target ~500 tokens with ~50 token overlap (documented).
-Retrieval: hybrid — Postgres tsvector/ts_rank (lexical, BM25-style, GIN-indexed)
-blended with pgvector cosine similarity (ADR-001) in a single query against the
-tenant's chunks only (ADR-004). `document_chunks` is the single source of truth;
-flat scan + sort is fine below ~50k rows (ADR-001). Retrieval runs inside the
-`search_knowledge_base` tool and in the orchestrator's system-prompt grounding,
-never silently prepended to context beyond that.
+Retrieval: cosine similarity `embedding <=> :q` against the tenant's chunks only
+(ADR-004); flat scan is fine below ~50k rows (ADR-001). Retrieval runs inside the
+`search_knowledge_base` tool, never silently prepended to context.
 """
 from __future__ import annotations
 
 import re
 import uuid
-from typing import Optional
 
-from core.embeddings import Embedder, EmbeddingsError
+from core.embeddings import Embedder
 from core.logging import get_logger
 from core.settings import settings
 from db.models import DocumentChunk
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = get_logger("services.rag")
@@ -79,25 +75,7 @@ class RagService:
     def __init__(self, embedder: Embedder) -> None:
         self.embedder = embedder
 
-    def _require_real_embeddings(self, *, action: str) -> None:
-        if not self.embedder.real:
-            # The LocalHash fallback is only for local dev/tests — never pretend
-            # its vectors are meaningful semantic retrieval for real data.
-            logger.warning(
-                "embeddings_not_real",
-                action=action,
-                reason="embedder is the dev hash fallback; EMBEDDINGS_API_KEY is not configured",
-            )
-            raise EmbeddingsError(
-                f"Cannot {action}: no real embeddings endpoint configured. "
-                "Set EMBEDDINGS_API_KEY to an OpenAI-compatible endpoint (e.g. "
-                "OpenAI text-embedding-3-small) — hash fallback vectors are meaningless (ADR-007)."
-            )
-
     async def ingest_text(self, session: AsyncSession, *, tenant_id: uuid.UUID, source_id: str, text: str, metadata: dict | None = None) -> int:
-        if not self.embedder.real:
-            logger.info("ingest_skipped", source_id=source_id, reason="embedder is not real; vector ingestion skipped")
-            return 0
         chunks = chunk_text(text)
         if not chunks:
             return 0
@@ -112,42 +90,16 @@ class RagService:
         logger.info("ingest_done", source_id=source_id, chunks=len(rows))
         return len(rows)
 
-    async def search(self, session: AsyncSession, *, tenant_id: uuid.UUID, query: str, top_k: int | None = None, lexical_only: bool = False) -> list[DocumentChunk]:
-        """Hybrid retrieval: lexical (tsvector ts_rank) + vector (cosine) in one query.
-
-        Both signals are computed against the same rows and blended by
-        `retrieval_lexical_weight` / `retrieval_vector_weight`. Stopword-only
-        queries yield an empty tsquery whose ts_rank is 0, degrading cleanly to
-        pure vector search — no special-casing needed. `document_chunks.tsv` is a
-        generated column, so the lexical index can never drift from the text.
-
-        If `lexical_only=True` is passed (e.g. when no real embeddings endpoint
-        is configured), only the lexical/BM25 signal is used.
-        """
+    async def search(self, session: AsyncSession, *, tenant_id: uuid.UUID, query: str, top_k: int | None = None) -> list[DocumentChunk]:
         top_k = top_k or settings.retrieval_top_k
         if top_k < 1:
             return []
-        if not lexical_only and not self.embedder.real:
-            logger.info("rag_fallback_lexical", reason="embedder is not real; falling back to lexical-only search")
-            lexical_only = True
-        query_embedding = None
-        if not lexical_only:
-            [query_embedding] = await self.embedder.embed([query])
-        tsquery = func.websearch_to_tsquery("english", query)
-        lexical = func.ts_rank_cd(DocumentChunk.tsv, tsquery) * settings.retrieval_lexical_weight
-        if lexical_only:
-            stmt = (
-                select(DocumentChunk)
-                .where(DocumentChunk.tenant_id == tenant_id)
-                .order_by(lexical.desc())
-                .limit(top_k)
-            )
-            return list((await session.execute(stmt)).scalars())
-        vector = (1 - DocumentChunk.embedding.cosine_distance(query_embedding)) * settings.retrieval_vector_weight
+        [query_embedding] = await self.embedder.embed([query])
         stmt = (
-            select(DocumentChunk)
+            select(DocumentChunk, (DocumentChunk.embedding.cosine_distance(query_embedding)).label("distance"))
             .where(DocumentChunk.tenant_id == tenant_id)
-            .order_by((lexical + vector).desc())
+            .order_by("distance")
             .limit(top_k)
         )
-        return list((await session.execute(stmt)).scalars())
+        results = (await session.execute(stmt)).all()
+        return [row[0] for row in results]

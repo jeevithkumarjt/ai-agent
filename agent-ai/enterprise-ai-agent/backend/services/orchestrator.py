@@ -13,6 +13,7 @@ No SDK is used — the message/event format is owned here (ADR-002).
 """
 from __future__ import annotations
 
+import asyncio
 import time
 import uuid
 from collections.abc import AsyncIterator
@@ -98,13 +99,13 @@ class Orchestrator:
         tools: dict[str, BaseTool],
         *,
         max_tool_iterations: int | None = None,
-        rag: Any = None,
+        knowledge: Any = None,
         portal: Any = None,
     ) -> None:
         self.anthropic = anthropic
         self.tools = tools
         self.max_tool_iterations = max_tool_iterations or settings.agent_max_tool_iterations
-        self.rag = rag
+        self.knowledge = knowledge
         self.portal = portal
 
     # -- settings overrides (admin portal) ------------------------------------
@@ -132,8 +133,7 @@ class Orchestrator:
         user_text: str,
     ) -> AsyncIterator[dict[str, Any]]:
         """Process one user message and yield the locked event set:
-        user_message, text_delta, tool_call_started, tool_call_completed,
-        message_done, error."""
+        user_message, text_delta, message_done, error."""
         started_at = time.monotonic()
         session.add(
             Message(conversation_id=conversation_id, tenant_id=tenant_id, role="user", content=user_text)
@@ -148,7 +148,7 @@ class Orchestrator:
         answer_parts: list[str] = []
         tool_count = 0
         assistant_message_id: str | None = None
-        system = await self._system_with_context(session, user_text, citations, tenant_id)
+        system = await self._system_with_context(user_text, citations, tenant_id)
         try:
             # max_tool_iterations tool-call rounds; the final round is answer-only
             # (tools disabled) so the loop always ends with a plain-text reply.
@@ -171,7 +171,6 @@ class Orchestrator:
                 messages.append({"role": "assistant", "content": self._assistant_blocks(turn)})
                 tool_results = []
                 for tu in turn.tool_uses:
-                    yield {"type": "tool_call_started", "tool": tu.name, "input": tu.input}
                     result, success, duration_ms, sources = await self._execute_tool(
                         session, tenant_id, conversation_id, tu.id, tu.name, tu.input
                     )
@@ -189,7 +188,6 @@ class Orchestrator:
                         )
                     )
                     tool_results.append(result)
-                    yield {"type": "tool_call_completed", "tool": tu.name, "success": success, "duration_ms": duration_ms}
                 messages.append({"role": "user", "content": tool_results})
                 await session.commit()
             else:
@@ -200,7 +198,7 @@ class Orchestrator:
                 yield {"type": "text_delta", "text": GUARDRAIL_ANSWER}
         except Exception as exc:
             logger.error("orchestration_failed", error=str(exc), exc_info=True)
-            yield {"type": "error", "message": f"agent processing failed: {exc}"}
+            yield {"type": "error", "message": "agent processing failed"}
             await session.rollback()
             return
 
@@ -255,30 +253,16 @@ class Orchestrator:
 
     # -- turn loop --------------------------------------------------------------
 
-    async def _system_with_context(
-        self,
-        session: AsyncSession,
-        user_text: str,
-        citations: list[str],
-        tenant_id: uuid.UUID,
-    ) -> str:
-        """Prepend retrieved knowledge (DB-backed hybrid search) to the system prompt.
-
-        Retrieval failure (no embeddings endpoint, DB down, empty corpus) must
-        never break chat — it degrades to the plain system prompt.
-        """
-        if self.rag is None:
+    async def _system_with_context(self, user_text: str, citations: list[str], tenant_id: uuid.UUID) -> str:
+        """Prepend retrieved knowledge (documents/ + site crawl) to the system prompt."""
+        if self.knowledge is None:
             return self._system_prompt(tenant_id)
         top_k = self._retrieval_top_k(tenant_id)
-        try:
-            context = await self.rag.search(session, tenant_id=tenant_id, query=user_text, top_k=top_k)
-        except Exception as exc:  # noqa: BLE001
-            logger.warning("grounding_failed", error=str(exc))
-            return self._system_prompt(tenant_id)
+        context = await asyncio.to_thread(self.knowledge.search, user_text, top_k)
         if not context:
             return self._system_prompt(tenant_id)
-        citations.extend(item.chunk_metadata.get("source_id", item.source_id) for item in context)
-        blocks = "\n\n---\n\n".join(item.chunk_text for item in context)
+        citations.extend(item["source"] for item in context)
+        blocks = "\n\n---\n\n".join(item["text"] for item in context)
         return (
             self._system_prompt(tenant_id)
             + "\n\n# Retrieved knowledge for this question\n"

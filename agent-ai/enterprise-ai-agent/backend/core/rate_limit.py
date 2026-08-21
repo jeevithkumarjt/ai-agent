@@ -1,75 +1,29 @@
-"""Rate limiting (ADR-008) — in-memory sliding window per (client ip, route).
+"""Rate limiting — STUB (ADR-008).
 
-Deliberately dependency-free (no Redis) so the free tier keeps working. Keys on
-client IP so it survives without a proxy; if you deploy behind a reverse proxy,
-terminate TLS there and pass the real client IP (e.g. X-Forwarded-For) so this
-still keys on the right address.
+A no-op middleware placeholder that sits at the correct position in the request
+pipeline. No actual limiting logic is built yet: it is not needed for
+local/single-user development, but the seam matters so the real implementation
+slots in without restructuring.
 
-Limits are generous for normal users and tighter for the anonymous guest-login
-endpoint. Every deny returns 429 with a `Retry-After` header; the chat frontends
-surface that as a friendly "slow down" message instead of a raw error.
+The real implementation must:
+  1. key on (client ip, tenant_id from JWT, route)
+  2. enforce per-window limits with a small in-memory or Redis counter
+  3. return 429 with a Retry-After header
 """
 from __future__ import annotations
-
-import threading
-import time
-from collections import defaultdict
-from collections.abc import Callable
 
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 
-# (per-IP, per-minute) limits — route-specific overrides win.
-_ROUTE_LIMITS: dict[str, int] = {
-    "/v1/auth/guest": 20,          # anonymous demo sessions (also capped by settings.guest_requests_per_minute)
-    "/v1/auth/login": 30,          # credential brute-force guard
-    "/v1/auth/refresh": 60,
-}
-_DEFAULT_LIMIT = 600               # everything else: 600 req/min/IP is generous
-_WINDOW_SECONDS = 60
 
-
-class _SlidingWindow:
-    def __init__(self) -> None:
-        self._hits: dict[str, list[float]] = defaultdict(list)
-        self._lock = threading.Lock()
-
-    def allow(self, key: str, limit: int, window: int) -> tuple[bool, float]:
-        """Return (allowed, retry_after_seconds)."""
-        now = time.monotonic()
-        with self._lock:
-            bucket = self._hits[key]
-            bucket[:] = [t for t in bucket if t > now - window]
-            if len(bucket) >= limit:
-                retry = bucket[0] + window - now if bucket else float(window)
-                return False, retry
-            bucket.append(now)
-            return True, 0.0
-
-
-_limiter = _SlidingWindow()
-
-
-def _client_ip(request: Request) -> str:
-    forwarded = request.headers.get("x-forwarded-for", "")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-    if request.client is not None:
-        return request.client.host
-    return "unknown"
+async def _allow(request: Request) -> bool:
+    """Placeholder policy — always allows. Replace with real limits behind this seam."""
+    return True
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
-        limit = _ROUTE_LIMITS.get(request.url.path, _DEFAULT_LIMIT)
-        key = f"{_client_ip(request)}:{request.url.path}"
-        allowed, retry_after = _limiter.allow(key, limit, _WINDOW_SECONDS)
-        if not allowed:
-            return Response(
-                status_code=429,
-                content='{"detail":"Too many requests. Please slow down and try again."}',
-                media_type="application/json",
-                headers={"Retry-After": str(int(retry_after) or 1)},
-            )
+    async def dispatch(self, request: Request, call_next) -> Response:
+        if not await _allow(request):
+            return Response(status_code=429, content='{"detail":"rate limit exceeded"}', media_type="application/json")
         return await call_next(request)

@@ -17,8 +17,6 @@ if config.config_file_name is not None:
 
 config.set_main_option("sqlalchemy.url", settings.database_url.replace("%", "%%"))
 
-# Both core and admin models share the same Base.metadata since AdminBase
-# inherits from the core Base class (db.models.Base).
 target_metadata = Base.metadata
 
 

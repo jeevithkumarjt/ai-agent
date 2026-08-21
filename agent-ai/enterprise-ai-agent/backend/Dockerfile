@@ -21,4 +21,5 @@ COPY documents/ ./documents/
 
 EXPOSE 8000
 
+# Apply schema, bootstrap the owner, then serve.
 CMD ["sh", "-c", "alembic -c backend/alembic.ini upgrade head && python -m backend.cli seed && uvicorn backend.main:app --host 0.0.0.0 --port 8000"]

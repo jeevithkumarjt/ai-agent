@@ -5,10 +5,6 @@ Provider resolution (documented in 02-agent-and-rag-workflow.md):
   - app_env == "development" -> LocalHash fallback (deterministic, normalized;
     ONLY for local no-key development and tests — retrieval quality is meaningless)
   - otherwise                -> error (missing secret, ADR-007)
-
-Hardening (ADR-007): a hash embedder is explicitly `real=False`. RagService
-refuses to persist or query chunks with a non-real embedder, so meaningless
-dev-hash vectors can never reach the database or a customer-facing answer.
 """
 from __future__ import annotations
 
@@ -25,8 +21,6 @@ logger = get_logger("core.embeddings")
 
 
 class Embedder(Protocol):
-    real: bool
-
     async def embed(self, texts: list[str]) -> list[list[float]]: ...
 
 
@@ -35,8 +29,6 @@ class EmbeddingsError(Exception):
 
 
 class OpenAIEmbeddings:
-    real = True
-
     def __init__(self, *, api_key: str, base_url: str | None = None, model: str | None = None, dim: int | None = None) -> None:
         self.api_key = api_key
         self.base_url = (base_url or settings.embeddings_base_url).rstrip("/")
@@ -68,13 +60,7 @@ class OpenAIEmbeddings:
 
 
 class LocalHashEmbeddings:
-    """Deterministic pseudo-embeddings for development/tests only.
-
-    `real = False` — RagService refuses to ingest/retrieve with this embedder,
-    so hash vectors can never silently pollute the production vector store.
-    """
-
-    real = False
+    """Deterministic pseudo-embeddings for development/tests only."""
 
     def __init__(self, *, dim: int | None = None) -> None:
         self.dim = dim or settings.embeddings_dim
@@ -99,9 +85,11 @@ def get_embedder() -> Embedder:
     if settings.embeddings_api_key:
         logger.info("embeddings_provider", provider="openai", model=settings.embeddings_model, dim=settings.embeddings_dim)
         return OpenAIEmbeddings(api_key=settings.embeddings_api_key)
-    logger.warning(
-        "embeddings_provider",
-        provider="local_hash_fallback",
-        reason="no EMBEDDINGS_API_KEY configured; vector search disabled, falling back to lexical-only RAG",
-    )
-    return LocalHashEmbeddings()
+    if settings.app_env == "development":
+        logger.warning(
+            "embeddings_provider",
+            provider="local_hash_fallback",
+            reason="no EMBEDDINGS_API_KEY configured; retrieval quality is meaningless in dev",
+        )
+        return LocalHashEmbeddings()
+    raise EmbeddingsError("EMBEDDINGS_API_KEY is not configured (ADR-007)")

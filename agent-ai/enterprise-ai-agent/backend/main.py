@@ -39,6 +39,7 @@ _DEFAULT_ORIGINS = [
     "http://127.0.0.1:8000",
     "https://jeevithkumarjt.github.io",
 ]
+# Override via CORS_ORIGINS (comma-separated) in hosted environments.
 ALLOWED_ORIGINS = (
     [o.strip() for o in os.environ.get("CORS_ORIGINS", "").split(",") if o.strip()]
     if os.environ.get("CORS_ORIGINS")
@@ -51,7 +52,7 @@ def create_app() -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        asyncio.create_task(_ensure_admin_tables())
+        await _ensure_admin_tables()
         _build_services(app)
         logger.info("app_started", env=settings.app_env, model=settings.anthropic_model)
         knowledge_task = asyncio.create_task(_knowledge_refresh_loop(app.state.knowledge))
@@ -65,7 +66,7 @@ def create_app() -> FastAPI:
 
     app = FastAPI(title="Enterprise AI Agent", version="1.0.0", lifespan=lifespan)
 
-    app.add_middleware(RateLimitMiddleware)
+    app.add_middleware(RateLimitMiddleware)  # ADR-008 no-op seam
     app.add_middleware(
         CORSMiddleware,
         allow_origins=ALLOWED_ORIGINS,
@@ -85,26 +86,16 @@ def create_app() -> FastAPI:
 async def _ensure_admin_tables() -> None:
     """Create admin-portal tables (dedicated registry) without touching the
     alembic-managed core schema."""
-    try:
-        async with engine.begin() as conn:
-            await conn.run_sync(AdminBase.metadata.create_all)
-    except Exception as exc:
-        logger.warning("admin_tables_skip", error=str(exc))
+    async with engine.begin() as conn:
+        await conn.run_sync(AdminBase.metadata.create_all)
 
 
 async def _knowledge_refresh_loop(store: KnowledgeStore) -> None:
     """Refresh documents/ + site crawl at startup, then periodically in background."""
-    await asyncio.sleep(60)
-    try:
-        await asyncio.to_thread(store.refresh)
-    except Exception:
-        logger.exception("knowledge_refresh_error")
+    await asyncio.to_thread(store.refresh)
     while True:
         await asyncio.sleep(settings.knowledge_refresh_minutes * 60)
-        try:
-            await asyncio.to_thread(store.refresh)
-        except Exception:
-            logger.exception("knowledge_refresh_error")
+        await asyncio.to_thread(store.refresh)
 
 
 async def _auto_sync_loop(app: FastAPI) -> None:
@@ -146,7 +137,7 @@ def _build_services(app: FastAPI) -> None:
     portal = PortalService(rag, knowledge)
     app.state.knowledge = knowledge
     app.state.portal = portal
-    app.state.orchestrator = Orchestrator(llm, tools, rag=rag, portal=portal)
+    app.state.orchestrator = Orchestrator(llm, tools, knowledge=knowledge, portal=portal)
 
 
 app = create_app()

@@ -17,8 +17,6 @@ class Principal:
     user_id: uuid.UUID
     tenant_id: uuid.UUID
     role: str
-    is_guest: bool = False
-    session_id: str | None = None  # per-visitor sid claim on guest tokens
 
 
 def require_auth(
@@ -32,10 +30,4 @@ def require_auth(
         tenant_id = uuid.UUID(payload["tenant_id"])
     except (InvalidToken, ExpiredToken, ValueError):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid or expired access token") from None
-    return Principal(
-        user_id=user_id,
-        tenant_id=tenant_id,
-        role=payload.get("role", "viewer"),
-        is_guest=bool(payload.get("guest", False)),
-        session_id=payload.get("sid"),
-    )
+    return Principal(user_id=user_id, tenant_id=tenant_id, role=payload.get("role", "viewer"))
