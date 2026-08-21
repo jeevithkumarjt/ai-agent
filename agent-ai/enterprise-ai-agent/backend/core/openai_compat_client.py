@@ -23,8 +23,14 @@ from core.settings import settings
 
 logger = get_logger("core.openai")
 
-_MAX_RETRIES = 3
-_RETRY_BASE_DELAY = 2.0
+_MAX_RETRIES = 4
+_RETRY_BASE_DELAY = 3.0
+
+
+def _strip_thinking(text: str) -> str:
+    """Remove <think>...</think> blocks from model output."""
+    import re
+    return re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
 
 
 class OpenAICompatClient:
@@ -222,8 +228,12 @@ class OpenAICompatClient:
                         await asyncio.sleep(delay)
                         continue
 
-                for piece in text:
-                    yield TextDelta(piece)
+                combined = "".join(text)
+                clean = _strip_thinking(combined)
+                if clean:
+                    yield TextDelta(clean)
+                elif combined:
+                    yield TextDelta(combined)
                 yield MessageStop(turn)
                 return
 
