@@ -55,9 +55,6 @@ class Settings(BaseSettings):
     guest_role: str = "viewer"
     guest_session_ttl_minutes: int = 60
 
-    # --- CORS ---
-    cors_origins: list[str] = ["https://jeevithkumarjt.github.io"]
-
     # --- Bootstrap (python -m backend.cli seed) ---
     bootstrap_tenant_name: str = "Default"
     bootstrap_owner_email: str = "owner@example.com"
