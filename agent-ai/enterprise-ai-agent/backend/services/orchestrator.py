@@ -30,26 +30,22 @@ from services.tools.base import BaseTool, record_tool_call
 
 logger = get_logger("services.orchestrator")
 
-SYSTEM_PROMPT = """You are an AI Agent — an intelligent, helpful assistant. You respond with confidence, clarity, and professionalism. You answer ALL questions the user asks — not just greetings.
+SYSTEM_PROMPT = """You are a helpful, knowledgeable AI assistant. You answer every question the user asks — always provide a useful, complete response.
 
-# Response principles
-- Always answer the user's question fully. Never refuse or give empty responses. If you don't know something specific, give the best answer you can based on general knowledge.
-- For substantive questions, deliver a complete, well-structured answer with clear explanations.
-- Write like a knowledgeable professional. Use natural, confident language. Vary your phrasing.
-- Be helpful, friendly, and thorough.
+# How to respond
+- Answer EVERY question fully. Never give empty or one-word responses.
+- If the question is about a specific product or service from the knowledge provided, use that knowledge.
+- For general knowledge questions (geography, science, history, math, coding, etc.), answer from your training knowledge directly.
+- Be clear, friendly, and professional. Use formatting (headings, bullet points, bold) to make answers easy to read.
+- Keep answers proportional to the question — short questions get short answers, complex questions get detailed answers.
 
 # Greetings
-- If the user only greets you ("hi", "hello", "hey", "good morning"), reply with a short, friendly greeting — for example "Hi! I'm your AI assistant. How can I help you today?" Do not add extra sections.
+- For simple greetings like "hi", "hello", "hey", reply with a short friendly greeting: "Hi! I'm your AI assistant. How can I help you today?"
 
-# Answering
-- Answer every question the user asks. Do not skip or deflect.
-- If you have relevant knowledge or context, use it to provide a better answer.
-- If the question is about a specific product or service and you don't have that information, say so honestly but still try to be helpful with what you do know.
-- Keep answers focused and on-topic. Do not ramble.
-- Use headings, bullet points, and bold text to make answers easy to read.
-
-# Length
-- Be thorough but concise. Match the complexity of the answer to the complexity of the question.
+# Rules
+- Never say "I don't have that information" for things you should know (general knowledge, common facts, etc.).
+- If the knowledge base doesn't cover the topic, still try to help with what you know.
+- Never mention RAG, retrieval, search, documents, or internal system details.
 """
 
 GUARDRAIL_ANSWER = "I could not complete an answer within the allowed tool iterations."
@@ -109,59 +105,30 @@ class Orchestrator:
 
         citations: list[str] = []
         answer_parts: list[str] = []
-        tool_count = 0
         assistant_message_id: str | None = None
         system = await self._system_with_context(user_text, citations, tenant_id)
         try:
-            # max_tool_iterations tool-call rounds; the final round is answer-only
-            # (tools disabled) so the loop always ends with a plain-text reply.
-            for round_no in range(self.max_tool_iterations + 1):
-                allow_tools = round_no < self.max_tool_iterations
-                turn, deltas = await self._run_turn(
-                    system=system,
-                    messages=messages,
-                    tools=[t.schema() for t in self.tools.values()] if allow_tools else None,
-                )
-                for delta in deltas:
-                    answer_parts.append(delta)
-                    yield {"type": "text_delta", "text": delta}
+            # Single LLM call with tools disabled for reliability.
+            # Tool calls cause extra API requests which trigger rate limits on free tiers.
+            turn, deltas = await self._run_turn(
+                system=system,
+                messages=messages,
+                tools=None,
+            )
+            for delta in deltas:
+                answer_parts.append(delta)
+                yield {"type": "text_delta", "text": delta}
 
-                if not turn.tool_uses:
-                    assistant_message_id = await self._persist_assistant(session, tenant_id, conversation_id, turn)
-                    break
+            if not answer_parts:
+                fallback = "I'm here to help! Could you rephrase your question?"
+                answer_parts.append(fallback)
+                yield {"type": "text_delta", "text": fallback}
 
-                await self._persist_assistant(session, tenant_id, conversation_id, turn)
-                messages.append({"role": "assistant", "content": self._assistant_blocks(turn)})
-                tool_results = []
-                for tu in turn.tool_uses:
-                    result, success, duration_ms, sources = await self._execute_tool(
-                        session, tenant_id, conversation_id, tu.id, tu.name, tu.input
-                    )
-                    tool_count += 1
-                    citations.extend(sources)
-                    # Persist the tool result as a `tool` role message so future turns
-                    # reconstruct a valid assistant-tool_use → tool_result pairing.
-                    session.add(
-                        Message(
-                            conversation_id=conversation_id,
-                            tenant_id=tenant_id,
-                            role="tool",
-                            content=result["content"],
-                            tool_calls=[{"id": tu.id}],
-                        )
-                    )
-                    tool_results.append(result)
-                messages.append({"role": "user", "content": tool_results})
-                await session.commit()
-            else:
-                # Guardrail: all rounds consumed without a plain-text answer.
-                guardrail = AssistantTurn(text=GUARDRAIL_ANSWER)
-                assistant_message_id = await self._persist_assistant(session, tenant_id, conversation_id, guardrail)
-                answer_parts.append(GUARDRAIL_ANSWER)
-                yield {"type": "text_delta", "text": GUARDRAIL_ANSWER}
+            assistant_message_id = await self._persist_assistant(session, tenant_id, conversation_id, turn)
         except Exception as exc:
             logger.error("orchestration_failed", error=str(exc), exc_info=True)
-            yield {"type": "error", "message": "agent processing failed"}
+            error_msg = f"Sorry, I encountered an error processing your request. Please try again."
+            yield {"type": "error", "message": error_msg}
             await session.rollback()
             return
 
@@ -228,11 +195,8 @@ class Orchestrator:
         blocks = "\n\n---\n\n".join(item["text"] for item in context)
         return (
             self._system_prompt(tenant_id)
-            + "\n\n# Retrieved knowledge for this question\n"
+            + "\n\n# Relevant knowledge (use if helpful, otherwise answer from general knowledge)\n"
             + blocks
-            + "\n\nAnswer using ONLY the retrieved knowledge above. Merge multiple chunks, remove"
-            + " duplication, and present one unified, well-structured answer. If it does not answer"
-            + " the question, say so plainly and never invent details."
         )
 
     async def _run_turn(
