@@ -28,7 +28,7 @@ from services.rag import chunk_text
 
 logger = get_logger("services.knowledge")
 
-USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) TryviumKnowledgeBot/1.0"
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AIKnowledgeBot/1.0"
 
 _TERM_RE = re.compile(r"[a-z0-9]+")
 _HTML_SKIP_TAGS = {"script", "style", "noscript", "header", "nav", "footer", "aside"}
