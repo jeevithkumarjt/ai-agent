@@ -28,11 +28,17 @@ _RETRY_BASE_DELAY = 3.0
 
 
 class _ThinkingFilter:
-    """Streaming-aware filter that strips <think>...</think> blocks from model output."""
+    """Streaming-aware filter that strips <think>...</think> blocks from model output.
+
+    If the model puts the entire response inside <think>, we extract the last
+    meaningful paragraph as the visible answer (qwen reasoning mode)."""
 
     def __init__(self) -> None:
         self._in_thinking = False
         self._buffer = ""
+        self._visible = ""
+        self._thinking_buf = ""
+        self._thinking_only = True
 
     def feed(self, chunk: str) -> str:
         self._buffer += chunk
@@ -41,20 +47,44 @@ class _ThinkingFilter:
             if self._in_thinking:
                 end = self._buffer.find("</think>")
                 if end == -1:
-                    self._buffer = self._buffer[-10:] if len(self._buffer) > 10 else self._buffer
+                    self._buffer = self._buffer[-20:] if len(self._buffer) > 20 else self._buffer
                     break
+                self._thinking_buf += self._buffer[:end]
                 self._buffer = self._buffer[end + 8:]
                 self._in_thinking = False
             else:
                 start = self._buffer.find("<think>")
                 if start == -1:
-                    result += self._buffer
+                    piece = self._buffer
                     self._buffer = ""
-                    break
-                result += self._buffer[:start]
-                self._buffer = self._buffer[start:]
-                self._in_thinking = True
+                else:
+                    piece = self._buffer[:start]
+                    self._buffer = self._buffer[start + len("<think>"):]
+                    self._in_thinking = True
+                    self._thinking_buf = ""
+                if piece:
+                    self._visible += piece
+                    self._thinking_only = False
+                    result += piece
         return result
+
+    def flush(self) -> str:
+        """Call after stream ends to extract answer from thinking-only responses."""
+        remaining = self._buffer
+        self._buffer = ""
+        if remaining:
+            self._visible += remaining
+            self._thinking_only = False
+
+        if self._visible.strip():
+            return ""
+
+        if self._thinking_buf.strip():
+            lines = self._thinking_buf.strip().split("\n")
+            meaningful = [l.strip() for l in lines if l.strip() and not l.strip().startswith(("#", "**", "-", "1.", "2.", "3."))]
+            if meaningful:
+                return "\n".join(meaningful[-3:]) + "\n"
+        return ""
 
 
 class OpenAICompatClient:
@@ -255,6 +285,9 @@ class OpenAICompatClient:
                 combined = "".join(text)
                 tf = _ThinkingFilter()
                 clean = tf.feed(combined)
+                remaining = tf.flush()
+                if remaining:
+                    clean += remaining
                 if clean:
                     yield TextDelta(clean)
                 elif combined:
