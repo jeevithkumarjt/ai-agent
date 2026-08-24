@@ -23,8 +23,8 @@ from core.settings import settings
 
 logger = get_logger("core.openai")
 
-_MAX_RETRIES = 4
-_RETRY_BASE_DELAY = 3.0
+_MAX_RETRIES = 5
+_RETRY_BASE_DELAY = 5.0
 
 
 class _ThinkingFilter:
@@ -90,7 +90,7 @@ class OpenAICompatClient:
         self.api_key = api_key or settings.anthropic_api_key
         self.base_url = base_url or settings.anthropic_base_url
         self.model = model or settings.anthropic_model
-        self.timeout = 120
+        self.timeout = 180
         if not self.api_key:
             raise AnthropicError("ANTHROPIC_API_KEY is not configured (ADR-007)")
 
@@ -300,7 +300,12 @@ class OpenAICompatClient:
                 if (is_rate_limit or is_server_error) and attempt < _MAX_RETRIES - 1:
                     delay = _RETRY_BASE_DELAY * (2 ** attempt)
                     if is_rate_limit:
-                        delay = max(delay, 5.0)
+                        # Parse retry-after from error message or use exponential backoff
+                        try:
+                            ra = float(str(exc).split("retry after ")[1].split("s")[0])
+                            delay = max(delay, ra)
+                        except (IndexError, ValueError):
+                            delay = max(delay, 10.0)
                     logger.warning("llm_retry", attempt=attempt, status=exc.status_code, delay=delay, error=str(exc))
                     await asyncio.sleep(delay)
                     continue
