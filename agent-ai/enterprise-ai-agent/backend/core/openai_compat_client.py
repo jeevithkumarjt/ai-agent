@@ -27,10 +27,34 @@ _MAX_RETRIES = 4
 _RETRY_BASE_DELAY = 3.0
 
 
-def _strip_thinking(text: str) -> str:
-    """Remove <think>...</think> blocks from model output."""
-    import re
-    return re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
+class _ThinkingFilter:
+    """Streaming-aware filter that strips <think>...</think> blocks from model output."""
+
+    def __init__(self) -> None:
+        self._in_thinking = False
+        self._buffer = ""
+
+    def feed(self, chunk: str) -> str:
+        self._buffer += chunk
+        result = ""
+        while self._buffer:
+            if self._in_thinking:
+                end = self._buffer.find("</think>")
+                if end == -1:
+                    self._buffer = self._buffer[-10:] if len(self._buffer) > 10 else self._buffer
+                    break
+                self._buffer = self._buffer[end + 8:]
+                self._in_thinking = False
+            else:
+                start = self._buffer.find("<think>")
+                if start == -1:
+                    result += self._buffer
+                    self._buffer = ""
+                    break
+                result += self._buffer[:start]
+                self._buffer = self._buffer[start:]
+                self._in_thinking = True
+        return result
 
 
 class OpenAICompatClient:
@@ -229,7 +253,8 @@ class OpenAICompatClient:
                         continue
 
                 combined = "".join(text)
-                clean = _strip_thinking(combined)
+                tf = _ThinkingFilter()
+                clean = tf.feed(combined)
                 if clean:
                     yield TextDelta(clean)
                 elif combined:
