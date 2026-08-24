@@ -79,11 +79,16 @@ class _ThinkingFilter:
         if self._visible.strip():
             return ""
 
+        # Model put entire response in <think>. Return the thinking content.
         if self._thinking_buf.strip():
-            lines = self._thinking_buf.strip().split("\n")
-            meaningful = [l.strip() for l in lines if l.strip() and not l.strip().startswith(("#", "**", "-", "1.", "2.", "3."))]
-            if meaningful:
-                return "\n".join(meaningful[-3:]) + "\n"
+            text = self._thinking_buf.strip()
+            # Remove markdown code fences and list prefixes for cleaner output
+            import re
+            text = re.sub(r"```.*?```", "", text, flags=re.DOTALL)
+            text = re.sub(r"^[\-\*\d\.]+\s*", "", text, flags=re.MULTILINE)
+            text = re.sub(r"\n{3,}", "\n\n", text).strip()
+            if text:
+                return text + "\n"
         return ""
 
 
