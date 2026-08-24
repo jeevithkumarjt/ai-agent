@@ -133,7 +133,13 @@ class Orchestrator:
             assistant_message_id = await self._persist_assistant(session, tenant_id, conversation_id, turn)
         except Exception as exc:
             logger.error("orchestration_failed", error=str(exc), exc_info=True)
-            error_msg = f"Sorry, I encountered an error processing your request. ({type(exc).__name__}: {str(exc)[:120]})"
+            err_str = str(exc).lower()
+            if "rate limit" in err_str or "429" in err_str:
+                error_msg = "I'm receiving a lot of requests right now. Please wait a moment and try again."
+            elif "timeout" in err_str:
+                error_msg = "The request took too long. Please try a shorter question."
+            else:
+                error_msg = f"Sorry, I encountered an error processing your request. ({type(exc).__name__}: {str(exc)[:120]})"
             yield {"type": "error", "message": error_msg}
             await session.rollback()
             return

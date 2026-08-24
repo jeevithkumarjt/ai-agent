@@ -23,7 +23,7 @@ from core.settings import settings
 
 logger = get_logger("core.openai")
 
-_MAX_RETRIES = 3
+_MAX_RETRIES = 2
 _RETRY_BASE_DELAY = 5.0
 
 
@@ -295,20 +295,13 @@ class OpenAICompatClient:
 
             except AnthropicError as exc:
                 last_error = exc
-                is_rate_limit = exc.status_code == 429
                 is_server_error = exc.status_code is not None and exc.status_code >= 500
-                if (is_rate_limit or is_server_error) and attempt < _MAX_RETRIES - 1:
-                    delay = _RETRY_BASE_DELAY * (2 ** attempt)
-                    if is_rate_limit:
-                        # Parse retry-after from error message or use exponential backoff
-                        try:
-                            ra = float(str(exc).split("retry after ")[1].split("s")[0])
-                            delay = min(max(delay, ra), 30.0)
-                        except (IndexError, ValueError):
-                            delay = max(delay, 10.0)
+                if is_server_error and attempt < _MAX_RETRIES - 1:
+                    delay = min(_RETRY_BASE_DELAY * (2 ** attempt), 15.0)
                     logger.warning("llm_retry", attempt=attempt, status=exc.status_code, delay=delay, error=str(exc))
                     await asyncio.sleep(delay)
                     continue
+                # Rate limits: fail fast — don't make user wait minutes
                 raise
 
         raise AnthropicError(f"LLM failed after {_MAX_RETRIES} attempts: {last_error}")
