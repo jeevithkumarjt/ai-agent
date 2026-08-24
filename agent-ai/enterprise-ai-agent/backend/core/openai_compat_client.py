@@ -23,7 +23,7 @@ from core.settings import settings
 
 logger = get_logger("core.openai")
 
-_MAX_RETRIES = 5
+_MAX_RETRIES = 3
 _RETRY_BASE_DELAY = 5.0
 
 
@@ -303,7 +303,7 @@ class OpenAICompatClient:
                         # Parse retry-after from error message or use exponential backoff
                         try:
                             ra = float(str(exc).split("retry after ")[1].split("s")[0])
-                            delay = max(delay, ra)
+                            delay = min(max(delay, ra), 30.0)
                         except (IndexError, ValueError):
                             delay = max(delay, 10.0)
                     logger.warning("llm_retry", attempt=attempt, status=exc.status_code, delay=delay, error=str(exc))
