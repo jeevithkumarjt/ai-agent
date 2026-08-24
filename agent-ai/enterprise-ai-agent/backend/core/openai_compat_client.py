@@ -79,16 +79,9 @@ class _ThinkingFilter:
         if self._visible.strip():
             return ""
 
-        # Model put entire response in <think>. Return the thinking content.
+        # Model put entire response in <think>. Return the thinking content as-is.
         if self._thinking_buf.strip():
-            text = self._thinking_buf.strip()
-            # Remove markdown code fences and list prefixes for cleaner output
-            import re
-            text = re.sub(r"```.*?```", "", text, flags=re.DOTALL)
-            text = re.sub(r"^[\-\*\d\.]+\s*", "", text, flags=re.MULTILINE)
-            text = re.sub(r"\n{3,}", "\n\n", text).strip()
-            if text:
-                return text + "\n"
+            return self._thinking_buf.strip() + "\n"
         return ""
 
 
