@@ -133,7 +133,7 @@ class Orchestrator:
             assistant_message_id = await self._persist_assistant(session, tenant_id, conversation_id, turn)
         except Exception as exc:
             logger.error("orchestration_failed", error=str(exc), exc_info=True)
-            error_msg = f"Sorry, I encountered an error processing your request. Please try again."
+            error_msg = f"Sorry, I encountered an error processing your request. ({type(exc).__name__}: {str(exc)[:120]})"
             yield {"type": "error", "message": error_msg}
             await session.rollback()
             return
