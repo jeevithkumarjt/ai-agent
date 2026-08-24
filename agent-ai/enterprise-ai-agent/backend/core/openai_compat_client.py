@@ -279,8 +279,6 @@ class OpenAICompatClient:
                         delay = _RETRY_BASE_DELAY * (2 ** attempt)
                         await asyncio.sleep(delay)
                         continue
-                    # All retries exhausted with empty response
-                    break
 
                 combined = "".join(text)
                 tf = _ThinkingFilter()
