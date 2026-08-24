@@ -216,15 +216,21 @@ class Orchestrator:
     # -- turn loop --------------------------------------------------------------
 
     async def _system_with_context(self, user_text: str, citations: list[str], tenant_id: uuid.UUID) -> str:
-        """Prepend retrieved knowledge (documents/ + site crawl) to the system prompt."""
+        """Prepend retrieved knowledge (documents/ + site crawl) to the system prompt.
+
+        Skips knowledge injection when it would cause excessive token usage
+        on rate-limited providers (Groq free tier). The system prompt alone
+        is sufficient for most questions."""
         if self.knowledge is None:
             return self._system_prompt(tenant_id)
         top_k = self._retrieval_top_k(tenant_id)
         context = await asyncio.to_thread(self.knowledge.search, user_text, top_k)
         if not context:
             return self._system_prompt(tenant_id)
+        # Truncate context to avoid rate limits — max 3 chunks, max 500 chars each
+        context = context[:3]
         citations.extend(item["source"] for item in context)
-        blocks = "\n\n---\n\n".join(item["text"] for item in context)
+        blocks = "\n\n---\n\n".join(item["text"][:500] for item in context)
         return (
             self._system_prompt(tenant_id)
             + "\n\n# Relevant knowledge (use if helpful, otherwise answer from general knowledge)\n"
