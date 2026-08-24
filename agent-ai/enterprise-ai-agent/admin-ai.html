@@ -230,6 +230,23 @@ html[data-theme="dark"] .sk::after{background:linear-gradient(90deg,transparent,
       <button class="btn btn-p" type="submit" id="login-btn"><span>Sign in</span></button>
       <div class="login-error" id="login-error" role="alert"></div>
     </form>
+    <p style="margin-top:1rem;font-size:.82rem;color:var(--muted)">New here? <a href="#" id="show-signup" style="color:var(--primary-3)">Create an account</a></p>
+  </div>
+</div>
+
+<div id="signup-modal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.4)">
+  <div class="login-card" style="margin:auto">
+    <div class="logo">KB AI Agent</div>
+    <h1>Create Account</h1>
+    <p>Set up your workspace</p>
+    <form id="signup-form">
+      <div class="field"><label>Company / Workspace name</label><input type="text" id="signup-company" required placeholder="Acme Corp"></div>
+      <div class="field"><label>Email</label><input type="email" id="signup-email" required placeholder="you@company.com"></div>
+      <div class="field"><label>Password</label><input type="password" id="signup-pass" required minlength="6" placeholder="Min 6 characters"></div>
+      <button class="btn btn-p" type="submit" id="signup-btn"><span>Create account</span></button>
+      <div class="login-error" id="signup-error" role="alert"></div>
+    </form>
+    <p style="margin-top:1rem;font-size:.82rem;color:var(--muted)">Already have an account? <a href="#" id="show-login" style="color:var(--primary-3)">Sign in</a></p>
   </div>
 </div>
 
@@ -321,6 +338,34 @@ $("#login-form").addEventListener("submit",async e=>{
   try{ await login($("#login-email").value,$("#login-pass").value); }
   catch(err){ $("#login-error").textContent=err.message; }
   finally{ btn.disabled=false; btn.innerHTML="Sign in"; }
+});
+
+/* ---- signup ---- */
+document.getElementById("show-signup").addEventListener("click",function(e){
+  e.preventDefault();
+  document.getElementById("login").style.display="none";
+  var m=document.getElementById("signup-modal"); m.style.display="grid";
+});
+document.getElementById("show-login").addEventListener("click",function(e){
+  e.preventDefault();
+  document.getElementById("signup-modal").style.display="none";
+  document.getElementById("login").style.display="";
+});
+document.getElementById("signup-form").addEventListener("submit",async function(e){
+  e.preventDefault();
+  var btn=document.getElementById("signup-btn"); btn.disabled=true; btn.innerHTML='<span class="spin"></span> Creating&hellip;';
+  document.getElementById("signup-error").textContent="";
+  try{
+    var body={tenant_name:document.getElementById("signup-company").value.trim(),owner_email:document.getElementById("signup-email").value.trim(),owner_password:document.getElementById("signup-pass").value};
+    var res=await fetch((window.APP_API_BASE||"http://127.0.0.1:8000")+"/v1/tenants/signup",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+    if(!res.ok){var d=await res.json().catch(()=>({}));throw new Error(d.detail||"Signup failed");}
+    var d=await res.json();
+    store.set("at",d.access_token); store.set("rt",d.refresh_token);
+    me=await api("/me");
+    document.getElementById("signup-modal").style.display="none";
+    document.getElementById("app").classList.add("auth-open"); document.getElementById("login").classList.remove("open"); boot();
+  }catch(err){ document.getElementById("signup-error").textContent=err.message; }
+  finally{ btn.disabled=false; btn.innerHTML="Create account"; }
 });
 
 /* ---- nav ---- */

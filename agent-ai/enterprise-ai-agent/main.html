@@ -2119,6 +2119,13 @@
   var launchCard = document.getElementById('awLaunchCard');
   if (launchCard) launchCard.addEventListener('click', openOverlay);
   document.getElementById('awClose').addEventListener('click', closeOverlay);
+  document.getElementById('awSignin').addEventListener('click', function () {
+    showLogin({
+      reason: 'Sign in to save your conversations.',
+      onLogin: function () { refreshUserUI(); },
+      onGuest: function () { ensureSession(function () {}, function () { setStatus('error'); hint('Assistant unreachable'); }); }
+    });
+  });
   overlay.addEventListener('click', function (e) { if (e.target === overlay) closeOverlay(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeOverlay(); });
 
@@ -2139,6 +2146,13 @@
     ttsStop(); srStop();
     if (!busy) setStatus('ended');
     setTimeout(function () { overlay.hidden = true; }, 520);
+  }
+
+  function refreshUserUI() {
+    var btn = document.getElementById('awSignin');
+    if (btn) {
+      btn.textContent = isGuest ? 'Sign in' : 'Signed in';
+    }
   }
 
   /* ---------- live health badge (truthful, polled from /v1/health) ---------- */

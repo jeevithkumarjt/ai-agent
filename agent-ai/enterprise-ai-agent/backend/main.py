@@ -80,6 +80,10 @@ def create_app() -> FastAPI:
     app.include_router(conversations.router)
     app.include_router(knowledge.router)
     app.include_router(admin_router)
+
+    from api.tenant import router as tenant_router
+    app.include_router(tenant_router)
+
     return app
 
 

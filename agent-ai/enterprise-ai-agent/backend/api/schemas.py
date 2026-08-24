@@ -60,3 +60,24 @@ class MessagePage(BaseModel):
     total: int
     limit: int
     offset: int
+
+
+class TenantSignupRequest(BaseModel):
+    tenant_name: str = Field(min_length=1, max_length=100)
+    owner_email: EmailStr
+    owner_password: str = Field(min_length=6)
+
+
+class TenantSignupResponse(BaseModel):
+    tenant_id: str
+    owner_email: str
+    access_token: str
+    refresh_token: str
+    expires_in: int
+
+
+class TenantListItem(BaseModel):
+    id: str
+    name: str
+    created_at: str
+    user_count: int
