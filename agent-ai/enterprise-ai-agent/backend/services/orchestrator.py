@@ -31,6 +31,11 @@ from services.tools.base import BaseTool, record_tool_call
 # Throttle: only 1 LLM request at a time to avoid Groq rate limits.
 _llm_semaphore = asyncio.Semaphore(1)
 
+# Simple response cache to avoid hitting rate limits for common questions.
+import hashlib
+_response_cache: dict[str, str] = {}
+_CACHE_MAX = 200
+
 logger = get_logger("services.orchestrator")
 
 SYSTEM_PROMPT = """You are a helpful, knowledgeable AI assistant. You answer every question the user asks — always provide a useful, complete response.
@@ -111,6 +116,16 @@ class Orchestrator:
         assistant_message_id: str | None = None
         tool_count = 0
         system = await self._system_with_context(user_text, citations, tenant_id)
+
+        # Check response cache (skip for conversation-dependent questions)
+        cache_key = hashlib.md5(user_text.strip().lower().encode()).hexdigest()
+        cached = _response_cache.get(cache_key)
+        if cached:
+            yield {"type": "text_delta", "text": cached}
+            assistant_message_id = str(uuid.uuid4())
+            yield {"type": "message_done", "conversation_id": str(conversation_id), "message_id": assistant_message_id}
+            return
+
         try:
             # Single LLM call with tools disabled for reliability.
             # Tool calls cause extra API requests which trigger rate limits on free tiers.
@@ -131,6 +146,11 @@ class Orchestrator:
                 yield {"type": "text_delta", "text": fallback}
 
             assistant_message_id = await self._persist_assistant(session, tenant_id, conversation_id, turn)
+
+            # Cache the response
+            answer_text = "".join(answer_parts)
+            if answer_text and len(_response_cache) < _CACHE_MAX:
+                _response_cache[cache_key] = answer_text
         except Exception as exc:
             logger.error("orchestration_failed", error=str(exc), exc_info=True)
             err_str = str(exc).lower()
