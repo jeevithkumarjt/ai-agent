@@ -109,6 +109,7 @@ class Orchestrator:
         citations: list[str] = []
         answer_parts: list[str] = []
         assistant_message_id: str | None = None
+        tool_count = 0
         system = await self._system_with_context(user_text, citations, tenant_id)
         try:
             # Single LLM call with tools disabled for reliability.
