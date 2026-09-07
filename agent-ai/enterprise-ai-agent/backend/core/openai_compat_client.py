@@ -183,9 +183,11 @@ class OpenAICompatClient:
 
     async def _stream_once(
         self, *, url: str, payload: dict[str, Any]
-    ) -> tuple[list[str], dict[int, dict[str, str]], str | None, dict[str, int]]:
-        """Single streaming attempt. Returns (text_parts, tool_acc, stop_reason, usage)."""
-        text: list[str] = []
+    ) -> tuple[list[str], list[str], dict[int, dict[str, str]], str | None, dict[str, int]]:
+        """Single streaming attempt. Returns (content_parts, reasoning_parts, tool_acc, stop_reason, usage)."""
+        content: list[str] = []
+        reasoning: list[str] = []
+        seen_keys: set[str] = set()
         tool_acc: dict[int, dict[str, str]] = {}
         stop_reason: str | None = None
         usage: dict[str, int] = {}
@@ -227,9 +229,16 @@ class OpenAICompatClient:
                     usage.update(chunk["usage"])
                 for choice in chunk.get("choices") or []:
                     delta = choice.get("delta") or {}
+                    seen_keys.update(delta.keys())
                     piece = delta.get("content")
                     if piece:
-                        text.append(piece)
+                        content.append(piece)
+                    # Reasoning-style models (e.g. groq/compound-mini) stream the
+                    # answer in `delta.reasoning` and leave `content` empty, so the
+                    # final response is a fallback of reasoning when content is absent.
+                    reason_piece = delta.get("reasoning")
+                    if reason_piece:
+                        reasoning.append(reason_piece)
                     for tc in delta.get("tool_calls") or []:
                         idx = tc.get("index", 0)
                         acc = tool_acc.setdefault(idx, {"id": "", "name": "", "args": ""})
@@ -243,7 +252,40 @@ class OpenAICompatClient:
                     if choice.get("finish_reason"):
                         stop_reason = choice["finish_reason"]
 
-        return text, tool_acc, stop_reason, usage
+        return content, reasoning, seen_keys, tool_acc, stop_reason, usage
+
+    async def _complete_once(
+        self, *, url: str, payload: dict[str, Any]
+    ) -> tuple[str, str | None, dict[str, int]]:
+        """Single NON-streaming completion attempt. Returns (text, finish_reason, usage).
+
+        Groq's free tier intermittently returns empty streams (200 with no content
+        and no reasoning deltas). A non-streaming request for the same payload
+        consistently returns the full answer, so it is used as a reliable fallback.
+        """
+        plain = dict(payload)
+        plain["stream"] = False
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            resp = await client.post(url, headers=self._headers(), json=plain)
+            if resp.status_code == 429:
+                retry_after = float(resp.headers.get("retry-after", "5"))
+                raise AnthropicError(
+                    f"rate limited (429), retry after {retry_after}s", status_code=429
+                )
+            if resp.status_code >= 500:
+                raise AnthropicError(
+                    f"server error: {resp.status_code}", status_code=resp.status_code
+                )
+            if resp.status_code != 200:
+                raise AnthropicError(
+                    f"request failed: {resp.status_code} {resp.text[:300]}",
+                    status_code=resp.status_code,
+                )
+            data = resp.json()
+            choice = (data.get("choices") or [{}])[0]
+            message = choice.get("message") or {}
+            text = message.get("content") or message.get("reasoning") or ""
+            return text, choice.get("finish_reason"), data.get("usage") or {}
 
     async def stream(
         self, *, system: str, messages: list[dict[str, Any]], tools: list[dict[str, Any]] | None = None
@@ -261,7 +303,7 @@ class OpenAICompatClient:
         last_error: Exception | None = None
         for attempt in range(_MAX_RETRIES):
             try:
-                text, tool_acc, stop_reason, usage = await self._stream_once(url=url, payload=payload)
+                content, reasoning, seen_keys, tool_acc, stop_reason, usage = await self._stream_once(url=url, payload=payload)
 
                 tool_uses = []
                 for acc in tool_acc.values():
@@ -271,16 +313,39 @@ class OpenAICompatClient:
                         tool_input = {}
                     tool_uses.append(ToolUse(id=acc["id"], name=acc["name"], input=tool_input))
 
-                turn = AssistantTurn(text="".join(text), tool_uses=tool_uses, stop_reason=stop_reason, usage=usage)
+                # Prefer visible content; fall back to the reasoning stream for
+                # models that only emit the answer there.
+                combined = "".join(content) or "".join(reasoning)
+                turn = AssistantTurn(text=combined, tool_uses=tool_uses, stop_reason=stop_reason, usage=usage)
 
-                if not text and not tool_uses:
+                if not combined.strip() and not tool_uses:
                     logger.warning("llm_empty_response", attempt=attempt, model=self.model)
                     if attempt < _MAX_RETRIES - 1:
                         delay = _RETRY_BASE_DELAY * (2 ** attempt)
                         await asyncio.sleep(delay)
                         continue
+                    # All streaming attempts came back empty. Retry through the
+                    # non-streaming path, which has proven reliable for this model.
+                    try:
+                        logger.warning("llm_stream_empty_using_nonstream", model=self.model)
+                        text2, finish2, usage2 = await self._complete_once(url=url, payload=payload)
+                    except Exception:  # noqa: BLE001
+                        text2, finish2 = "", None
+                    if text2.strip():
+                        tf2 = _ThinkingFilter()
+                        clean2 = tf2.feed(text2)
+                        rem2 = tf2.flush()
+                        if rem2:
+                            clean2 += rem2
+                        if clean2:
+                            yield TextDelta(clean2)
+                        turn = AssistantTurn(text=text2, tool_uses=[], stop_reason=finish2, usage=usage2)
+                        yield MessageStop(turn)
+                        return
+                    logger.warning("llm_nonstream_also_empty", model=self.model)
+                    yield MessageStop(AssistantTurn(text="", tool_uses=[], stop_reason=None, usage={}))
+                    return
 
-                combined = "".join(text)
                 tf = _ThinkingFilter()
                 clean = tf.feed(combined)
                 remaining = tf.flush()

@@ -149,15 +149,19 @@ class Orchestrator:
                 yield {"type": "text_delta", "text": delta}
 
             if not answer_parts:
+                used_fallback = True
                 fallback = "I'm here to help! Could you rephrase your question?"
                 answer_parts.append(fallback)
                 yield {"type": "text_delta", "text": fallback}
+            else:
+                used_fallback = False
 
             assistant_message_id = await self._persist_assistant(session, tenant_id, conversation_id, turn)
 
-            # Cache the response
+            # Cache the response (never cache empty/fallback replies so a transient
+            # empty completion doesn't permanently poison repeats of a good question).
             answer_text = "".join(answer_parts)
-            if answer_text and len(_response_cache) < _CACHE_MAX:
+            if answer_text and not used_fallback and len(_response_cache) < _CACHE_MAX:
                 _response_cache[cache_key] = answer_text
         except Exception as exc:
             logger.error("orchestration_failed", error=str(exc), exc_info=True)
@@ -250,7 +254,7 @@ class Orchestrator:
         # up to a total character budget that keeps the prompt token-safe.
         context = context[: max(8, min(top_k, 12))]
         citations.extend(item["source"] for item in context)
-        budget = 24000
+        budget = 8000
         blocks: list[str] = []
         used = 0
         for item in context:
