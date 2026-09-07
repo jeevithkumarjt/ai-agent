@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     embeddings_batch_size: int = 64
 
     # --- Retrieval ---
-    retrieval_top_k: int = 5
+    retrieval_top_k: int = 8
 
     # --- Knowledge store (documents/ folder + site crawl; stdlib only) ---
     knowledge_docs_dir: str = "documents"

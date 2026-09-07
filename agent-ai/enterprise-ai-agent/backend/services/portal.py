@@ -117,7 +117,27 @@ class PortalService:
         await session.commit()
         self._settings_cache.pop(str(tenant_id), None)
         await self.load_settings(session, tenant_id)
+        await self.apply_runtime_knowledge_settings(session)
         return dict(self._settings_cache[str(tenant_id)])
+
+    async def apply_runtime_knowledge_settings(self, session: AsyncSession) -> dict[str, Any]:
+        """Push the persisted (portal) site configuration onto the running
+        knowledge store so the next refresh crawls exactly what the admin set."""
+        sites: list[str] | None = None
+        max_pages: int | None = None
+        rows = (await session.scalars(select(AdminSetting).where(
+            AdminSetting.key.in_(["knowledge_sites", "knowledge_max_site_pages"])
+        ))).all()
+        for row in rows:
+            if row.key == "knowledge_sites" and isinstance(row.value, list) and row.value:
+                sites = [str(s).strip() for s in row.value if str(s).strip()]
+            elif row.key == "knowledge_max_site_pages":
+                try:
+                    max_pages = int(row.value)
+                except (TypeError, ValueError):
+                    pass
+        await asyncio.to_thread(self.knowledge.refresh_settings, sites=sites, max_pages=max_pages)
+        return {"sites": list(self.knowledge.sites), "max_pages": self.knowledge.max_pages}
 
     # =========================================================================
     # Documents

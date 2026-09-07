@@ -15,11 +15,12 @@ import re
 import threading
 import time
 import urllib.request
-from collections import Counter
+from collections import Counter, deque
 from collections.abc import Iterable
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
+from urllib.parse import urljoin, urlparse
 
 from core.logging import get_logger
 from core.settings import settings
@@ -32,10 +33,20 @@ USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AIKnowledgeBot/1.0"
 
 _TERM_RE = re.compile(r"[a-z0-9]+")
 _HTML_SKIP_TAGS = {"script", "style", "noscript", "header", "nav", "footer", "aside"}
+_STOPWORDS = {
+    "a", "an", "the", "and", "or", "but", "if", "then", "else", "for", "of", "to",
+    "in", "on", "at", "by", "with", "from", "as", "is", "are", "was", "were", "be",
+    "been", "have", "has", "had", "do", "does", "did", "will", "would", "shall",
+    "should", "can", "could", "may", "might", "must", "not", "no", "nor", "so",
+    "too", "very", "what", "which", "who", "whom", "whose", "when", "where", "why",
+    "how", "this", "that", "these", "those", "there", "here", "their", "them",
+    "they", "it", "its", "you", "your", "yourself", "we", "our", "us", "i", "me",
+    "my", "he", "she", "his", "her", "him", "according", "accordingly", "according",
+}
 
 
 def _tokenize(text: str) -> list[str]:
-    return _TERM_RE.findall(text.lower())
+    return [term for term in _TERM_RE.findall(text.lower()) if term not in _STOPWORDS]
 
 
 class _TextExtractor(HTMLParser):
@@ -142,7 +153,7 @@ def _http_get(url: str) -> str | None:
         url, headers={"User-Agent": USER_AGENT, "Accept": "text/html,application/xhtml+xml"}
     )
     try:
-        with urllib.request.urlopen(request, timeout=20) as resp:
+        with urllib.request.urlopen(request, timeout=12) as resp:
             raw = resp.read(2 * 1024 * 1024)
     except Exception as exc:
         logger.warning("knowledge_fetch_failed", url=url, error=str(exc))
@@ -159,17 +170,61 @@ def _page_title(body: str, fallback: str) -> str:
     return html.unescape(match.group(1)).strip() if match else fallback
 
 
+_LINK_SKIP_PARTS = (
+    "javascript:", "mailto:", "tel:", "data:",
+    "/wp-admin", "/wp-login", "/wp-json", "/wp-cron",
+    ".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".css", ".js", ".zip", ".ico",
+    "feed", "author",
+)
+
+
+def _extract_links(body: str, page_url: str) -> list[str]:
+    """Return normalized same-page absolute hrefs (deduped, noise filtered)."""
+    out: set[str] = set()
+    for href in re.findall(r'<a[^>]+href=["\']([^"\'> ]+)["\']', body, flags=re.IGNORECASE):
+        raw = href.strip()
+        if not raw or raw == "#":
+            continue
+        if "#" in raw:
+            raw = raw.split("#", 1)[0]
+        if not raw:
+            continue
+        low = raw.lower()
+        if any(part in low for part in _LINK_SKIP_PARTS):
+            continue
+        resolved = urljoin(page_url, raw)
+        if not resolved.startswith(("http://", "https://")):
+            continue
+        out.add((resolved or resolved.rstrip("/")).rstrip("/"))
+    return sorted(out)
+
+
 class KnowledgeStore:
     """In-memory chunk index with BM25 retrieval. Rebuilt on every refresh."""
 
     def __init__(self, *, docs_dir: Path | None = None, sites: list[str] | None = None) -> None:
         self.docs_dir = Path(settings.knowledge_docs_dir) if docs_dir is None else docs_dir
-        self.sites = list(settings.knowledge_sites) if sites is None else sites
+        self.sites = [s.strip() for s in (list(settings.knowledge_sites) if sites is None else sites) if s and s.strip()]
+        self.max_pages = settings.knowledge_max_site_pages
         self._lock = threading.Lock()
         self._chunks: list[dict[str, Any]] = []
         self._sources: list[str] = []
         self._site_chunks: list[dict[str, Any]] = []
+        self.version = 0
         self._stats: dict[str, Any] = {"last_refresh": None, "last_error": None, "duration_ms": None}
+
+    # -- runtime settings (admin portal) --------------------------------------
+
+    def refresh_settings(self, *, sites: list[str] | None = None, max_pages: int | None = None) -> None:
+        """Apply portal-configured sites/max-pages so the next refresh (manual or
+        auto sync) crawls exactly what the admin configured."""
+        with self._lock:
+            if sites is not None:
+                cleaned = [s.strip() for s in sites if s and s.strip()]
+                if cleaned:
+                    self.sites = cleaned
+            if max_pages is not None and max_pages > 0:
+                self.max_pages = int(max_pages)
 
     # -- refresh ---------------------------------------------------------------
 
@@ -185,12 +240,13 @@ class KnowledgeStore:
             with self._lock:
                 site_chunks = list(self._site_chunks)
             chunks.extend(dict(item) for item in site_chunks)
-            sources.extend(item["source"] for item in site_chunks)
         for index, chunk in enumerate(chunks):
             chunk["id"] = index
+        unique_sources = list(dict.fromkeys(chunk["source"] for chunk in chunks))
         with self._lock:
             self._chunks = chunks
-            self._sources = sources
+            self._sources = unique_sources
+        self.version += 1
         self._stats.update(
             last_refresh=time.time(),
             last_error=None,
@@ -200,7 +256,7 @@ class KnowledgeStore:
         logger.info(
             "knowledge_refreshed",
             chunks=len(chunks),
-            sources=len(sources),
+            sources=len(unique_sources),
             duration_ms=self._stats["duration_ms"],
             site=include_site,
         )
@@ -209,10 +265,17 @@ class KnowledgeStore:
         started = time.monotonic()
         chunks: list[dict[str, Any]] = []
         sources: list[str] = []
-        site_chunks: list[dict[str, Any]] = []
+        body_cache: dict[str, str] = {}
         try:
             chunks.extend(self._scan_documents(sources))
-            site_chunks = self._crawl_site(sources)
+        except Exception as exc:
+            logger.exception("knowledge_refresh_failed")
+            self._stats["last_error"] = str(exc)
+        # Publish document chunks immediately so chat works while the site
+        # crawl runs in the background (crawl can take a few minutes).
+        self._finalize(chunks, sources, started=started, include_site=False)
+        try:
+            site_chunks = self._crawl_site(body_cache)
             with self._lock:
                 self._site_chunks = site_chunks
         except Exception as exc:
@@ -253,57 +316,124 @@ class KnowledgeStore:
                 chunks.append({"source": source, "title": rel, "kind": "document", "text": piece})
         return chunks
 
-    def _crawl_site(self, sources: list[str]) -> list[dict[str, Any]]:
+    def _crawl_site(self, body_cache: dict[str, str]) -> list[dict[str, Any]]:
         chunks: list[dict[str, Any]] = []
-        for url in self._discover_urls():
-            body = _http_get(url)
+        for url in self._discover_urls(body_cache):
+            body = body_cache.get(url)
+            if body is None:
+                body = _http_get(url)
             if not body:
                 continue
             text = _extract_html_text(body)
             if not text or len(text) < 200:
                 continue
             title = _page_title(body, url)
-            sources.append(url)
             for piece in chunk_text(text):
                 chunks.append({"source": url, "title": title, "kind": "web", "text": piece})
         return chunks
 
-    def _discover_urls(self) -> list[str]:
-        seen: set[str] = set()
+    def _discover_urls(self, body_cache: dict[str, str]) -> list[str]:
+        hints = ("wp-sitemap.xml", "sitemap_index.xml", "sitemap.xml")
+        pages: set[str] = set()
+        first_base = ""
         for site in self.sites:
             base = site.rstrip("/")
-            for hint in ("sitemap_index.xml", "sitemap.xml"):
+            if not first_base:
+                first_base = base
+            for hint in hints:
                 body = _http_get(f"{base}/{hint}")
                 if not body:
                     continue
-                locs = _sitemap_urls(body)
-                pages = [loc for loc in locs if "sitemap" not in loc]
-                for sub in [loc for loc in locs if "sitemap" in loc]:
-                    sub_body = _http_get(sub)
-                    if sub_body:
-                        pages.extend(_sitemap_urls(sub_body))
-                for page in pages:
-                    if page.startswith(("http://", "https://")) and self._same_origin(base, page):
-                        seen.add(page)
-                if seen:
-                    return sorted(seen)[: settings.knowledge_max_site_pages]
-        for site in self.sites:
-            seen.add(site.rstrip("/"))
-        return sorted(seen)
+                for loc in self._sitemap_urls_recursive(body, body_cache=body_cache):
+                    if loc.startswith(("http://", "https://")) and self._same_origin(base, loc):
+                        pages.add(loc.rstrip("/"))
+                if pages:
+                    break
+            pages.add(base)
+        discovered = sorted(pages)
+        if len(discovered) < self.max_pages:
+            discovered = self._bfs_discover(discovered, base=first_base, limit=self.max_pages, body_cache=body_cache)
+        return discovered[: self.max_pages]
+
+    def _sitemap_urls_recursive(self, body: str, *, body_cache: dict[str, str], depth: int = 0) -> Iterable[str]:
+        """Resolve nested sitemap indexes down to concrete page URLs."""
+        if depth > 3:
+            return
+        for loc in _sitemap_urls(body):
+            if "sitemap" in loc.lower():
+                sub = body_cache.get(loc) or _http_get(loc)
+                if sub:
+                    body_cache[loc] = sub
+                    yield from self._sitemap_urls_recursive(sub, body_cache=body_cache, depth=depth + 1)
+            else:
+                yield loc
+
+    def _bfs_discover(
+        self, seeds: list[str], *, base: str, limit: int, body_cache: dict[str, str]
+    ) -> list[str]:
+        """Follow same-origin internal links to reach pages not listed in the
+        sitemap (WordPress sites often have extra routes). Stops at ``limit``.
+        Fetched bodies are cached so the crawl reuses them instead of fetching twice."""
+        visited: set[str] = set(seeds)
+        picked: set[str] = set(seeds)
+        for seed in seeds:
+            if len(picked) >= limit:
+                break
+            body = seed if body_cache.get(seed) else _http_get(seed)
+            if body is None:
+                continue
+            body_cache[seed] = body
+            for href in _extract_links(body, seed):
+                if not self._same_origin(base, href):
+                    continue
+                if href in visited:
+                    continue
+                visited.add(href)
+                picked.add(href)
+                if len(picked) >= limit:
+                    break
+        # BFS over non-seed pages for deeper coverage
+        queue: deque[str] = deque([u for u in sorted(visited) if u not in seeds])
+        while queue and len(picked) < limit:
+            page = queue.popleft()
+            body = body_cache.get(page)
+            if body is None:
+                body = _http_get(page)
+                if body is None:
+                    continue
+                body_cache[page] = body
+            for href in _extract_links(body, page):
+                if not self._same_origin(base, href):
+                    continue
+                if href in visited:
+                    continue
+                visited.add(href)
+                picked.add(href)
+                queue.append(href)
+                if len(picked) >= limit:
+                    break
+        return sorted(picked)
 
     @staticmethod
     def _same_origin(base: str, page: str) -> bool:
-        host = base.split("//")[-1].split("/")[0]
-        return host in page
+        a = urlparse(base)
+        b = urlparse(page)
+        return a.scheme == b.scheme and a.netloc == b.netloc
 
     # -- retrieval -------------------------------------------------------------
 
-    def search(self, query: str, top_k: int = 5) -> list[dict[str, Any]]:
+    def search(self, query: str, top_k: int = 5, *, kinds: list[str] | None = None) -> list[dict[str, Any]]:
         with self._lock:
             chunks = list(self._chunks)
         tokens = _tokenize(query)
         if not chunks or not tokens:
             return []
+        if kinds:
+            filtered = [chunk for chunk in chunks if chunk.get("kind") in kinds]
+            if filtered:
+                results = self._bm25(filtered, tokens, top_k)
+                if results:
+                    return results
         return self._bm25(chunks, tokens, top_k)
 
     @staticmethod

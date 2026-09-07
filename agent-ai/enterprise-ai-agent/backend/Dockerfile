@@ -19,6 +19,9 @@ COPY database/ ./database/
 # Knowledge base sources (documents/ + site crawl).
 COPY documents/ ./documents/
 
+# Frontend pages (index/main/privacy/admin-ai + api-config.js) served by the API.
+COPY public/ ./public/
+
 EXPOSE 8000
 
 # Apply schema, bootstrap the owner, then serve.

@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS document_chunks (
     tenant_id   uuid NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     source_id   text NOT NULL,
     chunk_text  text NOT NULL,
-    embedding   vector(1536) NOT NULL,
+    embedding   vector(768) NOT NULL,
     metadata    jsonb NOT NULL DEFAULT '{}'::jsonb,
     -- Generated lexical index (BM25-style tsvector) so hybrid search (ts_rank +
     -- cosine similarity) runs in one table — no separate in-memory BM25 to drift.

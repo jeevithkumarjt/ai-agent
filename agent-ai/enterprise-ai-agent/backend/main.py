@@ -23,6 +23,7 @@ from db.admin_models import AdminBase
 from db.session import engine
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, JSONResponse
 from services.knowledge import KnowledgeStore
 from services.orchestrator import Orchestrator
 from services.portal import PortalService
@@ -31,6 +32,18 @@ from services.tools.base import BaseTool, build_tool_map
 from services.tools.search_knowledge_base import SearchKnowledgeBaseTool
 
 logger = get_logger("app")
+
+# Frontend pages served by the API itself (same-origin → no CORS issues).
+# Only whitelisted files are exposed; never the repo root (secrets stay private).
+PUBLIC_DIR = Path(__file__).resolve().parents[1] / "public"
+_PUBLIC_FILES = {
+    "": "index.html",
+    "index.html": "index.html",
+    "main.html": "main.html",
+    "privacy.html": "privacy.html",
+    "admin-ai.html": "admin-ai.html",
+    "api-config.js": "api-config.js",
+}
 
 _DEFAULT_ORIGINS = [
     "http://localhost:5173",
@@ -54,6 +67,10 @@ def create_app() -> FastAPI:
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         await _ensure_admin_tables()
         _build_services(app)
+        from db.session import async_session_factory
+        async with async_session_factory() as session:
+            with suppress(Exception):
+                await app.state.portal.apply_runtime_knowledge_settings(session)
         logger.info("app_started", env=settings.app_env, model=settings.anthropic_model)
         knowledge_task = asyncio.create_task(_knowledge_refresh_loop(app.state.knowledge))
         sync_task = asyncio.create_task(_auto_sync_loop(app))
@@ -83,6 +100,13 @@ def create_app() -> FastAPI:
 
     from api.tenant import router as tenant_router
     app.include_router(tenant_router)
+
+    # Static frontend pages — registered last, so API/ docs routes win.
+    @app.get("/{file_path:path}", include_in_schema=False, response_model=None)
+    async def serve_static(file_path: str):
+        if file_path in _PUBLIC_FILES:
+            return FileResponse(PUBLIC_DIR / _PUBLIC_FILES[file_path])
+        return JSONResponse({"detail": "Not Found"}, status_code=404)
 
     return app
 

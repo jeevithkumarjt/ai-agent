@@ -14,6 +14,8 @@ No SDK is used — the message/event format is owned here (ADR-002).
 from __future__ import annotations
 
 import asyncio
+import hashlib
+import re
 import time
 import uuid
 from collections.abc import AsyncIterator
@@ -32,27 +34,24 @@ from services.tools.base import BaseTool, record_tool_call
 _llm_semaphore = asyncio.Semaphore(1)
 
 # Simple response cache to avoid hitting rate limits for common questions.
-import hashlib
 _response_cache: dict[str, str] = {}
 _CACHE_MAX = 200
 
 logger = get_logger("services.orchestrator")
 
-SYSTEM_PROMPT = """You are a helpful, knowledgeable AI assistant. You answer every question the user asks — always provide a useful, complete response.
+SYSTEM_PROMPT = """You are the enterprise AI assistant for Tryvium (an experience-orchestration platform). You answer strictly and truthfully.
 
 # How to respond
-- Answer EVERY question fully. Never give empty or one-word responses.
-- If the question is about a specific product or service from the knowledge provided, use that knowledge.
-- For general knowledge questions (geography, science, history, math, coding, etc.), answer from your training knowledge directly.
-- Be clear, friendly, and professional. Use formatting (headings, bullet points, bold) to make answers easy to read.
-- Keep answers proportional to the question — short questions get short answers, complex questions get detailed answers.
+- Be clear, friendly, and professional. Use headings, bullets, and tables for readability.
+- Keep answers proportional — short question, short answer, complex question gets detail.
+- For simple greetings ("hi", "hello", "hey"), reply briefly: "Hi! I'm your AI assistant. How can I help you today?"
+- When the supplied material includes source labels (e.g. \"Priva... policy · tryvium.ai\"), mention which source the answer comes from.
 
-# Greetings
-- For simple greetings like "hi", "hello", "hey", reply with a short friendly greeting: "Hi! I'm your AI assistant. How can I help you today?"
-
-# Rules
-- Never say "I don't have that information" for things you should know (general knowledge, common facts, etc.).
-- If the knowledge base doesn't cover the topic, still try to help with what you know.
+# Grounding rules (most important)
+- If the question is about Tryvium — its products, services, solutions, platform, pricing, policies, contact details, careers, or anything covered by the \"Relevant knowledge\" below — answer ONLY from that material.
+- If the relevant knowledge does not contain the answer, say exactly: \"I don't have that information in the available materials yet.\" Do NOT guess, invent, or improvise facts about the company.
+- Never present generic claims or your own assumptions as company facts.
+- For genuinely general topics unrelated to Tryvium (e.g. math, science, history, coding, travel), you may answer from your own general knowledge.
 - Never mention RAG, retrieval, search, documents, or internal system details.
 """
 
@@ -117,8 +116,15 @@ class Orchestrator:
         tool_count = 0
         system = await self._system_with_context(user_text, citations, tenant_id)
 
-        # Check response cache (skip for conversation-dependent questions)
-        cache_key = hashlib.md5(user_text.strip().lower().encode()).hexdigest()
+        # Check response cache (keyed on question + knowledge version + retrieval
+        # settings so stale answers never survive a re-crawl or config change).
+        cache_key = hashlib.md5(
+            (
+                user_text.strip().lower()
+                + f"|kb:{getattr(self.knowledge, 'version', 0)}"
+                + f"|topk:{self._retrieval_top_k(tenant_id)}"
+            ).encode()
+        ).hexdigest()
         cached = _response_cache.get(cache_key)
         if cached:
             yield {"type": "text_delta", "text": cached}
@@ -224,17 +230,39 @@ class Orchestrator:
         if self.knowledge is None:
             return self._system_prompt(tenant_id)
         top_k = self._retrieval_top_k(tenant_id)
-        context = await asyncio.to_thread(self.knowledge.search, user_text, top_k)
+        # When the user explicitly references a document, prioritize document
+        # chunks so file content (e.g. "Why Tryvium" doc) is surfaced first.
+        prefer_docs = bool(
+            re.search(r"\b(doc|docs|document|documents|docx|pdf|word|file|attachment)\b", user_text, re.IGNORECASE)
+        )
+        context = await asyncio.to_thread(
+            self.knowledge.search,
+            user_text,
+            top_k,
+            kinds=(["document"] if prefer_docs else None),
+        )
         if not context:
             return self._system_prompt(tenant_id)
-        # Truncate context to avoid rate limits — max 3 chunks, max 500 chars each
-        context = context[:3]
+        # Ground answers in the exact wording of the material. Include whole
+        # chunks (no mid-chunk truncation, which previously cut answers off)
+        # up to a total character budget that keeps the prompt token-safe.
+        context = context[: max(8, min(top_k, 12))]
         citations.extend(item["source"] for item in context)
-        blocks = "\n\n---\n\n".join(item["text"][:500] for item in context)
+        budget = 24000
+        blocks: list[str] = []
+        used = 0
+        for item in context:
+            text = item["text"]
+            if used + len(text) > budget:
+                break
+            blocks.append(text)
+            used += len(text)
+        if not blocks:
+            blocks.append(context[0]["text"][:4000])
         return (
             self._system_prompt(tenant_id)
-            + "\n\n# Relevant knowledge (use if helpful, otherwise answer from general knowledge)\n"
-            + blocks
+            + "\n\n# Relevant knowledge (ground your Tryvium answer ONLY in this material)\n"
+            + "\n\n---\n\n".join(blocks)
         )
 
     async def _run_turn(

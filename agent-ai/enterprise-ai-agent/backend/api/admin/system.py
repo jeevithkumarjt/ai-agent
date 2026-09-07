@@ -125,9 +125,18 @@ async def update_settings(
 ) -> dict:
     updates = {k: v for k, v in body.model_dump().items() if v is not None}
     result = await portal_service.set_settings(session, principal.tenant_id, updates, principal.user_id)
+    restarted_sync = False
+    if "knowledge_sites" in updates or "knowledge_max_site_pages" in updates:
+        await portal_service.apply_runtime_knowledge_settings(session)
+        job = await portal_service.sync_sites(session, principal.tenant_id, by=principal.user_id)
+        result["sync_started"] = True
+        result["job_id"] = job.get("job_id")
+        restarted_sync = True
     await portal_service.audit(session, principal.tenant_id, principal.user_id, "settings.update", "settings", "",
-                               detail={k: v for k, v in updates.items() if k != "api_keys"})
-    await portal_service.notify(session, principal.tenant_id, "info", "Settings updated", "Admin settings were changed.")
+                               detail={k: v for k, v in updates.items() if k != "api_keys"},
+                               ip=str(principal.ip) if getattr(principal, "ip", None) else "")
+    if not restarted_sync:
+        await portal_service.notify(session, principal.tenant_id, "info", "Settings updated", "Admin settings were changed.")
     return result
 
 
