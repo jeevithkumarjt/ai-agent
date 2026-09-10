@@ -8,6 +8,7 @@ services:
   postgres:
     image: pgvector/pgvector:pg16
     container_name: agentai-postgres
+    restart: always
     environment:
       POSTGRES_USER: agentai
       POSTGRES_PASSWORD: agentai
@@ -26,6 +27,7 @@ services:
       dockerfile: backend/Dockerfile
     image: agentai-backend
     container_name: agentai-backend
+    restart: always
     environment:
       APP_ENV: ${APP_ENV:-development}
       DATABASE_URL: postgresql+asyncpg://agentai:agentai@postgres:5432/agentai
