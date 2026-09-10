@@ -24,6 +24,8 @@ from db.session import engine
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
+from starlette.datastructures import Headers
+from starlette.responses import Response
 from services.knowledge import KnowledgeStore
 from services.orchestrator import Orchestrator
 from services.portal import PortalService
@@ -60,6 +62,57 @@ ALLOWED_ORIGINS = (
 )
 
 
+class PrivateNetworkAccessMiddleware:
+    """Allow HTTPS pages (e.g. GitHub Pages) on a public origin to call the
+    local backend at http://127.0.0.1:<port>. Chrome/Edge enforce the PNA
+    handshake: the preflight must carry Access-Control-Allow-Private-Network.
+    Registered OUTSIDE the CORS middleware so it also answers the PNA
+    preflight before the regular CORS preflight handling.
+    """
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            return await self.app(scope, receive, send)
+
+        headers = Headers(scope=scope)
+        origin = headers.get("origin")
+        if not origin:
+            return await self.app(scope, receive, send)
+
+        if scope["method"] == "OPTIONS" and headers.get(
+            "access-control-request-private-network"
+        ):
+            response = Response(status_code=200)
+            response.headers.update(
+                {
+                    "access-control-allow-origin": origin,
+                    "access-control-allow-methods": "DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT",
+                    "access-control-allow-headers": "*",
+                    "access-control-allow-credentials": "true",
+                    "access-control-allow-private-network": "true",
+                    "access-control-max-age": "600",
+                    "vary": "Origin, Access-Control-Request-Headers, Access-Control-Request-Method",
+                }
+            )
+            return await response(scope, receive, send)
+
+        async def send_wrapper(message):
+            if message["type"] == "http.response.start":
+                message = {
+                    **message,
+                    "headers": [
+                        *message.get("headers", []),
+                        (b"access-control-allow-private-network", b"true"),
+                    ],
+                }
+            await send(message)
+
+        return await self.app(scope, receive, send_wrapper)
+
+
 def create_app() -> FastAPI:
     setup_logging(level="DEBUG" if settings.debug else "INFO")
 
@@ -91,6 +144,7 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.add_middleware(PrivateNetworkAccessMiddleware)
 
     app.include_router(health.router)
     app.include_router(auth.router)
