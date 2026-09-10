@@ -45,6 +45,9 @@ class Settings(BaseSettings):
     # --- Agent loop guardrails (02-agent-and-rag-workflow.md) ---
     agent_max_tool_iterations: int = 5
 
+    # --- Multi-agent routing (LangGraph supervisor + specialists) ---
+    use_langgraph: bool = False
+
     # --- Auth (ADR-005) ---
     jwt_secret: str = Field(default="change-me", min_length=16)
     jwt_algorithm: str = "HS256"

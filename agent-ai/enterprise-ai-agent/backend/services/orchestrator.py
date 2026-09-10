@@ -23,6 +23,7 @@ from typing import Any
 
 from core.anthropic_client import AnthropicClient, AssistantTurn, MessageStop, TextDelta
 from core.logging import get_logger
+from core.openai_compat_client import OpenAICompatClient
 from core.settings import settings
 from db.models import Message
 from sqlalchemy import select
@@ -69,12 +70,14 @@ class Orchestrator:
         max_tool_iterations: int | None = None,
         knowledge: Any = None,
         portal: Any = None,
+        langgraph: Any = None,
     ) -> None:
         self.anthropic = anthropic
         self.tools = tools
         self.max_tool_iterations = max_tool_iterations or settings.agent_max_tool_iterations
         self.knowledge = knowledge
         self.portal = portal
+        self.langgraph = langgraph
 
     # -- settings overrides (admin portal) ------------------------------------
 
@@ -116,7 +119,6 @@ class Orchestrator:
         answer_parts: list[str] = []
         assistant_message_id: str | None = None
         tool_count = 0
-        system = await self._system_with_context(user_text, citations, tenant_id)
 
         # Check response cache (keyed on question + knowledge version + retrieval
         # settings so stale answers never survive a re-crawl or config change).
@@ -135,31 +137,50 @@ class Orchestrator:
             return
 
         try:
-            # Single LLM call with tools disabled for reliability.
-            # Tool calls cause extra API requests which trigger rate limits on free tiers.
-            # _llm_semaphore ensures only one LLM call runs at a time across all requests.
-            async with _llm_semaphore:
-                turn, deltas = await self._run_turn(
-                    system=system,
-                    messages=messages,
-                    tools=None,
+            graph_answer = None
+            if self.langgraph is not None:
+                try:
+                    async with _llm_semaphore:
+                        graph_answer, citations = await self.langgraph.run(
+                            query=user_text,
+                            history=OpenAICompatClient._to_openai_messages(messages),
+                            session=session,
+                            tenant_id=tenant_id,
+                            conversation_id=conversation_id,
+                        )
+                except Exception as exc:  # graph path failed → single-agent fallback
+                    logger.warning("langgraph_failed_using_single_agent", error=str(exc))
+
+            if graph_answer and graph_answer.strip():
+                answer_text = graph_answer.strip()
+                yield {"type": "text_delta", "text": answer_text}
+                answer_parts.append(answer_text)
+                assistant_message_id = await self._persist_text(
+                    session, tenant_id, conversation_id, answer_text
                 )
-            for delta in deltas:
-                answer_parts.append(delta)
-                yield {"type": "text_delta", "text": delta}
-
-            if not answer_parts:
-                used_fallback = True
-                fallback = "I'm here to help! Could you rephrase your question?"
-                answer_parts.append(fallback)
-                yield {"type": "text_delta", "text": fallback}
-            else:
                 used_fallback = False
+            else:
+                system = await self._system_with_context(user_text, citations, tenant_id)
+                async with _llm_semaphore:
+                    turn, deltas = await self._run_turn(
+                        system=system,
+                        messages=messages,
+                        tools=None,
+                    )
+                for delta in deltas:
+                    answer_parts.append(delta)
+                    yield {"type": "text_delta", "text": delta}
 
-            assistant_message_id = await self._persist_assistant(session, tenant_id, conversation_id, turn)
+                if not answer_parts:
+                    used_fallback = True
+                    fallback = "I'm here to help! Could you rephrase your question?"
+                    answer_parts.append(fallback)
+                    yield {"type": "text_delta", "text": fallback}
+                else:
+                    used_fallback = False
 
-            # Cache the response (never cache empty/fallback replies so a transient
-            # empty completion doesn't permanently poison repeats of a good question).
+                assistant_message_id = await self._persist_assistant(session, tenant_id, conversation_id, turn)
+
             answer_text = "".join(answer_parts)
             if answer_text and not used_fallback and len(_response_cache) < _CACHE_MAX:
                 _response_cache[cache_key] = answer_text
@@ -343,6 +364,17 @@ class Orchestrator:
             role="assistant",
             content=turn.text,
             tool_calls=[{"id": t.id, "name": t.name, "input": t.input} for t in turn.tool_uses],
+        )
+        session.add(message)
+        await session.commit()
+        return str(message.id)
+
+    async def _persist_text(self, session: AsyncSession, tenant_id: uuid.UUID, conversation_id: uuid.UUID, content: str) -> str:
+        message = Message(
+            conversation_id=conversation_id,
+            tenant_id=tenant_id,
+            role="assistant",
+            content=content,
         )
         session.add(message)
         await session.commit()

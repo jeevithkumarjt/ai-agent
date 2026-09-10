@@ -217,9 +217,18 @@ def _build_services(app: FastAPI) -> None:
     tools: dict[str, BaseTool] = build_tool_map([SearchKnowledgeBaseTool(rag)])
     knowledge = KnowledgeStore(docs_dir=Path(settings.knowledge_docs_dir))
     portal = PortalService(rag, knowledge)
+    langgraph_agent = None
+    if settings.use_langgraph:
+        from services.langgraph_agent import LangGraphAgent
+
+        try:
+            langgraph_agent = LangGraphAgent(tools, knowledge=knowledge)
+        except ValueError as exc:
+            logger.warning("langgraph_disabled", error=str(exc))
+            langgraph_agent = None
     app.state.knowledge = knowledge
     app.state.portal = portal
-    app.state.orchestrator = Orchestrator(llm, tools, knowledge=knowledge, portal=portal)
+    app.state.orchestrator = Orchestrator(llm, tools, knowledge=knowledge, portal=portal, langgraph=langgraph_agent)
 
 
 app = create_app()
