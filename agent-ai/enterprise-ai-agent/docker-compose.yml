@@ -12,8 +12,6 @@ services:
       POSTGRES_USER: agentai
       POSTGRES_PASSWORD: agentai
       POSTGRES_DB: agentai
-    ports:
-      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -53,7 +51,7 @@ services:
       BOOTSTRAP_OWNER_EMAIL: ${BOOTSTRAP_OWNER_EMAIL:-owner@example.com}
       BOOTSTRAP_OWNER_PASSWORD: ${BOOTSTRAP_OWNER_PASSWORD:-ChangeMe123!}
     ports:
-      - "8000:8000"
+      - "8080:8000"
     depends_on:
       postgres:
         condition: service_healthy
