@@ -35,6 +35,23 @@ enterprise-ai-agent/
 └── .env.example            # every configuration key, documented
 ```
 
+## Frontend layout (canonical status)
+
+- **`public/` (served as the repo root by the backend and by GitHub Pages) is the
+  canonical app UI.** `admin-ai.html` is the admin portal; `index.html` / `main.html`
+  are the chat pages; `api-config.js` sets `window.APP_API_BASE`. These are vanilla
+  HTML/JS with no build step.
+- **`frontend/` is NOT `public/`'s replacement, dead code, or a rewrite.** It is a
+  separate, deliberate product artifact (ADR-003): an embeddable **Web Component
+  chat widget** (`<ai-agent-widget>`, React + Vite library mode) meant to be embedded
+  on external customer sites via a single `<script>` tag. It is tracked, buildable
+  (`cd frontend && npm install && npm run build` → `dist/agent-widget.js`) and only
+  `node_modules/` + `dist/` are gitignored.
+- Nothing in the deployment (compose, Pages, uvicorn static mount) wires the widget
+  into the served app — the backend serves `public/` only. If the widget is never
+  embedded by consumers, it can be dropped without touching the app; keep it if the
+  embeddable-widget requirement is still active.
+
 ## Prerequisites
 
 - Python 3.12+

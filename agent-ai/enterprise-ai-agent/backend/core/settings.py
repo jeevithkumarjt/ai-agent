@@ -26,6 +26,12 @@ class Settings(BaseSettings):
     anthropic_max_tokens: int = 2048
     anthropic_version: str = "2023-06-01"
 
+    # Optional fallback model (same provider, ADR-002). When set, the client makes
+    # one best-effort attempt with this model after the primary exhausts retries
+    # on rate-limit / 5xx / timeout / empty response — a degraded-stop that still
+    # returns a normal message instead of an error event.
+    llm_fallback_model: str = ""
+
     # --- Embeddings (must match document_chunks.embedding vector(1536)) ---
     embeddings_api_key: str = ""
     embeddings_base_url: str = "https://api.openai.com/v1"
@@ -57,6 +63,25 @@ class Settings(BaseSettings):
     # --- Guest sessions ---
     guest_role: str = "viewer"
     guest_session_ttl_minutes: int = 60
+
+    # --- Rate limits (ADR-008 seam; in-memory, single worker) ---
+    # Guests (anonymous demo sessions, role == guest_role) are throttled the
+    # hardest and also per-IP; authenticated users get higher per-session limits.
+    guest_requests_per_minute: int = 20
+    guest_daily_requests: int = 200
+    # Token-issuance guard on /v1/auth/guest (each call persists a user row).
+    guest_issuance_per_minute: int = 12
+    guest_issuance_daily: int = 500
+    auth_requests_per_minute: int = 60
+    auth_daily_requests: int = 2000
+
+    # --- Caching (ADR-008 seam) ---
+    # "memory" (default, in-process TTL cache) or "redis" (multi-worker; requires
+    # a reachable Redis and the optional redis-py package — falls back to memory).
+    cache_backend: str = "memory"
+    cache_redis_url: str = ""
+    cache_rag_ttl_seconds: int = 600
+    cache_rag_maxsize: int = 1024
 
     # --- Bootstrap (python -m backend.cli seed) ---
     bootstrap_tenant_name: str = "Default"

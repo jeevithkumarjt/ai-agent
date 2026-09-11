@@ -15,14 +15,15 @@ import time
 from functools import partial
 from typing import Any, TypedDict
 
+from core.logging import get_logger
+from core.settings import settings
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 from langgraph.graph import END, StateGraph
 
-from core.logging import get_logger
-from core.settings import settings
+from services.observability import record
 from services.orchestrator import SYSTEM_PROMPT
 from services.tools.base import BaseTool, record_tool_call
 
@@ -183,6 +184,9 @@ class LangGraphAgent:
         return search_knowledge_base
 
     async def _supervisor(self, state: GraphState, config: RunnableConfig) -> dict[str, str]:
+        ctx = (config or {}).get("configurable") or {}
+        conversation_id = ctx.get("conversation_id")
+        tenant_id = ctx.get("tenant_id")
         llm = self._llm(temperature=0.0, max_tokens=256)
         prompt = [SystemMessage(content=SUPERVISOR_PROMPT)]
         prompt += [self._to_lc_message(m) for m in (state.get("messages") or [])]
@@ -190,12 +194,31 @@ class LangGraphAgent:
             res = await llm.ainvoke(prompt)
             text = res.content if isinstance(res.content, str) else ""
         except Exception as exc:  # noqa: BLE001
-            logger.warning("supervisor_failed_default_knowledge", error=str(exc))
+            logger.warning(
+                "supervisor_failed_default_knowledge",
+                error=str(exc),
+                conversation_id=str(conversation_id) if conversation_id else None,
+            )
             text = "knowledge"
-        matched = [r for r in ROUTES if r in text.lower()]
+        classification = text.strip()
+        matched = [r for r in ROUTES if r in classification.lower()]
         route = matched[0] if matched else "knowledge"
         last = (state.get("messages") or [{}])[-1]
-        logger.info("langgraph_route", route=route, query=str(last.get("content", ""))[:80])
+        logger.info(
+            "langgraph_route",
+            route=route,
+            classification=classification[:120],
+            query=str(last.get("content", ""))[:80],
+            conversation_id=str(conversation_id) if conversation_id else None,
+            tenant_id=str(tenant_id) if tenant_id else None,
+        )
+        record(
+            kind="supervisor",
+            conversation_id=str(conversation_id) if conversation_id else None,
+            tenant_id=str(tenant_id) if tenant_id else None,
+            route=route,
+            classification=classification[:300],
+        )
         return {"route": route}
 
     async def _run_worker(
@@ -204,6 +227,19 @@ class LangGraphAgent:
         llm = self._llm(temperature=0.2, max_tokens=settings.anthropic_max_tokens)
         model = llm.bind_tools([self._langchain_search]) if use_tool else llm
         state_messages = state.get("messages") or []
+        ctx = (config or {}).get("configurable") or {}
+        conversation_id = ctx.get("conversation_id")
+        tenant_id = ctx.get("tenant_id")
+
+        def _evt(**kw: Any) -> None:
+            record(
+                kind="worker",
+                conversation_id=str(conversation_id) if conversation_id else None,
+                tenant_id=str(tenant_id) if tenant_id else None,
+                route=state.get("route"),
+                **kw,
+            )
+
         messages: list[Any] = [SystemMessage(content=persona)]
         messages += [self._to_lc_message(m) for m in state_messages]
         tool_contents: list[str] = []
@@ -225,6 +261,8 @@ class LangGraphAgent:
                     iteration=iteration,
                     tool_calls=len(res.tool_calls),
                     content_len=len(res.content) if isinstance(res.content, str) else 0,
+                    conversation_id=str(conversation_id) if conversation_id else None,
+                    tenant_id=str(tenant_id) if tenant_id else None,
                 )
                 messages.append(res)
                 for tc in res.tool_calls:
@@ -245,13 +283,26 @@ class LangGraphAgent:
                     for c in tool_contents
                 )
                 if rounds_done >= MAX_WORKER_ITERATIONS or not real_now:
-                    return await self._final_answer(llm, persona, state_messages, tool_contents)
+                    _evt(
+                        event="worker_rerouted_to_final_answer",
+                        reason="tool_exhausted" if rounds_done >= MAX_WORKER_ITERATIONS else "no_tool_results",
+                    )
+                    result = await self._final_answer(llm, persona, state_messages, tool_contents)
+                    if result.get("answer") == HONEST_REFUSAL:
+                        _evt(event="honest_refusal")
+                    return result
                 continue
             text = res.content if isinstance(res.content, str) else ""
             if text.strip():
                 return {"answer": text, "sources": state.get("sources") or []}
-            return await self._final_answer(llm, persona, state_messages, tool_contents)
-        return await self._final_answer(llm, persona, state_messages, tool_contents)
+            result = await self._final_answer(llm, persona, state_messages, tool_contents)
+            if result.get("answer") == HONEST_REFUSAL:
+                _evt(event="honest_refusal")
+            return result
+        result = await self._final_answer(llm, persona, state_messages, tool_contents)
+        if result.get("answer") == HONEST_REFUSAL:
+            _evt(event="honest_refusal")
+        return result
 
     async def _final_answer(
         self, llm: ChatOpenAI, persona: str, history: list[dict[str, str]], tool_contents: list[str]

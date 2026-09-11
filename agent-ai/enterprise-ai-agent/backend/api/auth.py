@@ -15,6 +15,8 @@ from core.auth import (
     create_refresh_token,
     decode_token,
 )
+from core.rate_limit import client_ip
+from core.rate_limit import enforce as enforce_rate_limit
 from core.security import hash_password, verify_password
 from core.settings import settings
 from db.models import Tenant, User
@@ -62,6 +64,20 @@ async def refresh(body: RefreshRequest, session: Annotated[AsyncSession, Depends
 @router.post("/guest", response_model=TokenPair, status_code=status.HTTP_200_OK)
 async def guest(request: Request, session: Annotated[AsyncSession, Depends(get_session)]) -> TokenPair:
     """Issue a short-lived viewer token for anonymous visitors (no credentials required)."""
+    ip = client_ip(request)
+    retry_after = enforce_rate_limit(
+        limit_per_minute=settings.guest_issuance_per_minute,
+        limit_per_day=settings.guest_issuance_daily,
+        session_key=f"guest-issue:{ip}",
+        ip_key=f"ip:{ip}",
+        also_check_ip=True,
+    )
+    if retry_after is not None:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="too many guest sessions from this network; please retry later",
+            headers={"Retry-After": str(retry_after)},
+        )
     tenant = (await session.execute(select(Tenant).limit(1))).scalar_one_or_none()
     if tenant is None:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="no tenant configured")

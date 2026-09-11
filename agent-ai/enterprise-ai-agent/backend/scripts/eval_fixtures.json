@@ -1,0 +1,32 @@
+{
+  "fixtures": [
+    {
+      "id": "products",
+      "question": "What products or platforms does Tryvium offer?",
+      "expected_keywords": ["Employee Help Desk", "Customer Service Desk", "automation", "experience orchestration"],
+      "expected_sources": ["Why Tryvium"],
+      "expect_refusal": false
+    },
+    {
+      "id": "deployment-cloud",
+      "question": "Which cloud platforms does Tryvium support for deployment?",
+      "expected_keywords": ["Google", "AWS", "Azure", "cloud"],
+      "expected_sources": ["GCP", "AWS Hyper Scalar"],
+      "expect_refusal": false
+    },
+    {
+      "id": "about",
+      "question": "What is Tryvium's mission and background?",
+      "expected_keywords": ["Tryvium", "experience", "service"],
+      "expected_sources": ["Why Tryvium"],
+      "expect_refusal": false
+    },
+    {
+      "id": "acknowledge-missing",
+      "question": "Who are the founders of Tryvium?",
+      "expected_keywords": [],
+      "expected_sources": [],
+      "expect_refusal": true
+    }
+  ]
+}

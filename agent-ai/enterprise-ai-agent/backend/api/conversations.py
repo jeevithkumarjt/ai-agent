@@ -10,6 +10,8 @@ from typing import Annotated
 
 from core.auth import InvalidToken, decode_token
 from core.logging import get_logger
+from core.rate_limit import enforce as enforce_rate_limit
+from core.settings import settings
 from db.models import Conversation as ConversationModel
 from db.models import Message
 from db.session import async_session_factory, get_session
@@ -27,7 +29,11 @@ from services.orchestrator import Orchestrator
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.deps import Principal, require_auth
+from api.deps import (
+    Principal,
+    enforce_message_rate_limit,
+    require_auth,
+)
 from api.schemas import Conversation, MessageOut, MessagePage, MessageRequest
 from api.streaming import sse_event
 
@@ -53,6 +59,7 @@ async def _orchestrator(request: Request) -> Orchestrator:
 async def create_conversation(
     principal: Annotated[Principal, Depends(require_auth)],
     session: Annotated[AsyncSession, Depends(get_session)],
+    _rate_guard: Annotated[None, Depends(enforce_message_rate_limit)] = None,
 ) -> Conversation:
     conv = ConversationModel(tenant_id=principal.tenant_id, user_id=principal.user_id)
     session.add(conv)
@@ -96,6 +103,7 @@ async def send_message(
     request: Request,
     principal: Annotated[Principal, Depends(require_auth)],
     session: Annotated[AsyncSession, Depends(get_session)],
+    _rate_guard: Annotated[None, Depends(enforce_message_rate_limit)] = None,
 ):
     await _get_owned_conversation(session, conversation_id, principal.tenant_id)
     orchestrator: Orchestrator = await _orchestrator(request)
@@ -130,6 +138,21 @@ async def conversation_ws(websocket: WebSocket, conversation_id: uuid.UUID):
         except HTTPException:
             await websocket.send_json({"type": "error", "message": "conversation not found"})
             await websocket.close(code=4404)
+            return
+
+        # Same sliding-window limits as the HTTP path (guests also per-IP).
+        ip = websocket.client.host if websocket.client is not None else "unknown"
+        is_guest = principal.role == settings.guest_role
+        retry_after = enforce_rate_limit(
+            limit_per_minute=settings.guest_requests_per_minute if is_guest else settings.auth_requests_per_minute,
+            limit_per_day=settings.guest_daily_requests if is_guest else settings.auth_daily_requests,
+            session_key=f"user:{principal.user_id}",
+            ip_key=f"ip:{ip}",
+            also_check_ip=is_guest,
+        )
+        if retry_after is not None:
+            await websocket.send_json({"type": "error", "message": "rate limit exceeded"})
+            await websocket.close(code=4429)
             return
 
         orchestrator: Orchestrator = websocket.app.state.orchestrator

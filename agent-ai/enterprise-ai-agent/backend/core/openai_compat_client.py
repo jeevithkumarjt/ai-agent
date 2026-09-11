@@ -27,6 +27,21 @@ _MAX_RETRIES = 2
 _RETRY_BASE_DELAY = 5.0
 
 
+def _coerce_transport_error(exc: Exception) -> AnthropicError:
+    """Normalize transport-level failures (timeouts, connection errors) into
+    AnthropicError so the orchestrator's error classification (rate-limit /
+    timeout / 5xx / generic) works and raw httpx internals never leak to the UI."""
+    if isinstance(exc, AnthropicError):
+        return exc
+    if isinstance(exc, httpx.TimeoutException):
+        return AnthropicError(f"timeout: {exc}")
+    if isinstance(exc, httpx.ConnectError):
+        return AnthropicError(f"connection error: {exc}")
+    if isinstance(exc, httpx.HTTPError):
+        return AnthropicError(f"http error: {exc}")
+    return AnthropicError(str(exc))
+
+
 class _ThinkingFilter:
     """Streaming-aware filter that strips <think>...</think> blocks from model output.
 
@@ -287,6 +302,64 @@ class OpenAICompatClient:
             text = message.get("content") or message.get("reasoning") or ""
             return text, choice.get("finish_reason"), data.get("usage") or {}
 
+    async def _stream_fallback(
+        self, url: str, payload: dict[str, Any]
+    ) -> AsyncIterator[TextDelta | MessageStop]:
+        """One best-effort attempt with the configured fallback model.
+
+        Runs only after the primary model exhausted its retries. No further
+        retries here — if it fails we degrade cleanly to a user-facing message.
+        """
+        fallback_payload = dict(payload)
+        fallback_payload["model"] = settings.llm_fallback_model
+        logger.warning("llm_fallback_attempt", model=settings.llm_fallback_model)
+        try:
+            content, reasoning, _, tool_acc, stop_reason, usage = await self._stream_once(
+                url=url, payload=fallback_payload
+            )
+        except Exception as exc:  # noqa: BLE001
+            raise _coerce_transport_error(exc) from exc
+
+        tool_uses = []
+        for acc in tool_acc.values():
+            try:
+                tool_input = json.loads(acc["args"] or "{}")
+            except json.JSONDecodeError:
+                tool_input = {}
+            tool_uses.append(ToolUse(id=acc["id"], name=acc["name"], input=tool_input))
+
+        combined = "".join(content) or "".join(reasoning)
+        if not combined.strip() and not tool_uses:
+            logger.warning("llm_fallback_stream_empty_using_nonstream", model=settings.llm_fallback_model)
+            try:
+                text2, finish2, usage2 = await self._complete_once(url=url, payload=fallback_payload)
+            except Exception as exc:  # noqa: BLE001
+                raise _coerce_transport_error(exc) from exc
+            if not text2.strip():
+                raise AnthropicError(
+                    f"fallback model returned an empty response: {settings.llm_fallback_model}"
+                )
+            tf2 = _ThinkingFilter()
+            clean2 = tf2.feed(text2)
+            rem2 = tf2.flush()
+            if rem2:
+                clean2 += rem2
+            if clean2:
+                yield TextDelta(clean2)
+            yield MessageStop(AssistantTurn(text=text2, tool_uses=[], stop_reason=finish2, usage=usage2))
+            return
+
+        tf = _ThinkingFilter()
+        clean = tf.feed(combined)
+        remaining = tf.flush()
+        if remaining:
+            clean += remaining
+        if clean:
+            yield TextDelta(clean)
+        elif combined:
+            yield TextDelta(combined)
+        yield MessageStop(AssistantTurn(text=combined, tool_uses=tool_uses, stop_reason=stop_reason, usage=usage))
+
     async def stream(
         self, *, system: str, messages: list[dict[str, Any]], tools: list[dict[str, Any]] | None = None
     ) -> AsyncIterator[TextDelta | MessageStop]:
@@ -300,7 +373,7 @@ class OpenAICompatClient:
         if tools:
             payload["tools"] = self._openai_tools(tools)
 
-        last_error: Exception | None = None
+        last_error: AnthropicError | None = None
         for attempt in range(_MAX_RETRIES):
             try:
                 content, reasoning, seen_keys, tool_acc, stop_reason, usage = await self._stream_once(url=url, payload=payload)
@@ -358,15 +431,24 @@ class OpenAICompatClient:
                 yield MessageStop(turn)
                 return
 
-            except AnthropicError as exc:
-                last_error = exc
-                is_server_error = exc.status_code is not None and exc.status_code >= 500
+            except Exception as exc:  # noqa: BLE001 — includes httpx transport errors
+                coerced = _coerce_transport_error(exc)
+                last_error = coerced
+                is_server_error = coerced.status_code is not None and coerced.status_code >= 500
                 if is_server_error and attempt < _MAX_RETRIES - 1:
                     delay = min(_RETRY_BASE_DELAY * (2 ** attempt), 15.0)
-                    logger.warning("llm_retry", attempt=attempt, status=exc.status_code, delay=delay, error=str(exc))
+                    logger.warning("llm_retry", attempt=attempt, status=coerced.status_code, delay=delay, error=str(coerced))
                     await asyncio.sleep(delay)
                     continue
-                # Rate limits: fail fast — don't make user wait minutes
-                raise
+                # Rate limits / exhausted retries / transport failures → one
+                # best-effort attempt with the fallback model, then degrade.
+                if settings.llm_fallback_model and settings.llm_fallback_model != self.model:
+                    try:
+                        async for event in self._stream_fallback(url=url, payload=payload):
+                            yield event
+                        return
+                    except AnthropicError as fb_exc:
+                        logger.warning("llm_fallback_failed", model=settings.llm_fallback_model, error=str(fb_exc))
+                raise coerced from None
 
         raise AnthropicError(f"LLM failed after {_MAX_RETRIES} attempts: {last_error}")

@@ -381,9 +381,10 @@ const NAV=[
   {id:"settings",label:"Settings &amp; Keys",icon:"&#9881;",scope:"settings.view",group:"Administration"},
   {id:"backup",label:"Backup &amp; Export",icon:"&#128451;",scope:"backup.manage",group:"Administration"},
   {id:"health",label:"System Health",icon:"&#128737;",scope:"health.view",group:"Operations"},
-  {id:"jobs",label:"Jobs",icon:"&#9203;",scope:"health.view",group:"Operations"}
+  {id:"jobs",label:"Jobs",icon:"&#9203;",scope:"health.view",group:"Operations"},
+  {id:"routing",label:"Agent Routing",icon:"&#127919;",scope:"analytics.view",group:"Operations"}
 ];
-const PAGE_TITLES={overview:"Overview",analytics:"Analytics",conversations:"Conversations",unanswered:"Unanswered Questions",knowledge:"Knowledge Manager",upload:"Upload & Sync",users:"User Management",audit:"Audit Log",settings:"Settings & API Keys",backup:"Backup & Export",health:"System Health",jobs:"Training Jobs"};
+const PAGE_TITLES={overview:"Overview",analytics:"Analytics",conversations:"Conversations",unanswered:"Unanswered Questions",knowledge:"Knowledge Manager",upload:"Upload & Sync",users:"User Management",audit:"Audit Log",settings:"Settings & API Keys",backup:"Backup & Export",health:"System Health",jobs:"Training Jobs",routing:"Agent Routing"};
 const can=scope=>!scope||(me&&me.scopes.includes(scope));
 
 function renderNav(){
@@ -536,6 +537,7 @@ function pageSkeleton(id){
     case "settings": return '<div class="grid cols-2">'+skelCards(2,false)+"</div>"+skelCards(1,false);
     case "backup": return skelCards(3,false);
     case "health": return skelStats(3,3)+skelCards(1,false);
+    case "routing": return skelTable(10,4);
     default: return '<div class="card"><h3>'+skLine("38%","12px")+"</h3>"+skelTable(6,4)+"</div>";
   }
 }
@@ -708,6 +710,22 @@ async function openConversation(id){
     openDrawer("Conversation "+esc(d.id.slice(0,8)),'<div class="card" style="margin-bottom:.8rem"><h3>Messages</h3>'+(msgs||'<div class="empty">No messages</div>')+"</div><div class=\"card\"><h3>Answer metrics</h3>"+(met||'<div class="empty">No metrics</div>')+"</div>");
   }catch(e){ toast("Conversation","error",e.message); }
 }
+
+/* ---- agent routing ---- */
+definePage("routing",async ()=>{
+  const d=await api("/monitoring/routing-log?limit=200").catch(()=>({items:[]}));
+  const items=d.items||[];
+  const rows=items.map(e=>{
+    const kind=e.kind||"", event=e.event||"";
+    const isSuper=kind==="supervisor", isFall=kind==="fallback_single_agent";
+    const badge=isSuper?'<span class="badge b-blue">route</span>':isFall?'<span class="badge b-red">fallback</span>':'<span class="badge b-amber">'+(event==="honest_refusal"?"refusal":event==="worker_rerouted_to_final_answer"?"rerouted":"worker")+"</span>";
+    const route=e.route?'<span class="badge b-gray">'+esc(e.route)+"</span>":"";
+    const why=isSuper?esc(e.classification||""):isFall?esc("graph "+(e.reason||"")+(e.detail?" &mdash; "+esc(e.detail.slice(0,140)):"")):esc(e.reason||event||"");
+    return '<tr><td class="mono" style="white-space:nowrap">'+fmtTime(e.ts)+"</td><td>"+badge+" "+route+'</td><td class="mono">'+(e.conversation_id?esc(String(e.conversation_id).slice(0,8))+"&hellip;":"&mdash;")+'</td><td style="max-width:440px;word-break:break-word">'+why+"</td></tr>";
+  }).join("")||'<tr><td colspan="4" class="empty">No routing events yet &mdash; send a message to the agent first.</td></tr>';
+  const html='<div class="card"><h3>Recent agent routing <span class="hint">supervisor &middot; in-memory, last 500 turns &middot; auto-refreshes with the page</span></h3><div class="tbl-wrap"><table class="tbl"><thead><tr><th>When</th><th>Decision</th><th>Conversation</th><th>Why / classification</th></tr></thead><tbody>'+rows+'</tbody></table></div><div class="empty" style="padding:1rem;font-size:.72rem;text-align:left">Memory-only debug aid (no persistence). Watch for: wrong specialist (<b>route</b> misrouting), <b>rerouted</b> / <b>refusal</b> worker events (retrieval returned nothing), and <b>fallback</b> (LangGraph failed &mdash; single-agent loop used).</div></div>';
+  setPage("routing",html);
+});
 
 /* ---- unanswered ---- */
 definePage("unanswered",async ()=>{

@@ -29,6 +29,7 @@ from db.models import Message
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from services.observability import record
 from services.tools.base import BaseTool, record_tool_call
 
 # Throttle: only 1 LLM request at a time to avoid Groq rate limits.
@@ -149,7 +150,20 @@ class Orchestrator:
                             conversation_id=conversation_id,
                         )
                 except Exception as exc:  # graph path failed → single-agent fallback
-                    logger.warning("langgraph_failed_using_single_agent", error=str(exc))
+                    logger.warning(
+                        "langgraph_failed_using_single_agent",
+                        error=str(exc),
+                        conversation_id=str(conversation_id),
+                        tenant_id=str(tenant_id),
+                    )
+                    record(
+                        kind="fallback_single_agent",
+                        conversation_id=str(conversation_id),
+                        tenant_id=str(tenant_id),
+                        route=None,
+                        reason="graph_error",
+                        detail=str(exc)[:300],
+                    )
 
             if graph_answer and graph_answer.strip():
                 answer_text = graph_answer.strip()
@@ -160,6 +174,14 @@ class Orchestrator:
                 )
                 used_fallback = False
             else:
+                if self.langgraph is not None:
+                    record(
+                        kind="fallback_single_agent",
+                        conversation_id=str(conversation_id),
+                        tenant_id=str(tenant_id),
+                        route=None,
+                        reason="graph_empty_answer",
+                    )
                 system = await self._system_with_context(user_text, citations, tenant_id)
                 async with _llm_semaphore:
                     turn, deltas = await self._run_turn(
@@ -192,7 +214,7 @@ class Orchestrator:
             elif "timeout" in err_str:
                 error_msg = "The request took too long. Please try a shorter question."
             else:
-                error_msg = f"Sorry, I encountered an error processing your request. ({type(exc).__name__}: {str(exc)[:120]})"
+                error_msg = "The assistant service is temporarily unavailable. Please wait a moment and try again."
             yield {"type": "error", "message": error_msg}
             await session.rollback()
             return
