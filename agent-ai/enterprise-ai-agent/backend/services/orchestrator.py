@@ -49,7 +49,7 @@ SYSTEM_PROMPT = """You are the enterprise AI assistant for Tryvium (an experienc
 - Avoid tables unless the question asks for a comparison or a full breakdown.
 - Only expand into detail when the user asks a detailed/complex question ("explain", "list all", "compare").
 - For simple greetings ("hi", "hello", "hey"), reply: "Hi! I'm your AI assistant. How can I help you today?"
-- When the supplied material includes source labels (e.g. \"Priva... policy · tryvium.ai\"), mention which source the answer comes from.
+- Never include source references in your reply: no file names, page titles, document labels, citation numbers like "[1]", "[1,2]", or "(source ...)" notes, links, or URLs. Answer in plain text only.
 
 # Grounding rules (most important)
 - If the question is about Tryvium — its products, services, solutions, platform, pricing, policies, contact details, careers, or anything covered by the \"Relevant knowledge\" below — answer ONLY from that material.
@@ -60,6 +60,22 @@ SYSTEM_PROMPT = """You are the enterprise AI assistant for Tryvium (an experienc
 """
 
 GUARDRAIL_ANSWER = "I could not complete an answer within the allowed tool iterations."
+
+# Citation markers that gpt-oss-120b sometimes echoes ("[2]", "(source [2], [3])").
+# Stripped from final answers so replies stay clean; applied defensively.
+_SOURCE_NOTE_RE = re.compile(r"\(\s*source[^)]*\)", re.IGNORECASE)
+_SOURCE_BRACKET_RE = re.compile(r"\[sources?\s*[:#]?\s*[^\]]*\]", re.IGNORECASE)
+_BARE_BRACKET_RE = re.compile(r"\s*\[\s*\d+(?:\s*,\s*\d+)*\s*\]")
+_BARE_PAREN_RE = re.compile(r"\s*\(\s*\d+(?:\s*,\s*\d+)*\s*\)")
+
+
+def strip_citations(text: str) -> str:
+    """Remove stray source/citation markers from a generated answer."""
+    out = text
+    for pattern in (_SOURCE_NOTE_RE, _SOURCE_BRACKET_RE, _BARE_BRACKET_RE, _BARE_PAREN_RE):
+        out = pattern.sub("", out)
+    out = re.sub(r"\s+([.,!?;:])", r"\1", out)
+    return out.strip()
 
 
 class Orchestrator:
@@ -166,7 +182,7 @@ class Orchestrator:
                     )
 
             if graph_answer and graph_answer.strip():
-                answer_text = graph_answer.strip()
+                answer_text = strip_citations(graph_answer)
                 yield {"type": "text_delta", "text": answer_text}
                 answer_parts.append(answer_text)
                 assistant_message_id = await self._persist_text(

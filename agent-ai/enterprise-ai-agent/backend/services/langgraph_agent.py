@@ -24,7 +24,7 @@ from langchain_openai import ChatOpenAI
 from langgraph.graph import END, StateGraph
 
 from services.observability import record
-from services.orchestrator import SYSTEM_PROMPT
+from services.orchestrator import SYSTEM_PROMPT, strip_citations
 from services.tools.base import BaseTool, record_tool_call
 
 logger = get_logger("services.langgraph")
@@ -140,10 +140,10 @@ class LangGraphAgent:
             if not items:
                 return "No relevant documents found in the knowledge base.", []
             parts, sources = [], []
-            for i, item in enumerate(items, start=1):
+            for item in items:
                 source = item.get("source", "")
                 sources.append(source)
-                parts.append(f"[{i}] source: {source}\n{item.get('text', '')}")
+                parts.append(item.get("text", ""))
             body = "\n\n---\n\n".join(parts)
             if len(body) > 12000:
                 body = body[:12000] + "\n…(truncated)"
@@ -375,7 +375,7 @@ class LangGraphAgent:
             {"query": query, "messages": history, "sources": []},
             config=config,
         )
-        answer = (result.get("answer") or "").strip()
+        answer = strip_citations((result.get("answer") or "").strip())
         if not answer:
             raise RuntimeError("langgraph produced an empty answer")
         return answer, list(citations)

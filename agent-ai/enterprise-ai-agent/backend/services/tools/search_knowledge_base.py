@@ -47,10 +47,10 @@ class SearchKnowledgeBaseTool(BaseTool):
 
         parts = []
         sources = []
-        for i, chunk in enumerate(chunks, start=1):
+        for chunk in chunks:
             source = (chunk.chunk_metadata or {}).get("source_id", chunk.source_id)
             sources.append(source)
-            parts.append(f"[{i}] source: {source}\n{chunk.chunk_text}")
+            parts.append(chunk.chunk_text)
         body = "\n\n---\n\n".join(parts)
         if len(body) > MAX_RESULT_CHARS:
             body = body[:MAX_RESULT_CHARS] + "\n…(truncated)"
