@@ -78,6 +78,44 @@ def is_bare_greeting(text: str) -> bool:
     collapsed = re.sub(r"\s+", " ", (text or "").strip())
     return _GREETING_FULLMATCH.fullmatch(collapsed) is not None
 
+
+MISSING_ENTITY_HINT = 'Did you mean "Tryvium"? '
+
+_ENTITY_WORD = "tryvium"
+
+
+def _edit_distance(a: str, b: str) -> int:
+    prev = list(range(len(b) + 1))
+    for i, ca in enumerate(a, start=1):
+        curr = [i]
+        for j, cb in enumerate(b, start=1):
+            curr.append(
+                min(
+                    prev[j] + 1,
+                    curr[j - 1] + 1,
+                    prev[j - 1] + (ca != cb),
+                )
+            )
+        prev = curr
+    return prev[-1]
+
+
+def _tweak_entity_typos(text: str) -> tuple[str, bool]:
+    """Rewrite near-miss spellings of the company name (e.g. \"ryvium\", \"tivium\")
+    to the canonical \"Tryvium\" so retrieval still finds the right material."""
+    words = (text or "").split()
+    corrected = False
+    for i, word in enumerate(words):
+        norm = re.sub(r"[^a-zA-Z]", "", word)
+        if not norm:
+            continue
+        if norm.lower() == _ENTITY_WORD:
+            continue
+        if _edit_distance(norm.lower(), _ENTITY_WORD) <= 2:
+            words[i] = "Tryvium"
+            corrected = True
+    return (" ".join(words), corrected) if corrected else (text, False)
+
 # Citation markers that gpt-oss-120b sometimes echoes ("[2]", "(source [2], [3])").
 # Stripped from final answers so replies stay clean; applied defensively.
 _SOURCE_NOTE_RE = re.compile(r"\(\s*source[^)]*\)", re.IGNORECASE)
@@ -158,6 +196,18 @@ class Orchestrator:
             }
             return
 
+        corrected_text, was_corrected = _tweak_entity_typos(user_text)
+        if was_corrected:
+            user_text = corrected_text
+            record(
+                kind="spelling_correction",
+                conversation_id=str(conversation_id),
+                tenant_id=str(tenant_id),
+                reason="entity_typo_fixed",
+                detail=f"{corrected_text}",
+            )
+            logger.info("entity_typo_corrected", corrected=corrected_text[:120])
+
         history = await self._load_history(session, conversation_id)
         messages = self._reconstruct_anthropic_messages(history)
 
@@ -215,6 +265,8 @@ class Orchestrator:
                 if answer_text == GREETING_ANSWER and not is_bare_greeting(user_text):
                     logger.warning("assistant_greeting_misfire", query=user_text[:80])
                     answer_text = HONEST_REFUSAL
+                if was_corrected and answer_text != HONEST_REFUSAL:
+                    answer_text = MISSING_ENTITY_HINT + answer_text
                 yield {"type": "text_delta", "text": answer_text}
                 answer_parts.append(answer_text)
                 assistant_message_id = await self._persist_text(
@@ -237,7 +289,9 @@ class Orchestrator:
                         messages=messages,
                         tools=None,
                     )
-                for delta in deltas:
+                for i, delta in enumerate(deltas):
+                    if was_corrected and i == 0:
+                        delta = MISSING_ENTITY_HINT + delta
                     answer_parts.append(delta)
                     yield {"type": "text_delta", "text": delta}
 
