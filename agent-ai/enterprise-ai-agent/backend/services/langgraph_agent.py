@@ -24,14 +24,18 @@ from langchain_openai import ChatOpenAI
 from langgraph.graph import END, StateGraph
 
 from services.observability import record
-from services.orchestrator import SYSTEM_PROMPT, strip_citations
+from services.orchestrator import (
+    GREETING_ANSWER,
+    HONEST_REFUSAL,
+    SYSTEM_PROMPT,
+    is_bare_greeting,
+    strip_citations,
+)
 from services.tools.base import BaseTool, record_tool_call
 
 logger = get_logger("services.langgraph")
 
 ROUTES = ("knowledge", "support", "sales", "chat")
-
-HONEST_REFUSAL = "I don't have that information in the available materials yet."
 
 TOOL_PROMPT = (
     "\n\nWhen the answer may live in internal documents, policies, pricing, or FAQ, "
@@ -294,18 +298,37 @@ class LangGraphAgent:
                 continue
             text = res.content if isinstance(res.content, str) else ""
             if text.strip():
+                stripped = text.strip()
+                if stripped == GREETING_ANSWER and not is_bare_greeting(state.get("query", "")):
+                    logger.warning(
+                        "worker_greeting_misfire_regenerating",
+                        route=state.get("route"),
+                        query=str(state.get("query", ""))[:80],
+                    )
+                    result = await self._final_answer(
+                        llm, persona, state_messages, tool_contents, query=state.get("query", "")
+                    )
+                    if result.get("answer") == HONEST_REFUSAL:
+                        _evt(event="honest_refusal")
+                    return result
                 return {"answer": text, "sources": state.get("sources") or []}
-            result = await self._final_answer(llm, persona, state_messages, tool_contents)
+            result = await self._final_answer(llm, persona, state_messages, tool_contents, query=state.get("query", ""))
             if result.get("answer") == HONEST_REFUSAL:
                 _evt(event="honest_refusal")
             return result
-        result = await self._final_answer(llm, persona, state_messages, tool_contents)
+        result = await self._final_answer(llm, persona, state_messages, tool_contents, query=state.get("query", ""))
         if result.get("answer") == HONEST_REFUSAL:
             _evt(event="honest_refusal")
         return result
 
     async def _final_answer(
-        self, llm: ChatOpenAI, persona: str, history: list[dict[str, str]], tool_contents: list[str]
+        self,
+        llm: ChatOpenAI,
+        persona: str,
+        history: list[dict[str, str]],
+        tool_contents: list[str],
+        *,
+        query: str = "",
     ) -> dict[str, Any]:
         real = [
             c
@@ -329,7 +352,10 @@ class LangGraphAgent:
             text = res.content if isinstance(res.content, str) else ""
         except Exception:  # noqa: BLE001
             text = ""
-        return {"answer": text.strip() or HONEST_REFUSAL, "sources": []}
+        final = text.strip()
+        if final == GREETING_ANSWER and not is_bare_greeting(query):
+            final = HONEST_REFUSAL
+        return {"answer": final or HONEST_REFUSAL, "sources": []}
 
     def _ensure_graph(self) -> StateGraph:
         if self._graph is not None:

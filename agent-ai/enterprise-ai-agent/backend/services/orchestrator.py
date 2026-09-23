@@ -48,7 +48,7 @@ SYSTEM_PROMPT = """You are the enterprise AI assistant for Tryvium (an experienc
 - Skip headings, intro sentences, filler, and closing summaries unless the user explicitly asks for detail.
 - Avoid tables unless the question asks for a comparison or a full breakdown.
 - Only expand into detail when the user asks a detailed/complex question ("explain", "list all", "compare").
-- For simple greetings ("hi", "hello", "hey"), reply: "Hi! I'm your AI assistant. How can I help you today?"
+- Reply with the greeting ONLY when the user's entire message is a bare greeting (e.g. "hi", "hello", "hey", "good morning") with no question or request attached. NEVER respond with the greeting to an actual question — always answer what is asked.
 - Never include source references in your reply: no file names, page titles, document labels, citation numbers like "[1]", "[1,2]", or "(source ...)" notes, links, or URLs. Answer in plain text only.
 
 # Grounding rules (most important)
@@ -60,6 +60,23 @@ SYSTEM_PROMPT = """You are the enterprise AI assistant for Tryvium (an experienc
 """
 
 GUARDRAIL_ANSWER = "I could not complete an answer within the allowed tool iterations."
+
+HONEST_REFUSAL = "I don't have that information in the available materials yet."
+
+GREETING_ANSWER = "Hi! I'm your AI assistant. How can I help you today?"
+
+_GREETING_FULLMATCH = re.compile(
+    r"\s*(?:hi|hello|hey|hola|yo|hiya|greetings|namaste|good\s+(?:morning|afternoon|evening))"
+    r"(?:\s+(?:there|everyone|friends|thank\s+you|thanks|good\s+morning|good\s+afternoon|good\s+evening))*"
+    r"[\s!?.,]*",
+    re.IGNORECASE,
+)
+
+
+def is_bare_greeting(text: str) -> bool:
+    """True when the user's message is a bare greeting with no real question."""
+    collapsed = re.sub(r"\s+", " ", (text or "").strip())
+    return _GREETING_FULLMATCH.fullmatch(collapsed) is not None
 
 # Citation markers that gpt-oss-120b sometimes echoes ("[2]", "(source [2], [3])").
 # Stripped from final answers so replies stay clean; applied defensively.
@@ -183,6 +200,9 @@ class Orchestrator:
 
             if graph_answer and graph_answer.strip():
                 answer_text = strip_citations(graph_answer)
+                if answer_text == GREETING_ANSWER and not is_bare_greeting(user_text):
+                    logger.warning("assistant_greeting_misfire", query=user_text[:80])
+                    answer_text = HONEST_REFUSAL
                 yield {"type": "text_delta", "text": answer_text}
                 answer_parts.append(answer_text)
                 assistant_message_id = await self._persist_text(
@@ -220,7 +240,12 @@ class Orchestrator:
                 assistant_message_id = await self._persist_assistant(session, tenant_id, conversation_id, turn)
 
             answer_text = "".join(answer_parts)
-            if answer_text and not used_fallback and len(_response_cache) < _CACHE_MAX:
+            if (
+                answer_text
+                and not used_fallback
+                and not (answer_text == GREETING_ANSWER and not is_bare_greeting(user_text))
+                and len(_response_cache) < _CACHE_MAX
+            ):
                 _response_cache[cache_key] = answer_text
         except Exception as exc:
             logger.error("orchestration_failed", error=str(exc), exc_info=True)
