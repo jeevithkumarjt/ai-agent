@@ -63,7 +63,7 @@ GUARDRAIL_ANSWER = "I could not complete an answer within the allowed tool itera
 
 HONEST_REFUSAL = "I don't have that information in the available materials yet."
 
-GREETING_ANSWER = "Hi! I'm your AI assistant. How can I help you today?"
+GREETING_ANSWER = "Hey! I'm your AI assistant. How can I assist you today?"
 
 _GREETING_FULLMATCH = re.compile(
     r"\s*(?:hi|hello|hey|hola|yo|hiya|greetings|namaste|good\s+(?:morning|afternoon|evening))"
@@ -145,6 +145,18 @@ class Orchestrator:
         )
         await session.commit()
         yield {"type": "user_message", "content": user_text}
+
+        if is_bare_greeting(user_text):
+            greeting_message_id = await self._persist_text(
+                session, tenant_id, conversation_id, GREETING_ANSWER
+            )
+            yield {"type": "text_delta", "text": GREETING_ANSWER}
+            yield {
+                "type": "message_done",
+                "conversation_id": str(conversation_id),
+                "message_id": greeting_message_id,
+            }
+            return
 
         history = await self._load_history(session, conversation_id)
         messages = self._reconstruct_anthropic_messages(history)
