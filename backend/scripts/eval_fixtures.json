@@ -1,0 +1,32 @@
+{
+  "fixtures": [
+    {
+      "id": "products",
+      "question": "What products does Northwind offer?",
+      "expected_keywords": ["employee help desk", "customer service desk", "automation"],
+      "expected_sources": ["northwind-overview"],
+      "expect_refusal": false
+    },
+    {
+      "id": "pricing",
+      "question": "How is Northwind priced?",
+      "expected_keywords": ["per-seat", "enterprise", "annual"],
+      "expected_sources": ["northwind-pricing"],
+      "expect_refusal": false
+    },
+    {
+      "id": "deployment-cloud",
+      "question": "Which cloud platforms can Northwind be deployed on?",
+      "expected_keywords": ["Google Cloud", "AWS", "Azure"],
+      "expected_sources": ["northwind-security"],
+      "expect_refusal": false
+    },
+    {
+      "id": "acknowledge-missing",
+      "question": "Who founded Northwind?",
+      "expected_keywords": [],
+      "expected_sources": [],
+      "expect_refusal": true
+    }
+  ]
+}
